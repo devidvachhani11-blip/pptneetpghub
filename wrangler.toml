@@ -1,5 +1,16 @@
 name = "pptneetpghub"
+main = "worker.js"
 compatibility_date = "2025-01-01"
 
 [assets]
 directory = "."
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
+
+[[r2_buckets]]
+binding = "FILES"
+bucket_name = "pptneetpghub-files"
+
+[vars]
+PROJECT_ID = "pptneetpghub"
+ADMIN_EMAIL = "devid.vachhani11@gmail.com"
