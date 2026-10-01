@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PPTNEETPGHUB &middot; NEET PG 2027 Premium</title>
+<meta name="description" content="NEET PG 2027 Premium membership. Three phases, one payment. Resources organised subject-wise on the website, with INICET bonus resources included.">
+<meta name="theme-color" content="#0A1830">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import {
+    getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+  import {
+    getFirestore, collection, getDocs, doc, getDoc, setDoc, query, where, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC19L8F1NV-akV-2pWswnwh67RIQmzcCwY",
+    authDomain: "pptneetpghub.firebaseapp.com",
+    projectId: "pptneetpghub",
+    storageBucket: "pptneetpghub.firebasestorage.app",
+    messagingSenderId: "75959705573",
+    appId: "1:75959705573:web:f1b9ffcdb712fe2820190c",
+    measurementId: "G-0JCWHXMBWN"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const provider = new GoogleAuthProvider();
+
+  // Expose to the rest of the page's plain-script code
+  window.__fb = { auth, db, provider, signInWithPopup, signOut, onAuthStateChanged, collection, getDocs, doc, getDoc, setDoc, query, where, serverTimestamp };
+  window.dispatchEvent(new Event('fbReady'));
+</script>
+<style>
+  :root {
+    --ink: #141A22;
+    --paper: #FCFAF6;
+    --paper-alt: #F3F6F4;
+    --teal-deep: #0A1830;
+    --teal: #0F8F83;
+    --teal-tint: #E4F2EE;
+    --gold: #B28218;
+    --gold-b: #D4AF55;
+    --navy: #0A1830;
+    --gold-tint: #FFF8E8;
+    --gray: #6E7A8A;
+    --border: #DEE5EB;
+    --white: #FFFFFF;
+    --red: #B5352E;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: calc(78px + env(safe-area-inset-top, 0px)); }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; cursor: pointer; border: none; }
+
+  /* ---------- Header ---------- */
+  .site-header {
+    background: var(--teal-deep);
+    padding: 16px 28px;
+    padding-top: calc(16px + env(safe-area-inset-top, 0px));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    box-shadow: 0 2px 10px rgba(7, 74, 64, 0.18);
+  }
+  .brand {
+    font-weight: 800;
+    font-size: 19px;
+    color: var(--paper);
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1;
+    min-width: 0;
+  }
+  .brand .full-label { display: inline; }
+  .brand .short-label { display: none; color: inherit; }
+  .brand .full-label span { color: #E8C378; }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .header-nav {
+    display: flex;
+    gap: 26px;
+    align-items: center;
+  }
+  .header-nav a {
+    color: #BFE0D9;
+    font-size: 14.5px;
+    font-weight: 500;
+  }
+  .account-pill {
+    background: var(--teal);
+    color: var(--white);
+    padding: 9px 18px;
+    border-radius: 20px;
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+  .menu-toggle {
+    display: none;
+    background: transparent;
+    color: var(--paper);
+    font-size: 22px;
+    padding: 4px 8px;
+  }
+
+  /* ---------- Layout ---------- */
+  .layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: calc(100vh - 68px);
+  }
+  .sidebar {
+    background: var(--paper-alt);
+    border-right: 1px solid var(--border);
+    padding: 26px 20px;
+  }
+  .sidebar h3 {
+    font-size: 12.5px;
+    letter-spacing: 0.4px;
+    color: var(--gray);
+    font-weight: 600;
+    margin: 4px 0 16px 12px;
+  }
+  .subject-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    color: var(--ink);
+    font-size: 15px;
+    font-weight: 500;
+    padding: 12px 14px;
+    border-radius: 10px;
+    margin-bottom: 4px;
+  }
+  .subject-btn:hover { background: #EAF0EE; }
+  .subject-btn.active {
+    background: var(--teal-tint);
+    color: var(--teal-deep);
+    font-weight: 600;
+  }
+  .group-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 6px;
+    color: var(--gray);
+  }
+  .group-toggle .chevron {
+    font-size: 11px;
+    transition: transform 0.15s ease;
+    color: var(--gray);
+  }
+  .group-toggle .chevron.open {
+    transform: rotate(180deg);
+  }
+  .subject-subgroup {
+    margin-left: 6px;
+    padding-left: 10px;
+    border-left: 2px solid var(--border);
+  }
+  .subject-btn.nested {
+    font-size: 14px;
+    padding: 10px 14px;
+  }
+
+  .main {
+    padding: 56px 36px 60px;
+    max-width: 980px;
+    position: relative;
+    z-index: 1;
+  }
+  .main h1 {
+    font-size: 27px;
+    font-weight: 700;
+    margin: 8px 0 6px;
+  }
+  .main .lede {
+    color: var(--gray);
+    font-size: 15px;
+    margin: 0 0 28px;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 26px;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    background: var(--white);
+    border: 1px solid var(--border);
+    color: var(--gray);
+    padding: 9px 16px;
+    border-radius: 20px;
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+  .tab-btn.active {
+    background: var(--teal-deep);
+    color: var(--white);
+    border-color: var(--teal-deep);
+  }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 18px;
+  }
+  .card {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .card-icon {
+    width: 46px; height: 46px;
+    border-radius: 12px;
+    background: var(--teal-tint);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--teal-deep);
+  }
+  .card-title { font-size: 16px; font-weight: 600; }
+  .card-meta { font-size: 12.5px; color: var(--gray); margin-top: -8px; }
+  .card-action {
+    align-self: flex-start;
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--white);
+  }
+  .card-action.view { background: var(--teal); }
+  .card-action.download { background: var(--gold); }
+
+  .empty-state {
+    padding: 50px 20px;
+    text-align: center;
+    color: var(--gray);
+    border: 1.5px dashed var(--border);
+    border-radius: 16px;
+  }
+  .locked-state {
+    border-style: solid;
+    border-color: var(--gold);
+    background: var(--gold-tint);
+    padding: 44px 20px;
+  }
+  .locked-state .lock-icon {
+    color: var(--gold);
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: center;
+  }
+  .locked-state .locked-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .locked-state .locked-sub {
+    font-size: 14px;
+    color: var(--gray);
+  }
+  .contact-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 18px;
+    flex-wrap: wrap;
+  }
+  .contact-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--white);
+  }
+  .contact-btn.telegram { background: #229ED9; }
+  .contact-btn.whatsapp { background: #25D366; }
+
+  .access-note {
+    margin-top: 30px;
+    background: var(--gold-tint);
+    border: 1px solid var(--gold);
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    font-size: 13.5px;
+  }
+  .access-note strong { display: block; color: var(--gold); font-size: 15px; margin-bottom: 3px; }
+  .access-note p { margin: 0; color: #8A6A1A; }
+  #signedOutNote {
+    background: var(--paper-alt);
+    border-color: var(--border);
+  }
+  #signedOutNote strong { color: var(--ink); }
+  #signedOutNote p { color: var(--gray); }
+
+  /* ---------- Viewer overlay ---------- */
+  .viewer-overlay {
+    position: fixed; inset: 0;
+    background: rgba(20,26,34,0.55);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 100;
+    padding: 20px;
+  }
+  .viewer-overlay.open { display: flex; }
+  .viewer-panel {
+    background: var(--paper-alt);
+    width: min(900px, 100%);
+    max-height: 92vh;
+    border-radius: 18px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .viewer-bar {
+    background: var(--ink);
+    color: var(--white);
+    padding: 16px 22px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .viewer-bar .title { font-weight: 600; font-size: 15.5px; }
+  .viewer-bar .close-btn { background: transparent; color: #AEB6C0; font-size: 20px; }
+  .viewer-body {
+    padding: 16px;
+    overflow-x: auto;
+    overflow-y: auto;
+    flex: 1;
+    -webkit-overflow-scrolling: touch;
+  }
+  .fake-page {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .fake-page .q { font-weight: 600; margin-bottom: 16px; }
+    .fake-page .opt { color: #444; font-size: 14.5px; margin-bottom: 10px; padding-left: 6px; }
+  .fake-page .expl { color: var(--teal-deep); font-weight: 600; margin-top: 18px; font-size: 14px; }
+  .fake-line { background: #EEF0F3; height: 10px; border-radius: 4px; margin-top: 10px; width: 85%; }
+  .watermark {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 38px; font-weight: 800; color: rgba(180,180,180,0.28);
+    transform: rotate(-24deg);
+    pointer-events: none;
+  }
+  .viewer-footer {
+    padding: 14px 22px;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--white);
+  }
+  .page-pill {
+    background: var(--paper-alt);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .disabled-btn {
+    background: #E4E6EA; color: #9AA0A8;
+    padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 600;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .pdf-wrap {
+    position: relative;
+    display: inline-flex;
+    min-width: 100%;
+    justify-content: center;
+    background: var(--paper-alt);
+    border-radius: 10px;
+    min-height: 300px;
+  }
+  .pdf-wrap canvas {
+    display: block;
+    border-radius: 6px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    /* Blocks the most common "long-press to save image" path on mobile */
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    pointer-events: none;
+  }
+  .wm-email { position: absolute; inset: 0; pointer-events: none; background-repeat: repeat; z-index: 2; }
+  .pdf-loading {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gray); font-size: 14px;
+  }
+  .pdf-nav {
+    display: flex; gap: 8px;
+  }
+  .nav-btn {
+    background: var(--paper-alt);
+    border: 1px solid var(--border);
+    color: var(--ink);
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .nav-btn:disabled { opacity: 0.4; }
+
+  .toast {
+    position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%);
+    background: var(--teal-deep); color: var(--white);
+    padding: 13px 22px; border-radius: 12px; font-size: 14px; font-weight: 500;
+    display: none; align-items: center; gap: 10px;
+    z-index: 200;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  }
+  .toast.show { display: flex; }
+  .toast.error { background: var(--red); }
+
+  @media (max-width: 820px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar {
+      display: none;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar.open { display: block; }
+    .header-nav { display: none; }
+    .menu-toggle { display: block; }
+    .main { padding: 44px 18px 50px; }
+  }
+
+  @media (max-width: 480px) {
+    .site-header { padding: 14px 16px; padding-top: calc(14px + env(safe-area-inset-top, 0px)); }
+    .brand { font-size: 16px; }
+    .brand .full-label { display: none; }
+    .brand .short-label { display: inline; }
+    .account-pill { padding: 8px 12px; font-size: 12px; }
+    .menu-toggle { font-size: 20px; padding: 2px 4px; }
+  }
+
+  /* =====================================================
+     LANDING (brochure identity: navy + gold, Poppins)
+     ===================================================== */
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  html, body { height: auto; min-height: 100%; }
+  button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--gold-b); outline-offset: 2px;
+  }
+
+  .splash { display: none; }
+  body.booting .splash {
+    display: flex; position: fixed; inset: 0; z-index: 300;
+    align-items: center; justify-content: center;
+    background: var(--navy); color: var(--gold-b);
+    font-weight: 800; font-size: 18px; letter-spacing: 0.4px;
+  }
+  body.booting #landingView, body.booting #libraryView { visibility: hidden; }
+
+  .container { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+  /* buttons */
+  .btn-gold, .btn-ghost-light, .btn-navy, .btn-white {
+    font-family: inherit; font-weight: 700; line-height: 1.2;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    border-radius: 12px; padding: 12px 22px; font-size: 14.5px; text-align: center;
+  }
+  .btn-gold { background: linear-gradient(135deg, #C9A24B, #EACF85); color: var(--navy); }
+  .btn-ghost-light { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,0.3); }
+  .btn-navy { background: var(--navy); color: #fff; }
+  .btn-white { background: #fff; color: var(--navy); border: 1.5px solid #D9D2BE; }
+  .btn-gold.sm, .btn-ghost-light.sm { padding: 8px 15px; font-size: 13px; border-radius: 20px; }
+  .btn-gold.big, .btn-ghost-light.big, .btn-navy.big, .btn-white.big { padding: 15px 28px; font-size: 15.5px; }
+  .btn-gold:disabled, .btn-navy:disabled { opacity: 0.6; }
+  .block { width: 100%; }
+
+  /* header */
+  .l-header {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(10, 24, 48, 0.94);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    padding: 12px 0; padding-top: calc(12px + env(safe-area-inset-top, 0px));
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .lh-in { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .l-brand { font-weight: 800; font-size: 17px; color: #fff; white-space: nowrap; }
+  .l-brand i { font-style: normal; color: var(--gold-b); margin: 0 4px; }
+  .l-nav { display: flex; gap: 24px; }
+  .l-nav a { color: #B4C0D6; font-size: 14px; font-weight: 500; }
+  .l-nav a:hover { color: #fff; }
+  .l-actions { display: flex; gap: 8px; align-items: center; }
+
+  /* hero */
+  .hero {
+    position: relative; overflow: hidden; color: #fff;
+    background:
+      radial-gradient(800px 460px at 88% -5%, rgba(212,175,85,0.20), transparent 62%),
+      radial-gradient(700px 520px at -5% 105%, rgba(15,143,131,0.30), transparent 60%),
+      var(--navy);
+    padding: 60px 0 0;
+  }
+  .hero::before, .hero::after {
+    content: ""; position: absolute; border-radius: 50%; pointer-events: none;
+    border: 1px solid rgba(212,175,85,0.30);
+  }
+  .hero::before { width: 560px; height: 560px; right: -150px; top: 70px; }
+  .hero::after { width: 860px; height: 860px; right: -300px; top: -110px; border-color: rgba(212,175,85,0.11); }
+  .hero .container { position: relative; z-index: 1; }
+  .tag {
+    display: inline-block; background: var(--gold-b); color: var(--navy);
+    font-weight: 800; font-size: 11.5px; letter-spacing: 1.6px;
+    padding: 7px 12px; border-radius: 6px;
+  }
+  .hero h1 {
+    font-size: clamp(36px, 8vw, 68px); line-height: 1.04; font-weight: 800;
+    letter-spacing: -0.6px; margin: 22px 0 0; max-width: 760px;
+  }
+  .hero h1 span { display: block; color: var(--gold-b); }
+  .hero .lede { color: #E6EBF5; font-size: clamp(16px, 3vw, 20px); font-weight: 500; margin: 20px 0 8px; max-width: 520px; }
+  .hero .sub { color: #A9B6CE; font-size: 14.5px; line-height: 1.65; margin: 0 0 22px; max-width: 520px; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+  .chip {
+    border: 1px solid rgba(212,175,85,0.5); color: #EAD9A8;
+    border-radius: 20px; padding: 7px 14px; font-size: 12.5px;
+  }
+  .hero-cta { display: flex; gap: 10px; flex-wrap: wrap; }
+  .hero-note { color: #8695B0; font-size: 12.5px; margin: 12px 0 0; }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    margin-top: 46px; border-top: 1px solid rgba(255,255,255,0.12); border-bottom: 1px solid rgba(255,255,255,0.12);
+  }
+  .stat { padding: 18px 6px; text-align: center; border-left: 1px solid rgba(255,255,255,0.10); }
+  .stat:first-child { border-left: none; }
+  .stat b { display: block; font-size: clamp(22px, 5vw, 30px); font-weight: 800; color: var(--gold-b); }
+  .stat span { font-size: 11.5px; color: #8F9DB8; letter-spacing: 0.6px; }
+
+  .offer {
+    margin: 26px 0 0; padding: 20px 26px; border-radius: 16px; color: var(--navy);
+    background: linear-gradient(120deg, #C9A24B, #EBD288);
+    display: flex; justify-content: space-between; align-items: center; gap: 14px;
+  }
+  .offer .of-k { font-size: 12px; font-weight: 700; letter-spacing: 1px; opacity: 0.8; }
+  .offer .of-t { font-size: clamp(17px, 3.6vw, 22px); font-weight: 800; margin-top: 2px; }
+  .offer .of-p { font-size: clamp(32px, 7vw, 46px); font-weight: 800; line-height: 1; text-align: right; }
+  .offer .of-p small { display: block; font-size: 12px; font-weight: 600; opacity: 0.8; }
+  .hero-end { height: 52px; }
+
+  /* sections */
+  .sec { padding: 68px 0; }
+  .sec.cream { background: #FBF8F1; }
+  .sec.white { background: #fff; }
+  .sec.dark { background: var(--navy); color: #fff; }
+  .sec-head { border-left: 4px solid var(--bar, var(--gold-b)); padding-left: 16px; margin-bottom: 30px; }
+  .sec-head h2 { margin: 0; font-size: clamp(27px, 5.4vw, 40px); font-weight: 800; letter-spacing: -0.4px; color: var(--navy); line-height: 1.12; }
+  .sec-head p { margin: 8px 0 0; color: var(--gray); font-size: 15px; max-width: 560px; }
+  .dark .sec-head h2 { color: #fff; }
+  .dark .sec-head p { color: #A9B6CE; }
+
+  .grp { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 14px; color: var(--navy); margin: 32px 0 14px; }
+  .grp::after { content: ""; flex: 1; height: 1px; background: #E4DBC5; }
+  .fgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .fgrid.two { grid-template-columns: repeat(2, 1fr); }
+  .fcard {
+    background: #fff; border-radius: 14px; border-top: 3px solid var(--c, var(--gold-b));
+    padding: 18px; display: flex; gap: 14px; align-items: flex-start;
+    box-shadow: 0 1px 2px rgba(10,24,48,0.05), 0 8px 22px rgba(10,24,48,0.04);
+  }
+  .fcard .em { font-size: 26px; line-height: 1; }
+  .fcard h4 { margin: 0 0 3px; font-size: 15px; font-weight: 700; color: var(--navy); }
+  .fcard p { margin: 0; font-size: 13px; color: var(--gray); line-height: 1.5; }
+
+  /* compare */
+  .cmp { border-radius: 16px; overflow: hidden; border: 1px solid #E7E0CF; background: #fff; }
+  .cmp-row { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid #EFE9DA; }
+  .cmp-row:first-child { border-top: none; }
+  .cmp-row > div { padding: 15px 16px; font-size: 14px; display: flex; gap: 10px; align-items: flex-start; line-height: 1.45; }
+  .cmp-row .l { background: #FAF8F3; color: #8A8F9A; }
+  .cmp-row .r { font-weight: 600; color: var(--navy); }
+  .cmp-head > div { font-weight: 800; font-size: 12.5px; letter-spacing: 1.2px; align-items: center; }
+  .cmp-head .l { background: #EFE9DD; color: #8A8576; }
+  .cmp-head .r { background: var(--navy); color: var(--gold-b); }
+  .mk { flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 800; margin-top: 1px; }
+  .mk.x { background: #E9E3D3; color: #8A8576; }
+  .mk.ok { background: var(--teal); color: #fff; }
+  .promise { margin-top: 22px; background: var(--navy); color: #fff; border-radius: 16px; padding: 24px 26px; display: flex; gap: 16px; }
+  .promise .q { font-size: 44px; line-height: 0.8; color: var(--gold-b); font-weight: 800; }
+  .promise h4 { margin: 0 0 6px; color: var(--gold-b); font-size: 17px; }
+  .promise p { margin: 0; color: #DCE3F0; font-size: 14.5px; line-height: 1.65; }
+
+  .cta-row { text-align: center; padding: 38px 0 0; }
+  .cta-row h3 { margin: 0 0 4px; font-size: clamp(20px, 4vw, 26px); font-weight: 800; color: var(--navy); }
+  .cta-row p { margin: 0 0 16px; color: var(--gray); font-size: 14px; }
+  .dark .cta-row h3, .cta-dark h3 { color: #fff; }
+
+  /* tests */
+  .mini-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+  .mini-steps div { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10); border-radius: 12px; padding: 14px; font-size: 13.5px; font-weight: 600; color: #fff; display: flex; gap: 10px; align-items: center; }
+  .mini-steps b { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; background: var(--gold-b); color: var(--navy); display: grid; place-items: center; font-size: 13px; }
+  .tgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .tcard { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-left: 3px solid var(--c); border-radius: 14px; padding: 20px; }
+  .tcard .te { font-size: 26px; }
+  .tcard h4 { margin: 8px 0 2px; font-size: 17px; font-weight: 700; color: #fff; }
+  .tcard .tl2 { font-size: 12.5px; font-weight: 700; color: var(--c); margin-bottom: 12px; }
+  .tcard ul { margin: 0; padding-left: 18px; color: #C7D0E0; font-size: 13.5px; line-height: 1.8; }
+  .why { margin-top: 18px; background: rgba(15,143,131,0.14); border-left: 3px solid var(--teal); border-radius: 12px; padding: 15px 18px; font-size: 14px; color: #D4F0EC; line-height: 1.6; }
+  .why b { color: #fff; }
+
+  /* journey */
+  .tl { list-style: none; margin: 0; padding: 0; }
+  .tl li { position: relative; padding: 0 0 18px 62px; }
+  .tl li::before { content: ""; position: absolute; left: 21px; top: 44px; bottom: 0; width: 2px; background: #E2D9C4; }
+  .tl li:last-child::before { display: none; }
+  .tl .dot { position: absolute; left: 0; top: 0; width: 44px; height: 44px; border-radius: 50%; background: var(--c); color: #fff; font-weight: 800; font-size: 17px; display: grid; place-items: center; }
+  .tl .box { background: #fff; border-radius: 14px; border-left: 3px solid var(--c); padding: 15px 18px; box-shadow: 0 1px 2px rgba(10,24,48,0.05), 0 8px 22px rgba(10,24,48,0.04); }
+  .tl h4 { margin: 0 0 3px; font-size: 16px; font-weight: 700; color: var(--navy); }
+  .tl p { margin: 0; font-size: 13.5px; color: var(--gray); line-height: 1.55; }
+  .note-rose { margin-top: 6px; background: #FAECF0; border-left: 3px solid #C4456B; border-radius: 12px; padding: 15px 18px; font-size: 13.5px; color: #4A3340; line-height: 1.65; }
+  .note-rose b { color: #C4456B; }
+  .agrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
+  .acard { background: var(--navy); color: #fff; border-radius: 14px; padding: 20px 14px; text-align: center; border-top: 3px solid var(--c); }
+  .acard .ae { font-size: 26px; }
+  .acard h4 { margin: 8px 0 2px; font-size: 14.5px; font-weight: 700; }
+  .acard p { margin: 0; font-size: 12.5px; color: #98A7C2; }
+
+  /* pricing */
+  .tiers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: center; padding-top: 14px; }
+  .tier { position: relative; background: #fff; border: 1px solid #E7E0CF; border-radius: 16px; padding: 22px 12px; text-align: center; }
+  .tier .nm { font-size: 13px; font-weight: 700; color: var(--gray); }
+  .tier .am { font-size: clamp(26px, 5vw, 36px); font-weight: 800; color: var(--navy); margin: 4px 0; }
+  .tier .sb { font-size: 12.5px; color: var(--gray); line-height: 1.4; }
+  .tier.now { background: var(--navy); border-color: var(--gold-b); padding: 32px 12px; box-shadow: 0 14px 34px rgba(10,24,48,0.25); }
+  .tier.now .nm { color: var(--gold-b); }
+  .tier.now .am { color: #fff; }
+  .tier.now .sb { color: #AEBBD2; }
+  .now-tag { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--gold-b); color: var(--navy); font-size: 11px; font-weight: 800; padding: 4px 12px; border-radius: 12px; white-space: nowrap; }
+  .rise { display: flex; align-items: center; gap: 12px; margin-top: 26px; font-size: 12.5px; font-weight: 600; color: var(--gray); }
+  .rise::before, .rise::after { content: ""; height: 3px; flex: 1; border-radius: 2px; }
+  .rise::before { background: linear-gradient(90deg, var(--teal), #8DB36A); }
+  .rise::after { background: linear-gradient(90deg, #D98B54, #C4456B); }
+  .cta-dark { background: var(--navy); color: #fff; border-radius: 20px; padding: 30px 26px; margin-top: 30px; text-align: center; border: 1px solid rgba(212,175,85,0.4); }
+  .cta-dark h3 { margin: 0 0 6px; font-size: clamp(22px, 4.6vw, 30px); font-weight: 800; }
+  .cta-dark h3 span { color: var(--gold-b); }
+  .cta-dark p { margin: 0 0 18px; color: #A9B6CE; font-size: 14px; }
+
+  /* join */
+  #join { scroll-margin-top: 72px; }
+  .join-wrap { max-width: 760px; margin: 0 auto; }
+  .steps { display: flex; list-style: none; padding: 0; margin: 0 0 22px; }
+  .steps li { flex: 1; text-align: center; position: relative; font-size: 12px; font-weight: 600; color: var(--gray); }
+  .steps li::before { content: ""; position: absolute; top: 15px; left: -50%; width: 100%; height: 2px; background: #E2D9C4; }
+  .steps li:first-child::before { display: none; }
+  .steps .sn { position: relative; z-index: 1; display: grid; place-items: center; width: 32px; height: 32px; margin: 0 auto 6px; border-radius: 50%; background: #fff; border: 2px solid #E2D9C4; font-weight: 800; font-size: 13px; color: var(--gray); }
+  .steps li.active .sn { background: var(--gold-b); border-color: var(--gold-b); color: var(--navy); }
+  .steps li.done .sn { background: var(--teal); border-color: var(--teal); color: #fff; }
+  .steps li.done::before, .steps li.active::before { background: var(--teal); }
+  .steps li.active .sl, .steps li.done .sl { color: var(--navy); }
+
+  .join-card { background: #fff; border: 1px solid #E7E0CF; border-radius: 20px; padding: 26px; box-shadow: 0 12px 40px rgba(10,24,48,0.08); }
+  .join-card.center { text-align: center; }
+  .join-card h3 { margin: 2px 0 6px; font-size: 20px; font-weight: 800; color: var(--navy); }
+  .join-card p { color: var(--gray); font-size: 14px; line-height: 1.6; margin: 0 0 14px; }
+  .jc-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .jc-kick { font-size: 12.5px; font-weight: 700; color: var(--gold); }
+  .jc-amt { font-size: 32px; font-weight: 800; color: var(--navy); line-height: 1; }
+  .jc-note { color: var(--gray); font-size: 13px; }
+  .jc-sep { border: 0; border-top: 1px dashed #DDD3BC; margin: 24px 0; }
+  .pay-alert { background: #FBEAE9; border: 1px solid var(--red); color: var(--red); border-radius: 10px; padding: 10px 14px; font-size: 13.5px; margin: 12px 0 0; }
+  .pay-body { display: grid; grid-template-columns: 200px 1fr; gap: 24px; align-items: start; margin-top: 16px; }
+  .qr-box { background: #fff; border: 1.5px solid var(--border); border-radius: 14px; padding: 8px; width: 200px; }
+  .qr-box img { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+  .qr-cap { text-align: center; font-size: 12px; color: var(--gray); margin-top: 6px; }
+  .pay-label { font-size: 12.5px; font-weight: 600; color: var(--gray); margin: 0 0 6px; }
+  .upi-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .upi-id { flex: 1; min-width: 0; background: var(--paper-alt); border: 1.5px solid var(--border); border-radius: 10px; padding: 11px 12px; font-size: 14.5px; font-weight: 600; word-break: break-all; user-select: all; -webkit-user-select: all; }
+  .copy-btn { background: var(--teal-tint); color: var(--navy); font-weight: 700; font-size: 13.5px; padding: 0 16px; border-radius: 10px; flex-shrink: 0; }
+  .pay-hint { font-size: 13px; color: var(--gray); line-height: 1.6; margin: 12px 0 0; }
+  .pay-hint b { color: var(--navy); }
+  .fld { display: block; font-size: 13px; font-weight: 600; color: var(--gray); margin: 14px 0 6px; }
+  .inp { width: 100%; padding: 13px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 16px; font-family: inherit; background: var(--paper-alt); color: var(--ink); }
+  .inp:focus { outline: 2px solid var(--teal); outline-offset: 1px; background: #fff; }
+  .inp.utr { letter-spacing: 1.5px; font-weight: 600; }
+  .who { font-size: 12.5px; color: var(--gray); margin: 14px 0 0; text-align: center; }
+  .who b { color: var(--navy); overflow-wrap: anywhere; }
+  .linkbtn { background: none; color: var(--teal); font-weight: 600; font-size: 12.5px; text-decoration: underline; padding: 0 2px; }
+  .ring { width: 56px; height: 56px; border-radius: 50%; background: var(--gold-tint); color: var(--gold); display: grid; place-items: center; margin: 0 auto 12px; }
+  .utr-tag { display: inline-block; background: var(--gold-tint); border: 1px solid var(--gold); color: #8A6A1A; border-radius: 20px; padding: 5px 14px; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .next { text-align: left; list-style: none; padding: 0; margin: 18px auto 18px; max-width: 460px; counter-reset: n; }
+  .next li { position: relative; padding: 0 0 14px 40px; font-size: 13.5px; color: var(--gray); line-height: 1.55; counter-increment: n; }
+  .next li::before { content: counter(n); position: absolute; left: 0; top: 0; width: 26px; height: 26px; border-radius: 50%; background: var(--navy); color: var(--gold-b); display: grid; place-items: center; font-size: 12.5px; font-weight: 800; }
+  .next b { color: var(--navy); }
+  .help-line { text-align: center; margin-top: 22px; font-size: 12.5px; color: var(--gray); }
+
+  /* faq + footer */
+  .faq details { background: #fff; border: 1px solid #E7E0CF; border-radius: 12px; margin-bottom: 10px; padding: 0 18px; }
+  .faq summary { cursor: pointer; font-weight: 600; font-size: 14.5px; padding: 16px 0; list-style: none; display: flex; justify-content: space-between; gap: 12px; color: var(--navy); }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: "+"; color: var(--gold); font-weight: 800; font-size: 18px; line-height: 1; }
+  .faq details[open] summary::after { content: "\2013"; }
+  .faq details p { margin: 0 0 16px; color: var(--gray); font-size: 14px; line-height: 1.65; }
+  .l-footer { background: var(--navy); color: #A9B6CE; padding: 36px 0 44px; padding-bottom: calc(44px + env(safe-area-inset-bottom, 0px)); text-align: center; font-size: 13px; }
+  .l-footer .fb { color: #fff; font-weight: 800; font-size: 17px; margin-bottom: 6px; }
+  .l-footer p { margin: 4px 0 0; }
+
+  @media (max-width: 820px) {
+    .fgrid { grid-template-columns: repeat(2, 1fr); }
+    .tgrid { grid-template-columns: 1fr; }
+    .l-nav { display: none; }
+    .hero::before { width: 380px; height: 380px; right: -170px; top: 130px; }
+    .hero::after { width: 600px; height: 600px; right: -300px; top: -60px; }
+  }
+  @media (max-width: 640px) {
+    .sec { padding: 52px 0; }
+    .fgrid, .fgrid.two { grid-template-columns: 1fr; }
+    .mini-steps { grid-template-columns: 1fr; }
+    .tiers { grid-template-columns: repeat(2, 1fr); gap: 20px 12px; }
+    .agrid { grid-template-columns: 1fr; }
+    .access-main { padding: 18px; }
+    .pay-body { grid-template-columns: 1fr; gap: 16px; }
+    .qr-box { margin: 0 auto; }
+    .join-card { padding: 22px 16px; }
+    .cmp-row > div { padding: 13px 12px; font-size: 13px; }
+    .promise { padding: 20px 18px; }
+    .l-brand { font-size: 15px; }
+    .l-brand span, .l-brand i { display: none; }
+    .hero-cta .big { width: 100%; }
+    .offer { padding: 18px 18px; }
+  }
+
+  .access-main { display: flex; gap: 16px; align-items: flex-start; background: var(--navy); color: #fff; border-radius: 16px; padding: 22px 24px; border: 1px solid rgba(212,175,85,0.55); border-top: 3px solid var(--gold-b); }
+  .access-main .ae { font-size: 30px; line-height: 1; }
+  .access-main h4 { margin: 0 0 4px; font-size: 17px; font-weight: 700; }
+  .access-main p { margin: 0; font-size: 14px; color: #B4C0D6; line-height: 1.6; }
+  .opt-note { text-align: center; color: var(--gray); font-size: 14px; margin: 18px 0 0; }
+  .tg-note { margin-top: 16px; background: var(--teal-tint); border-left: 3px solid var(--teal); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #2C4A47; line-height: 1.6; }
+  .tg-note b { color: var(--navy); }
+  .tier .bn { font-size: 12.5px; font-weight: 700; color: var(--teal); margin-top: 2px; }
+  .tier .ph { font-size: 12.5px; font-weight: 700; color: var(--navy); margin-top: 12px; padding-top: 12px; border-top: 1px dashed #DDD3BC; }
+  .tier.now .ph { color: #fff; border-top-color: rgba(255,255,255,0.25); }
+  .tier.now .bn { color: var(--gold-b); }
+</style>
+</head>
+<body class="booting">
+
+<div class="splash">PPTNEETPGHUB</div>
+
+<!-- ================= LANDING ================= -->
+<div id="landingView">
+
+<header class="l-header">
+  <div class="container lh-in">
+    <a class="l-brand" href="#top">PPTNEETPGHUB <i>&middot;</i><span>Premium</span></a>
+    <nav class="l-nav">
+      <a href="#features">What you get</a>
+      <a href="#journey">Journey</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="l-actions">
+      <button class="btn-ghost-light sm" id="lhSignIn">Sign in</button>
+      <button class="btn-gold sm" data-go="join">Go Premium</button>
+    </div>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <div class="container">
+    <span class="tag">PPTNEETPGHUB PREMIUM</span>
+    <h1>Crack NEET PG 2027 <span>one phase at a time.</span></h1>
+    <p class="lede">Three phases. One payment. Complete preparation, step by step.</p>
+    <p class="sub">Every resource, organised subject-wise on this website and released as you progress. INICET bonus resources included.</p>
+    <div class="chips">
+      <span class="chip">+ INICET Bonus Resources</span>
+      <span class="chip">Telegram Premium included (optional)</span>
+    </div>
+    <div class="hero-cta">
+      <button class="btn-gold big" data-go="join">Go Premium &middot; <span data-price>&#8377;500</span></button>
+      <button class="btn-ghost-light big" id="heroSignIn">Member sign in</button>
+    </div>
+    <p class="hero-note">Already a member? Sign in to open your library.</p>
+
+    <div class="stats">
+      <div class="stat"><b>3</b><span>Phases</span></div>
+      <div class="stat"><b>19</b><span>Subjects</span></div>
+      <div class="stat"><b>HTML</b><span>Timed tests</span></div>
+      <div class="stat"><b>1&times;</b><span>Payment</span></div>
+    </div>
+    <div class="offer" id="offerBand"></div>
+    <div class="hero-end"></div>
+  </div>
+</section>
+
+<section class="sec cream" id="features">
+  <div class="container">
+    <div class="sec-head" style="--bar:var(--gold-b)">
+      <h2>Everything in one place.</h2>
+      <p>Resources, tests and exam skills, all included in one membership.</p>
+    </div>
+
+    <div class="grp">Resources</div>
+    <div class="fgrid">
+      <div class="fcard"><span class="em">&#128216;</span><div><h4>High-Yield Resources</h4><p>Exam-focused notes for every subject</p></div></div>
+      <div class="fcard"><span class="em">&#128194;</span><div><h4>PYT &middot; 5 Years</h4><p>Previous year topics, subject-wise</p></div></div>
+      <div class="fcard"><span class="em">&#128218;</span><div><h4>PYQ Bank</h4><p>Subject-wise past questions</p></div></div>
+      <div class="fcard"><span class="em">&#129504;</span><div><h4>Mnemonics</h4><p>Remember lists and facts fast</p></div></div>
+      <div class="fcard"><span class="em">&#9889;</span><div><h4>Flash Cards</h4><p>Weekly series for quick recall</p></div></div>
+      <div class="fcard"><span class="em">&#128444;&#65039;</span><div><h4>Image-Based Questions</h4><p>With answers and explanations</p></div></div>
+      <div class="fcard"><span class="em">&#128293;</span><div><h4>Final Fire Files</h4><p>Last-month must-know facts</p></div></div>
+      <div class="fcard"><span class="em">&#128221;</span><div><h4>Quick Revision Files</h4><p>Rapid revision before the exam</p></div></div>
+      <div class="fcard"><span class="em">&#127381;</span><div><h4>New Updates</h4><p>Latest guidelines and changes</p></div></div>
+    </div>
+
+    <div class="grp">Tests</div>
+    <div class="fgrid" style="--c:var(--teal)">
+      <div class="fcard"><span class="em">&#9201;&#65039;</span><div><h4>Instant Answer Tests</h4><p>Answer and explanation right away</p></div></div>
+      <div class="fcard"><span class="em">&#127919;</span><div><h4>Mock Tests</h4><p>Regular practice as you move through the syllabus</p></div></div>
+      <div class="fcard"><span class="em">&#127942;</span><div><h4>Grand Tests</h4><p>Full-length HTML tests with a built-in timer</p></div></div>
+    </div>
+
+    <div class="grp">Exam skills</div>
+    <div class="fgrid two" style="--c:#C4456B">
+      <div class="fcard"><span class="em">&#128269;</span><div><h4>Long Vignette Tricks</h4><p>Find the key clue fast in long clinical cases</p></div></div>
+      <div class="fcard"><span class="em">&#9888;&#65039;</span><div><h4>Trap Question Guide</h4><p>Spot the traps that cost easy marks</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec white" id="why">
+  <div class="container">
+    <div class="sec-head" style="--bar:#C4456B">
+      <h2>Not a resource dump.</h2>
+      <p>Other places hand you everything at once. We guide you step by step.</p>
+    </div>
+    <div class="cmp">
+      <div class="cmp-row cmp-head"><div class="l">ELSEWHERE</div><div class="r">WITH US</div></div>
+      <div class="cmp-row"><div class="l"><span class="mk x">&times;</span>Resources only, then you're on your own</div><div class="r"><span class="mk ok">&#10003;</span>Resources plus an active discussion group</div></div>
+      <div class="cmp-row"><div class="l"><span class="mk x">&times;</span>10,000 PYQs dropped at once</div><div class="r"><span class="mk ok">&#10003;</span>Step-by-step, fresh drops</div></div>
+      <div class="cmp-row"><div class="l"><span class="mk x">&times;</span>1,000 image questions in one go</div><div class="r"><span class="mk ok">&#10003;</span>Released as you progress</div></div>
+      <div class="cmp-row"><div class="l"><span class="mk x">&times;</span>1,000 flash cards dumped together</div><div class="r"><span class="mk ok">&#10003;</span>A new flash card series every week</div></div>
+      <div class="cmp-row"><div class="l"><span class="mk x">&times;</span>1,000-question tests, dropped one time</div><div class="r"><span class="mk ok">&#10003;</span>Regular tests matched to your stage</div></div>
+      <div class="cmp-row"><div class="l"><span class="mk x">&times;</span>Final-month files cost extra</div><div class="r"><span class="mk ok">&#10003;</span>Final files included, dropped after student review</div></div>
+      <div class="cmp-row"><div class="l"><span class="mk x">&times;</span>Mistakes in resources stay there</div><div class="r"><span class="mk ok">&#10003;</span>Report it in the group and it gets fixed</div></div>
+    </div>
+    <div class="promise">
+      <span class="q">&ldquo;</span>
+      <div>
+        <h4>Our promise to you</h4>
+        <p>If you find a mistake in any resource, drop it in the discussion group and I'll fix it. If you're stuck anywhere, ask. I'll help you.</p>
+      </div>
+    </div>
+    <div class="cta-row">
+      <h3>Ready to follow a plan?</h3>
+      <p>Join in a few minutes. Pay by UPI, no card needed.</p>
+      <button class="btn-gold big" data-go="join">Go Premium &middot; <span data-price>&#8377;500</span></button>
+    </div>
+  </div>
+</section>
+
+<section class="sec dark" id="tests">
+  <div class="container">
+    <div class="sec-head" style="--bar:var(--teal)">
+      <h2>Practise like it's exam day.</h2>
+      <p>HTML tests with a working timer and clear explanations. No extra setup.</p>
+    </div>
+    <div class="mini-steps">
+      <div><b>1</b>Pick a test</div>
+      <div><b>2</b>Answer it</div>
+      <div><b>3</b>Review explanations</div>
+    </div>
+    <div class="tgrid">
+      <div class="tcard" style="--c:#2BB5A6"><div class="te">&#9201;&#65039;</div><h4>Instant Answer Test</h4><div class="tl2">For quick revision</div>
+        <ul><li>See the correct answer instantly</li><li>Explanation after every question</li><li>Learn while you test</li></ul></div>
+      <div class="tcard" style="--c:#5AA0F0"><div class="te">&#127919;</div><h4>Mock Test</h4><div class="tl2">For practice</div>
+        <ul><li>Practise topics as you finish them</li><li>Build speed and accuracy</li><li>Find weak areas early</li></ul></div>
+      <div class="tcard" style="--c:var(--gold-b)"><div class="te">&#127942;</div><h4>Grand Test</h4><div class="tl2">For the real exam feel</div>
+        <ul><li>Full-length HTML test</li><li>Strict built-in time limit</li><li>Real exam-pattern pressure</li></ul></div>
+    </div>
+    <div class="why"><b>Why HTML tests?</b> They open directly with a working timer, so you practise under real time pressure without any extra setup.</div>
+  </div>
+</section>
+
+<section class="sec cream" id="journey">
+  <div class="container">
+    <div class="sec-head" style="--bar:#6F4CC9">
+      <h2>Three phases to exam day.</h2>
+      <p>Each phase builds on the last. Fresh content, released step by step.</p>
+    </div>
+    <ol class="tl">
+      <li style="--c:#E07B2E"><span class="dot">0</span><div class="box"><h4>Warm-Up Test Series</h4><p>From 28 Sep 2026 &middot; mixed-subject tests, image-based question PDFs, weekly flash cards</p></div></li>
+      <li style="--c:#0F8F83"><span class="dot">1</span><div class="box"><h4>Phase 1 &middot; Foundation</h4><p>15 Nov 2026 &ndash; 14 Mar 2027 &middot; all 19 subjects, PYQ bank, Grand Tests</p></div></li>
+      <li style="--c:#C4456B"><span class="dot">2</span><div class="box"><h4>Phase 2 &middot; Advanced</h4><p>Moderate-to-hard questions, integrated vignettes, image-based practice, most-forgotten topics</p></div></li>
+      <li style="--c:#6F4CC9"><span class="dot">3</span><div class="box"><h4>Phase 3 &middot; Final</h4><p>Clinical vignette practice, Final Fire files, new updates, final Grand Tests</p></div></li>
+    </ol>
+    <div class="note-rose"><b>Timeline note:</b> Phase 1 is planned to finish on <b>14 March 2027</b>. If a file is ever delayed for a genuine reason, don't worry. It will be released as soon as possible. Our firm aim is to complete Phase 1 before <b>1 April 2027</b>.</div>
+
+    <div class="grp" style="margin-top:38px">Your access</div>
+    <div class="access-main">
+      <div class="ae">&#128218;</div>
+      <div>
+        <h4>Member library on this website</h4>
+        <p>All your NEET PG resources, organised subject-wise, plus the INICET bonus resources. This is the main part of your membership.</p>
+      </div>
+    </div>
+    <div class="grp">Telegram Premium &middot; optional, included</div>
+    <div class="agrid">
+      <div class="acard" style="--c:var(--gold-b)"><div class="ae">&#128279;</div><h4>NEET PG 2027 Premium Channel</h4><p>All 3 phases</p></div>
+      <div class="acard" style="--c:#5AA0F0"><div class="ae">&#127873;</div><h4>INICET Bonus Channel</h4><p>Extra channel, included</p></div>
+      <div class="acard" style="--c:#2BB5A6"><div class="ae">&#128172;</div><h4>Discussion Group</h4><p>Doubts, help, mistake reports</p></div>
+    </div>
+    <p class="opt-note">Want the Telegram channels too? After you pay, drop us a message and we will send your invite links.</p>
+    <div class="contact-row">
+      <a class="contact-btn telegram" href="https://t.me/D_V11111" target="_blank" rel="noopener">Telegram</a>
+      <a class="contact-btn whatsapp" href="https://wa.me/916355895222?text=Hi%2C%20I%20want%20the%20Telegram%20Premium%20channel%20links%20for%20PPTNEETPGHUB." target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+  </div>
+</section>
+
+<section class="sec white" id="pricing">
+  <div class="container">
+    <div class="sec-head" style="--bar:var(--gold-b)">
+      <h2>Join early, pay less.</h2>
+      <p>One-time payment. The price only goes up as the course moves forward.</p>
+    </div>
+    <div class="tiers" id="tiers"></div>
+    <div class="rise">Price rises as phases move forward</div>
+    <div class="cta-dark">
+      <h3>Lock in <span data-price>&#8377;500</span> now</h3>
+      <p>One payment covers all 3 NEET PG phases plus the INICET bonus resources, from the Warm-Up to the final month.</p>
+      <button class="btn-gold big" data-go="join">Go Premium</button>
+    </div>
+  </div>
+</section>
+
+<section class="sec cream" id="join">
+  <div class="container">
+    <div class="sec-head" style="--bar:#2A78D6">
+      <h2>Join in 4 simple steps.</h2>
+      <p>From payment to access, right here on this page.</p>
+    </div>
+    <div class="join-wrap">
+      <ol class="steps" id="joinSteps"></ol>
+      <div id="joinPanel"></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec white" id="faq">
+  <div class="container">
+    <div class="sec-head" style="--bar:var(--teal)">
+      <h2>Quick answers.</h2>
+    </div>
+    <div class="faq join-wrap">
+      <details><summary>How do I pay?</summary><p>Scan the QR code or pay to the UPI ID from any UPI app (GPay, PhonePe, Paytm and others). Then enter your 12-digit UTR in the steps above.</p></details>
+      <details><summary>Where do I find my UTR?</summary><p>Open the payment in your UPI app and look for the UTR or UPI transaction ID. It is a 12-digit number.</p></details>
+      <details><summary>When does my access start?</summary><p>We check every payment by hand against our UPI account, so it can take a little while at busy times. Once approved, sign in with the same Google account and your library opens.</p></details>
+      <details><summary>How do I get the Telegram channels?</summary><p>Telegram Premium is optional and included: the Premium channel, the INICET Bonus channel and the discussion group. After you pay, drop us a message on Telegram or WhatsApp and we will send your invite links.</p></details>
+      <details><summary>I entered the wrong UTR. What now?</summary><p>If we can't match it, you will see a message here and can submit again. You can also message us on Telegram or WhatsApp.</p></details>
+      <details><summary>Which email gets access?</summary><p>The Google account you sign in with. Use the one you will study with.</p></details>
+      <details><summary>Can I download the PDFs?</summary><p>Notes and tests are view-only. Flash cards are downloadable.</p></details>
+    </div>
+  </div>
+</section>
+
+<footer class="l-footer">
+  <div class="container">
+    <div class="fb">PPTNEETPGHUB</div>
+    <p>Free samples and updates on Telegram: PPTNEETPGINICETHUB</p>
+    <div class="contact-row">
+      <a class="contact-btn telegram" href="https://t.me/D_V11111" target="_blank" rel="noopener">Telegram</a>
+      <a class="contact-btn whatsapp" href="https://wa.me/916355895222" target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+  </div>
+</footer>
+
+</div><!-- /landingView -->
+
+<!-- ================= MEMBER LIBRARY ================= -->
+<div id="libraryView" style="display:none;">
+<header class="site-header">
+  <div class="brand">
+    <span class="full-label">PPTNEETPGHUB <span>&middot;</span> Premium</span>
+    <span class="short-label">PPTNEETPGHUB</span>
+  </div>
+  <div class="header-right">
+    <button class="account-pill" id="libSignOut">Sign out</button>
+    <button class="menu-toggle" id="menuToggle">&#9776;</button>
+  </div>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <h3>SUBJECTS</h3>
+    <div id="subjectList"></div>
+  </aside>
+
+  <main class="main">
+    <h1 id="subjectTitle">Surgery</h1>
+    <p class="lede" id="subjectLede">5-year previous year questions, topics, and flashcards</p>
+
+    <div class="tabs" id="tabs"></div>
+
+    <div class="card-grid" id="cardGrid"></div>
+
+    <div class="access-note" id="accessNote">
+      <div>
+        <strong id="accessNoteTitle">Premium member access</strong>
+        <p id="accessNoteText">Signed in as: &mdash;</p>
+      </div>
+    </div>
+      </main>
+</div>
+
+
+</div><!-- /libraryView -->
+
+<!-- PDF/Test viewer overlay -->
+<div class="viewer-overlay" id="viewerOverlay">
+  <div class="viewer-panel">
+    <div class="viewer-bar">
+      <div class="title" id="viewerTitle">Surgery PYQ Set 1</div>
+      <button class="close-btn" id="closeViewer">&times;</button>
+    </div>
+    <div class="viewer-body" id="viewerBody">
+      <!-- Real PDF pages render here via PDF.js, or the placeholder
+           "fake-page" content shows if no real fileUrl is set yet -->
+      <div class="fake-page" id="placeholderPage">
+        <div class="watermark">VIEW ONLY</div>
+        <div class="q">Q14. A 45-year-old male presents with sudden onset epigastric pain radiating to the back...</div>
+        <div class="opt">(A) Acute cholecystitis</div>
+        <div class="opt">(B) Acute pancreatitis</div>
+        <div class="opt">(C) Perforated duodenal ulcer</div>
+        <div class="opt">(D) Mesenteric ischemia</div>
+        <div class="expl">Explanation &amp; trick to solve fast</div>
+        <div class="fake-line" style="width:92%"></div>
+        <div class="fake-line" style="width:70%"></div>
+        <div class="fake-line" style="width:80%"></div>
+      </div>
+      <div class="pdf-wrap" id="pdfWrap" style="display:none;">
+        <div class="watermark">VIEW ONLY</div>
+        <canvas id="pdfCanvas"></canvas>
+        <div class="wm-email" id="wmEmail"></div>
+        <div class="pdf-loading" id="pdfLoading">Loading…</div>
+      </div>
+    </div>
+    <div class="viewer-footer">
+      <div class="page-pill" id="pagePill">1 / 12</div>
+      <div class="pdf-nav" id="pdfNav" style="display:none;">
+        <button class="nav-btn" id="prevPageBtn">&#8249;</button>
+        <button class="nav-btn" id="nextPageBtn">&#8250;</button>
+      </div>
+      <div class="disabled-btn">Download &#10005;</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <span>&#10003;</span>
+  <span id="toastText">Download complete</span>
+</div>
+
+<script>
+const SUBJECTS = [
+  "Medicine", "Surgery", "OBG", "Pediatrics", "Pharmacology", "Pathology", "PSM"
+];
+
+// Shorter subjects, grouped under one expandable "Other Subjects" entry
+const OTHER_SUBJECTS = [
+  "Anatomy", "Physiology", "Biochemistry", "Microbiology",
+  "Forensic Medicine", "ENT", "Ophthalmology", "Radiology", "Anaesthesia"
+];
+
+const TABS = ["High Yield", "PYQs", "PYTs", "Tests", "Flashcards"];
+
+// Placeholder resource data — this is exactly the shape that will later
+// come from Firestore (subject, tab, title, meta, type: view|download)
+const RESOURCES = {
+  "Surgery": {
+    "High Yield": [
+      { title: "Surgery High Yield Notes", meta: "Exam-focused summary · 24 pages", type: "view" },
+      { title: "Surgery Must-Know Tables", meta: "Quick revision · 12 pages", type: "view" },
+    ],
+    "PYQs": [
+      { title: "Surgery PYQ Set 1", meta: "2021 – 2022 · 45 Qs", type: "view" },
+      { title: "Surgery PYQ Set 2", meta: "2023 – 2024 · 52 Qs", type: "view" },
+    ],
+    "PYTs": [
+      { title: "Surgery — Topics 2021–2025", meta: "Trend summary · 18 topics", type: "view" },
+    ],
+    "Tests": [
+      { title: "Surgery Weekly Test 1", meta: "40 Qs · Mixed difficulty", type: "view" },
+    ],
+    "Flashcards": [
+      { title: "Surgery Flashcards", meta: "120 cards · downloadable", type: "download" },
+      { title: "Surgery Instruments", meta: "35 cards · downloadable", type: "download" },
+    ],
+  },
+  "Anatomy": {
+    "High Yield": [
+      { title: "Anatomy High Yield Diagrams", meta: "Exam-focused · 30 pages", type: "view" },
+    ],
+    "Flashcards": [
+      { title: "Anatomy Flashcards", meta: "150 cards · downloadable", type: "download" },
+    ],
+  }
+};
+
+let activeSubject = "Surgery";
+let activeTab = "High Yield";
+let otherGroupOpen = false;
+let currentUser = null;
+let isPaidMember = false;
+let membershipChecked = false; // avoids flashing "not a member" before the check completes
+
+// ---------- Landing + payment state ----------
+let authResolved = false;
+let signInIntent = null;
+let currentPrice = 500;          // overridden by Firestore config/pricing
+let paymentInfo = { latest: null };
+let utrDraft = "";
+let submittingUtr = false;
+
+const UPI_ID = "devid.vachhani11@oksbi";
+const UPI_NAME = "Devid Vachhani";
+const QR_SRC = "data:image/png;base64,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";
+const TIERS = [
+  { amt: 500,  name: "Founding", offer: "Founding offer", sub: "First 100 members" },
+  { amt: 1000, name: "Early",    offer: "Early price",    sub: "After first 100 members" },
+  { amt: 2000, name: "Standard", offer: "Standard price", sub: "After Phase 1 completes" },
+  { amt: 3000, name: "Late",     offer: "Late price",     sub: "During Phase 3" }
+];
+
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function tierFor(p) { return TIERS.find(t => t.amt === p) || null; }
+function onFbReady(fn) { if (window.__fb) fn(); else window.addEventListener('fbReady', fn); }
+
+// ---------- Price-driven bits ----------
+function renderOffer() {
+  const el = document.getElementById('offerBand');
+  if (!el) return;
+  const t = tierFor(currentPrice);
+  el.innerHTML =
+    '<div><div class="of-k">' + esc(t ? t.offer : 'Premium membership') + '</div>' +
+    '<div class="of-t">' + esc(t ? t.sub : 'One-time payment') + '</div></div>' +
+    '<div class="of-p"><small>only</small>&#8377;' + currentPrice + '</div>';
+}
+function renderPricing() {
+  const el = document.getElementById('tiers');
+  if (!el) return;
+  el.innerHTML = TIERS.map(t => {
+    const now = t.amt === currentPrice;
+    return '<div class="tier' + (now ? ' now' : '') + '">' +
+      (now ? '<span class="now-tag">Current price</span>' : '') +
+      '<div class="nm">' + t.name + '</div><div class="am">&#8377;' + t.amt + '</div><div class="sb">' + t.sub + '</div><div class="ph">All 3 NEET PG phases</div><div class="bn">+ INICET Bonus</div></div>';
+  }).join('');
+}
+function updatePriceLabels() {
+  document.querySelectorAll('[data-price]').forEach(n => { n.textContent = '\u20B9' + currentPrice; });
+  renderOffer();
+  renderPricing();
+  const a = document.activeElement;
+  if (!(a && a.closest && a.closest('#joinPanel'))) renderJoin();
+}
+
+// ---------- Firebase Auth ----------
+onFbReady(() => {
+  const { auth, onAuthStateChanged } = window.__fb;
+  loadPricing();
+
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    authResolved = true;
+    isPaidMember = false;
+    membershipChecked = false;
+    paymentInfo.latest = null;
+    updateView();
+    renderJoin();
+
+    if (user && user.email) {
+      isPaidMember = await checkMembership(user.email);
+      if (!isPaidMember) await loadPaymentInfo(user.email);
+    }
+    membershipChecked = true;
+    updateView();
+    renderJoin();
+    render();
+
+    if (isPaidMember) {
+      loadResourcesFromFirestore();
+      window.scrollTo(0, 0);
+    } else if (user && signInIntent) {
+      if (signInIntent === 'member') showToast("This Google account isn't a member yet. Follow the steps below to join.");
+      goToJoin();
+    }
+    signInIntent = null;
+  });
+});
+
+async function signIn(intent) {
+  if (!window.__fb) { showToast('Sign-in is still loading. Try again in a moment.', true); return; }
+  signInIntent = intent;
+  const { auth, provider, signInWithPopup } = window.__fb;
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (e) {
+    signInIntent = null;
+    const quiet = e && (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request');
+    if (!quiet) { console.error('Sign-in failed', e); showToast('Sign-in failed. Please try again.', true); }
+  }
+}
+function signOutUser() {
+  if (!window.__fb) return;
+  window.__fb.signOut(window.__fb.auth);
+}
+
+// Checks the "members" collection for a doc whose ID is the lowercased email
+async function checkMembership(email) {
+  if (!window.__fb) return false;
+  const { db, doc, getDoc } = window.__fb;
+  try {
+    const snap = await getDoc(doc(db, "members", email.toLowerCase()));
+    return snap.exists();
+  } catch (e) {
+    console.error('Membership check failed', e);
+    return false; // fail closed
+  }
+}
+
+function updateView() {
+  const showLib = !!(authResolved && currentUser && membershipChecked && isPaidMember);
+  document.getElementById('landingView').style.display = showLib ? 'none' : 'block';
+  document.getElementById('libraryView').style.display = showLib ? 'block' : 'none';
+  if (authResolved && (!currentUser || membershipChecked)) document.body.classList.remove('booting');
+  document.getElementById('lhSignIn').textContent = currentUser ? 'Sign out' : 'Sign in';
+  if (showLib) {
+    document.getElementById('accessNoteText').textContent = 'Signed in as: ' + (currentUser.email || currentUser.displayName || '\u2014');
+  }
+}
+
+function goToJoin() {
+  const el = document.getElementById('join');
+  if (el) el.scrollIntoView();
+}
+
+// ---------- Pricing + payment info ----------
+async function loadPricing() {
+  if (!window.__fb) return;
+  const { db, doc, getDoc } = window.__fb;
+  try {
+    const p = await getDoc(doc(db, "config", "pricing"));
+    if (p.exists() && Number(p.data().price) > 0) currentPrice = Number(p.data().price);
+  } catch (e) {
+    console.error("Could not load pricing", e);
+  }
+  updatePriceLabels();
+}
+
+async function loadPaymentInfo(email) {
+  if (!window.__fb) return;
+  const { db, collection, getDocs, query, where } = window.__fb;
+  try {
+    const snap = await getDocs(query(collection(db, "payments"), where("email", "==", email.toLowerCase())));
+    let latest = null;
+    snap.forEach(d => {
+      const x = d.data();
+      const t = x.createdAt && x.createdAt.toMillis ? x.createdAt.toMillis() : Date.now();
+      if (!latest || t >= latest._t) latest = Object.assign({}, x, { _t: t });
+    });
+    paymentInfo.latest = latest;
+  } catch (e) {
+    console.error("Could not load payments", e);
+    paymentInfo.latest = null;
+  }
+}
+
+// ---------- Join section ----------
+function googleSVG() {
+  return '<svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
+}
+
+function contactRowHTML(email, utr, wantTelegram) {
+  const waText = encodeURIComponent(
+    "Hi, I've paid for PPTNEETPGHUB Premium." +
+    (utr ? " UTR: " + utr + "." : "") +
+    (email ? " My sign-in email is: " + email + "." : "") +
+    (wantTelegram ? " Please send me the Telegram Premium channel links." : ""));
+  return '<div class="contact-row">' +
+    '<a class="contact-btn telegram" href="https://t.me/D_V11111" target="_blank" rel="noopener">' + telegramSVG() + ' Telegram</a>' +
+    '<a class="contact-btn whatsapp" href="https://wa.me/916355895222?text=' + waText + '" target="_blank" rel="noopener">' + whatsappSVG() + ' WhatsApp</a>' +
+    '</div>';
+}
+
+function renderSteps(done, active) {
+  const labels = ['Sign in', 'Pay by UPI', 'Submit UTR', 'Get access'];
+  document.getElementById('joinSteps').innerHTML = labels.map((l, i) => {
+    const n = i + 1;
+    const cls = n <= done ? 'done' : (active.indexOf(n) > -1 ? 'active' : '');
+    return '<li class="' + cls + '"><span class="sn">' + (n <= done ? '&#10003;' : n) + '</span><span class="sl">' + l + '</span></li>';
+  }).join('');
+}
+
+function renderJoin() {
+  const box = document.getElementById('joinPanel');
+  if (!box) return;
+  const email = ((currentUser && currentUser.email) || '').toLowerCase();
+
+  // Waiting for Firebase / membership check
+  if (!authResolved || (currentUser && !membershipChecked)) {
+    renderSteps(0, [1]);
+    box.innerHTML = '<div class="join-card center"><p class="jc-note" style="margin:0">Checking your account&hellip;</p></div>';
+    return;
+  }
+
+  // Step 1: sign in
+  if (!currentUser) {
+    renderSteps(0, [1]);
+    box.innerHTML =
+      '<div class="join-card center">' +
+        '<div class="jc-kick">Step 1</div>' +
+        '<h3>Sign in to continue</h3>' +
+        '<p>Use the Google account you will study with. Your premium access is linked to this email.</p>' +
+        '<button class="btn-white big block" id="joinSignIn">' + googleSVG() + ' Continue with Google</button>' +
+        '<p class="jc-note" style="margin:14px 0 0">Already a member? Use the same button and your library opens.</p>' +
+      '</div>';
+    document.getElementById('joinSignIn').onclick = () => signIn('premium');
+    return;
+  }
+
+  // Safety net (the library normally takes over before this shows)
+  if (isPaidMember) {
+    renderSteps(4, []);
+    box.innerHTML = '<div class="join-card center"><h3>You are a member</h3><p>Opening your library&hellip;</p></div>';
+    return;
+  }
+
+  const latest = paymentInfo.latest;
+
+  // Step 4: under review
+  if (latest && latest.status === 'pending') {
+    renderSteps(3, [4]);
+    box.innerHTML =
+      '<div class="join-card center">' +
+        '<div class="ring"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>' +
+        '<h3>Payment received. We are verifying it.</h3>' +
+        '<span class="utr-tag">UTR ' + esc(latest.utr) + '</span>' +
+        '<ol class="next">' +
+          '<li><b>We verify your payment</b> by matching the UTR with our UPI account. It can take a little while at busy times.</li>' +
+          '<li><b>Your library unlocks.</b> Come back to this page, sign in with <b>' + esc(email) + '</b> and tap Check status.</li>' +
+          '<li><b>Want the Telegram channels too?</b> They are optional and included. Drop us a message on Telegram or WhatsApp with your UTR and we will send the Premium channel, INICET Bonus channel and discussion group links.</li>' +
+        '</ol>' +
+        '<button class="btn-navy big" id="refreshStatusBtn">Check status</button>' +
+        '<div class="help-line">Telegram links, wrong UTR or any help: drop us a message.</div>' +
+        contactRowHTML(email, latest.utr, true) +
+      '</div>';
+    document.getElementById('refreshStatusBtn').onclick = refreshStatus;
+    return;
+  }
+
+  // Steps 2 + 3: pay, then submit UTR
+  renderSteps(1, [2, 3]);
+  const rejected = (latest && latest.status === 'rejected')
+    ? '<div class="pay-alert">We could not match UTR ' + esc(latest.utr) + ' with a payment. Check the number and submit it again, or message us.</div>' : '';
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const upiLink = 'upi://pay?pa=' + encodeURIComponent(UPI_ID) + '&pn=' + encodeURIComponent(UPI_NAME) +
+    '&am=' + currentPrice + '&cu=INR&tn=' + encodeURIComponent('PPTNEETPGHUB Premium');
+
+  box.innerHTML =
+    '<div class="join-card">' +
+      '<div class="jc-top"><div><div class="jc-kick">Step 2</div><h3>Pay by UPI</h3></div><div class="jc-amt">&#8377;' + currentPrice + '</div></div>' +
+      rejected +
+      '<div class="pay-body">' +
+        '<div><div class="qr-box"><img src="' + QR_SRC + '" alt="UPI QR code for ' + esc(UPI_NAME) + '"></div><div class="qr-cap">Scan with any UPI app</div></div>' +
+        '<div>' +
+          '<p class="pay-label">UPI ID</p>' +
+          '<div class="upi-row"><div class="upi-id" id="upiIdText">' + esc(UPI_ID) + '</div><button class="copy-btn" id="copyUpiBtn">Copy</button></div>' +
+          (isMobile ? '<a class="btn-gold block" href="' + upiLink + '">Pay &#8377;' + currentPrice + ' in your UPI app</a>' : '') +
+          '<p class="pay-hint">Pay exactly <b>&#8377;' + currentPrice + '</b>. After paying, copy the <b>UTR</b> (UPI transaction ID) from your payment app.</p>' +
+        '</div>' +
+      '</div>' +
+      '<hr class="jc-sep">' +
+      '<div class="jc-kick">Step 3</div><h3>Submit your payment details</h3>' +
+      '<label class="fld" for="utrInput">UTR / UPI transaction ID</label>' +
+      '<input class="inp utr" id="utrInput" type="text" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="12-digit number" value="' + esc(utrDraft) + '">' +
+      '<button class="btn-navy big block" id="submitUtrBtn" style="margin-top:18px">Submit payment</button>' +
+      '<div class="tg-note"><b>Telegram Premium is optional.</b> It is included with your membership: Premium channel, INICET Bonus channel and discussion group. After you submit, drop us a message and we will send the links.</div>' +
+      '<p class="who">Access will be activated for <b>' + esc(email) + '</b><br><button class="linkbtn" id="switchAcctBtn">Use a different account</button></p>' +
+      '<div class="help-line">Need help? Message us.</div>' +
+      contactRowHTML(email) +
+    '</div>';
+
+  const utr = document.getElementById('utrInput');
+  utr.addEventListener('input', () => { utr.value = utr.value.replace(/\D/g, '').slice(0, 12); utrDraft = utr.value; });
+  document.getElementById('submitUtrBtn').onclick = submitUtr;
+  document.getElementById('copyUpiBtn').onclick = copyUpiId;
+  document.getElementById('switchAcctBtn').onclick = signOutUser;
+}
+
+async function copyUpiId() {
+  try {
+    await navigator.clipboard.writeText(UPI_ID);
+    showToast('UPI ID copied');
+  } catch (e) {
+    const node = document.getElementById('upiIdText');
+    const range = document.createRange();
+    range.selectNodeContents(node);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    showToast('Press and hold to copy the UPI ID', true);
+  }
+}
+
+async function submitUtr() {
+  if (submittingUtr || !currentUser || !window.__fb) return;
+  const utr = utrDraft.replace(/\D/g, '');
+  if (!/^\d{12}$/.test(utr)) { showToast('Enter the 12-digit UTR number', true); return; }
+
+  const { db, doc, setDoc, serverTimestamp } = window.__fb;
+  const email = (currentUser.email || '').toLowerCase();
+  const btn = document.getElementById('submitUtrBtn');
+  submittingUtr = true;
+  btn.disabled = true;
+  btn.textContent = 'Submitting\u2026';
+  try {
+    // UTR is the document ID, so the same UTR can never be submitted twice
+    await setDoc(doc(db, "payments", utr), {
+      email: email,
+      name: currentUser.displayName || '',
+      utr: utr,
+      amount: currentPrice,
+      status: 'pending',
+      createdAt: serverTimestamp()
+    });
+    utrDraft = '';
+    await loadPaymentInfo(email);
+    showToast('Payment submitted');
+    renderJoin();
+  } catch (e) {
+    console.error('Payment submit failed', e);
+    showToast(e && e.code === 'permission-denied'
+      ? 'Could not submit. This UTR may already be submitted. Message us if it keeps failing.'
+      : 'Could not submit. Check your connection and try again.', true);
+    btn.disabled = false;
+    btn.textContent = 'Submit payment';
+  } finally {
+    submittingUtr = false;
+  }
+}
+
+async function refreshStatus() {
+  if (!currentUser || !currentUser.email) return;
+  const btn = document.getElementById('refreshStatusBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Checking\u2026'; }
+  isPaidMember = await checkMembership(currentUser.email);
+  if (!isPaidMember) await loadPaymentInfo(currentUser.email);
+  updateView();
+  renderJoin();
+  render();
+  if (isPaidMember) { loadResourcesFromFirestore(); window.scrollTo(0, 0); }
+  else showToast('Still under review');
+}
+
+function initLanding() {
+  document.querySelectorAll('[data-go="join"]').forEach(b => b.addEventListener('click', goToJoin));
+  document.getElementById('heroSignIn').addEventListener('click', () => { if (currentUser) signOutUser(); else signIn('member'); });
+  document.getElementById('lhSignIn').addEventListener('click', () => { if (currentUser) signOutUser(); else signIn('member'); });
+  document.getElementById('libSignOut').addEventListener('click', signOutUser);
+  renderOffer();
+  renderPricing();
+  renderJoin();
+  // If Firebase is slow or blocked, never leave the visitor on a blank screen
+  setTimeout(() => {
+    if (!authResolved) { authResolved = true; }
+    document.body.classList.remove('booting');
+    updateView();
+    renderJoin();
+  }, 4000);
+}
+
+// ---------- Firestore data loading ----------
+// Reads collection "resources", where each document looks like:
+// { subject: "Surgery", tab: "High Yield", title: "...", meta: "...", type: "view" | "download", fileUrl: "..." }
+// Falls back to the placeholder RESOURCES object below if Firestore has nothing yet.
+async function loadResourcesFromFirestore() {
+  if (!window.__fb) return;
+  const { db, collection, getDocs } = window.__fb;
+  try {
+    const snap = await getDocs(collection(db, "resources"));
+    if (snap.empty) return; // keep using placeholder RESOURCES
+    const live = {};
+    snap.forEach(doc => {
+      const d = doc.data();
+      if (!d.subject || !d.tab) return;
+      if (!live[d.subject]) live[d.subject] = {};
+      if (!live[d.subject][d.tab]) live[d.subject][d.tab] = [];
+      live[d.subject][d.tab].push({
+        title: d.title || "Untitled",
+        meta: d.meta || "",
+        type: d.type === "download" ? "download" : "view",
+        fileUrl: d.fileUrl || null
+      });
+    });
+    // Merge live data over placeholder (live wins per subject)
+    Object.assign(RESOURCES, live);
+    render();
+  } catch (e) {
+    console.error('Could not load resources from Firestore', e);
+    // Silently keep placeholder data — don't break the page for the user
+  }
+}
+
+function renderSidebar() {
+  const list = document.getElementById("subjectList");
+  list.innerHTML = "";
+  SUBJECTS.forEach(s => {
+    const btn = document.createElement("button");
+    btn.className = "subject-btn" + (s === activeSubject ? " active" : "");
+    btn.textContent = s;
+    btn.onclick = () => { activeSubject = s; render(); closeSidebarMobile(); };
+    list.appendChild(btn);
+  });
+
+  // "Other Subjects" expandable group
+  const isOtherActive = OTHER_SUBJECTS.includes(activeSubject);
+  const groupToggle = document.createElement("button");
+  groupToggle.className = "subject-btn group-toggle" + (isOtherActive && !otherGroupOpen ? " active" : "");
+  groupToggle.innerHTML = `<span>Other Subjects</span><span class="chevron ${otherGroupOpen ? 'open' : ''}">&#9662;</span>`;
+  groupToggle.onclick = () => { otherGroupOpen = !otherGroupOpen; renderSidebar(); };
+  list.appendChild(groupToggle);
+
+  if (otherGroupOpen) {
+    const sub = document.createElement("div");
+    sub.className = "subject-subgroup";
+    OTHER_SUBJECTS.forEach(s => {
+      const btn = document.createElement("button");
+      btn.className = "subject-btn nested" + (s === activeSubject ? " active" : "");
+      btn.textContent = s;
+      btn.onclick = () => { activeSubject = s; render(); closeSidebarMobile(); };
+      sub.appendChild(btn);
+    });
+    list.appendChild(sub);
+  }
+}
+
+function renderTabs() {
+  const tabs = document.getElementById("tabs");
+  tabs.innerHTML = "";
+  TABS.forEach(t => {
+    const btn = document.createElement("button");
+    btn.className = "tab-btn" + (t === activeTab ? " active" : "");
+    btn.textContent = t;
+    btn.onclick = () => { activeTab = t; render(); };
+    tabs.appendChild(btn);
+  });
+}
+
+function iconSVG(type) {
+  if (type === "download") {
+    return '<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3v11m0 0l-4-4m4 4l4-4M5 19h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+  return '<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="5" y="3" width="14" height="18" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+}
+
+function lockSVG() {
+  return '<svg width="30" height="30" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 11V7a4 4 0 118 0v4" stroke="currentColor" stroke-width="2"/></svg>';
+}
+
+function telegramSVG() {
+  return '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21.5 3.5l-19 7.3c-1 .4-1 1.9.1 2.2l4.7 1.5 1.8 5.7c.3.9 1.4 1.1 2 .4l2.6-2.8 4.9 3.6c.8.6 2 .2 2.2-.8l3-16.1c.2-1.1-.9-2-2.3-1zM8.9 13.7l8.6-6.6c.3-.2.6.1.3.4l-7.3 7-.3 3.3-1.3-4.1z"/></svg>';
+}
+
+function whatsappSVG() {
+  return '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17 14.2c-.3-.1-1.6-.8-1.8-.9-.2-.1-.4-.1-.6.1s-.7.9-.9 1-.3.2-.6 0a7.5 7.5 0 01-2.2-1.4 8.2 8.2 0 01-1.5-1.9c-.2-.3 0-.4.1-.6l.4-.5c.1-.2.1-.3 0-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.9 1-.7 2.3.1 3.3a11 11 0 004.8 4.2c1.6.7 2.4.8 3.2.7.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.1.1-1.2 0-.1-.2-.2-.4-.3z"/><path d="M12 2a10 10 0 00-8.6 15L2 22l5.2-1.4A10 10 0 1012 2zm0 18.2a8.2 8.2 0 01-4.2-1.2l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1120.2 12 8.2 8.2 0 0112 20.2z"/></svg>';
+}
+
+function renderCards() {
+  const grid = document.getElementById("cardGrid");
+  grid.innerHTML = "";
+  const items = (RESOURCES[activeSubject] && RESOURCES[activeSubject][activeTab]) || [];
+
+  document.getElementById("subjectTitle").textContent = activeSubject + " — " + activeTab;
+  document.getElementById("subjectLede").textContent =
+    activeTab === "Flashcards"
+      ? "Downloadable card sets — keep and review offline"
+      : "5-year previous year material, organized for " + activeSubject;
+
+  // The library is only shown to verified members
+  if (!currentUser || !isPaidMember) {
+    grid.innerHTML = '<div class="empty-state">Members only.</div>';
+    return;
+  }
+
+  if (items.length === 0) {
+    grid.innerHTML = '<div class="empty-state">Nothing published here yet — fresh ' + activeTab.toLowerCase() + ' for ' + activeSubject + ' are on the way.</div>';
+    return;
+  }
+
+  items.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "card";
+    const isDownload = item.type === "download";
+    card.innerHTML = `
+      <div class="card-icon">${iconSVG(item.type)}</div>
+      <div>
+        <div class="card-title">${item.title}</div>
+        <div class="card-meta">${item.meta}</div>
+      </div>
+      <button class="card-action ${isDownload ? 'download' : 'view'}">${isDownload ? 'Download' : 'View'}</button>
+    `;
+    const btn = card.querySelector("button");
+    btn.onclick = () => isDownload ? doDownload(item) : openViewer(item);
+    grid.appendChild(card);
+  });
+}
+
+function render() {
+  renderSidebar();
+  renderTabs();
+  renderCards();
+}
+
+// ---------- PDF viewer (real files via PDF.js) ----------
+if (window.pdfjsLib) {
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
+
+let currentPdfDoc = null;
+let currentPdfPage = 1;
+
+function openViewer(item) {
+  document.getElementById("viewerTitle").textContent = item.title;
+  document.getElementById("viewerOverlay").classList.add("open");
+
+  const placeholder = document.getElementById("placeholderPage");
+  const pdfWrap = document.getElementById("pdfWrap");
+
+  const pdfNav = document.getElementById("pdfNav");
+  setViewerWatermark();
+
+  if (item.fileUrl && window.pdfjsLib) {
+    // Real file available — show the PDF renderer, hide the demo content
+    placeholder.style.display = "none";
+    pdfWrap.style.display = "block";
+    pdfNav.style.display = "flex";
+    loadPdf(item.fileUrl);
+  } else {
+    // No real file yet — fall back to the demo/placeholder content
+    placeholder.style.display = "block";
+    pdfWrap.style.display = "none";
+    pdfNav.style.display = "none";
+    document.getElementById("pagePill").textContent = "1 / 12";
+  }
+}
+
+// Private files live in R2. They are only ever fetched with the member's sign-in
+// token, so a copied link opens nothing for anyone else.
+async function fetchSecure(key) {
+  const user = window.__fb && window.__fb.auth.currentUser;
+  if (!user) throw new Error('Not signed in');
+  const token = await user.getIdToken();
+  const res = await fetch('/api/file?key=' + encodeURIComponent(key), { headers: { Authorization: 'Bearer ' + token } });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res;
+}
+
+function setViewerWatermark() {
+  const el = document.getElementById('wmEmail');
+  if (!el) return;
+  const email = (currentUser && currentUser.email) || '';
+  const svg = "<svg xmlns='http://www.w3.org/2000/svg' width='340' height='210'><text x='24' y='120' transform='rotate(-24 170 105)' font-family='sans-serif' font-size='14' font-weight='600' fill='rgba(110,110,110,0.20)'>" +
+    email.replace(/[&<>"']/g, '') + "</text></svg>";
+  el.style.backgroundImage = 'url("data:image/svg+xml;utf8,' + encodeURIComponent(svg) + '")';
+}
+
+async function loadPdf(source) {
+  const loading = document.getElementById("pdfLoading");
+  const canvas = document.getElementById("pdfCanvas");
+  loading.style.display = "block";
+  loading.textContent = "Loading…";
+
+  try {
+    const isPrivate = typeof source === "string" && source.indexOf("r2:") === 0;
+    let bytes = null;
+    if (isPrivate) {
+      loading.textContent = "Opening securely…";
+      const res = await fetchSecure(source.slice(3));
+      bytes = new Uint8Array(await res.arrayBuffer());
+    }
+    const loadingTask = window.pdfjsLib.getDocument({
+      ...(isPrivate ? { data: bytes } : { url: source }),
+      // Use the PDF's own embedded fonts rather than substituting system
+      // fonts, and load PDF.js's standard-font data so non-embedded
+      // "standard 14" fonts (common in generated PDFs) still render with
+      // the correct serif/sans style instead of a generic fallback.
+      disableFontFace: false,
+      useSystemFonts: false,
+      standardFontDataUrl: "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/standard_fonts/"
+    });
+    currentPdfDoc = await loadingTask.promise;
+    currentPdfPage = 1;
+    await renderPdfPage(currentPdfPage);
+    loading.style.display = "none";
+    updatePdfNav();
+  } catch (e) {
+    console.error("PDF load failed", e);
+    loading.textContent = "Couldn't load this file. Please try again.";
+  }
+}
+
+async function renderPdfPage(pageNum) {
+  if (!currentPdfDoc) return;
+  const page = await currentPdfDoc.getPage(pageNum);
+  const canvas = document.getElementById("pdfCanvas");
+  const ctx = canvas.getContext("2d");
+
+  const containerWidth = document.querySelector(".viewer-body").clientWidth - 16;
+  const unscaledViewport = page.getViewport({ scale: 1 });
+  // Render at a minimum readable scale (not just "fit the screen width"),
+  // since shrinking a dense table to fit a narrow phone panel makes the
+  // text too small to read even when perfectly sharp. If the readable
+  // scale is wider than the panel, the panel scrolls horizontally —
+  // same as how a real document viewer handles dense content.
+  const dpr = window.devicePixelRatio || 1;
+  const fitScale = containerWidth / unscaledViewport.width;
+  const MIN_READABLE_SCALE = 1.1; // tuned so ~10pt table text stays legible
+  const displayScale = Math.max(fitScale, MIN_READABLE_SCALE);
+  const displayWidth = unscaledViewport.width * displayScale;
+  const displayHeight = unscaledViewport.height * displayScale;
+  const viewport = page.getViewport({ scale: displayScale * dpr });
+
+  canvas.width = Math.round(viewport.width);
+  canvas.height = Math.round(viewport.height);
+  canvas.style.width = Math.round(displayWidth) + "px";
+  canvas.style.height = Math.round(displayHeight) + "px";
+
+  await page.render({ canvasContext: ctx, viewport }).promise;
+}
+
+function updatePdfNav() {
+  const pill = document.getElementById("pagePill");
+  if (pill && currentPdfDoc) {
+    pill.textContent = currentPdfPage + " / " + currentPdfDoc.numPages;
+  }
+}
+
+async function pdfPrevPage() {
+  if (!currentPdfDoc || currentPdfPage <= 1) return;
+  currentPdfPage--;
+  await renderPdfPage(currentPdfPage);
+  updatePdfNav();
+}
+
+async function pdfNextPage() {
+  if (!currentPdfDoc || currentPdfPage >= currentPdfDoc.numPages) return;
+  currentPdfPage++;
+  await renderPdfPage(currentPdfPage);
+  updatePdfNav();
+}
+
+document.getElementById("prevPageBtn").onclick = pdfPrevPage;
+document.getElementById("nextPageBtn").onclick = pdfNextPage;
+
+document.getElementById("closeViewer").onclick = () => {
+  document.getElementById("viewerOverlay").classList.remove("open");
+  currentPdfDoc = null;
+};
+document.getElementById("viewerOverlay").addEventListener("click", (e) => {
+  if (e.target.id === "viewerOverlay") {
+    e.currentTarget.classList.remove("open");
+    currentPdfDoc = null;
+  }
+});
+
+// ---------- Download (flashcards) ----------
+async function doDownload(item) {
+  if (!item.fileUrl) {
+    showToast(item.title + " — file not available yet", true);
+    return;
+  }
+  if (item.fileUrl.indexOf("r2:") === 0) {
+    const key = item.fileUrl.slice(3);
+    showToast("Preparing " + item.title + "…");
+    try {
+      const res = await fetchSecure(key);
+      const blob = await res.blob();
+      const ext = key.split(".").pop();
+      const href = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = href;
+      a.download = (item.title || "download") + "." + ext;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(href), 30000);
+      showToast(item.title + " — download started");
+    } catch (e) {
+      console.error("Download failed", e);
+      showToast("Download failed. Please try again.", true);
+    }
+    return;
+  }
+  // Older resources that still point at a normal link
+  const a = document.createElement("a");
+  a.href = item.fileUrl;
+  a.download = item.title || "download";
+  a.target = "_blank";
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  showToast(item.title + " — download started");
+}
+
+function showToast(text, isError) {
+  const toast = document.getElementById("toast");
+  document.getElementById("toastText").textContent = text;
+  toast.className = "toast show" + (isError ? " error" : "");
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => toast.classList.remove("show"), 2600);
+}
+
+// mobile sidebar toggle
+document.getElementById("menuToggle").onclick = () => {
+  document.getElementById("sidebar").classList.toggle("open");
+};
+function closeSidebarMobile() {
+  if (window.innerWidth <= 820) document.getElementById("sidebar").classList.remove("open");
+}
+
+render();
+initLanding();
+</script>
+</body>
+</html>
