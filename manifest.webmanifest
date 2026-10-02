@@ -1,0 +1,19 @@
+{
+  "name": "PPTNEETPGHUB Premium",
+  "short_name": "PPT Hub",
+  "description": "NEET PG and INICET notes, tests and flashcards.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0A1830",
+  "theme_color": "#0A1830",
+  "lang": "en-IN",
+  "categories": ["education"],
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
