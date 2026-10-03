@@ -369,7 +369,10 @@ details.menu summary::-webkit-details-marker{display:none}details.menu[open] sum
 details.menu .panel{position:absolute;right:0;top:calc(100% + 12px);width:min(84vw,270px);background:#0A1830;border:1px solid rgba(212,175,85,.55);border-radius:16px;padding:6px;box-shadow:0 16px 38px rgba(0,0,0,.4)}
 details.menu .panel a{display:block;color:#E6EBF5;text-decoration:none;padding:13px 14px;border-radius:10px;font-size:15px;font-weight:500}details.menu .panel a:hover{background:rgba(255,255,255,.08)}
 details.menu .panel hr{border:0;border-top:1px solid rgba(255,255,255,.12);margin:4px 6px}
-@media(max-width:560px){nav.m a.hide{display:none}details.menu{display:block}.brand i,.brand .pr{display:none}nav.m{gap:10px}header.top .in{padding:12px 14px}}`;
+@media(max-width:560px){nav.m a.hide{display:none}details.menu{display:block}.brand i,.brand .pr{display:none}nav.m{gap:10px}header.top .in{padding:12px 14px}}
+.btn{white-space:nowrap;line-height:1.3}footer a{white-space:nowrap;display:inline-block;margin-bottom:4px}.cta-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+@media(max-width:560px){header.top .btn{padding:8px 13px;font-size:12.5px}.cta-row{flex-direction:column;align-items:stretch}.cta-row .btn{display:block;text-align:center;padding:12px 16px;font-size:14px}}
+@media(max-width:350px){.brand{font-size:12.5px}.brand img{width:26px!important;height:26px!important;margin-right:6px!important}header.top .in{padding:10px 10px;gap:6px}header.top .btn{padding:7px 10px;font-size:12px}nav.m{gap:6px}details.menu summary{width:34px}}`;
 
 function shell(site, o) {
   const canonical = site + (o.path || '/');
@@ -456,7 +459,7 @@ function tipNotFound(site) {
     body: '<h1>Page not found</h1><p class="lead">That study tip does not exist or is no longer published.</p><p><a href="/study-tips">See all study tips</a></p>' }), 404);
 }
 function tipsCta() {
-  return '<div class="cta"><b>Turn tips into marks.</b><p>Try 10 free questions, then practise by subject with instant answers.</p><a class="btn" href="/#sampleSec">Try the free sample</a> <a class="btn" href="/#join" style="margin-left:8px">Go Premium</a></div>';
+  return '<div class="cta"><b>Turn tips into marks.</b><p>Try 10 free questions, then practise by subject with instant answers.</p><div class="cta-row"><a class="btn" href="/#sampleSec">Try the free sample</a><a class="btn" href="/#join">Go Premium</a></div></div>';
 }
 const allTips = (env) => allPublished(env).then(list => list.filter(n => n.type === 'tip'));
 
