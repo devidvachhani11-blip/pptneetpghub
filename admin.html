@@ -3493,6 +3493,8 @@ async function runSystemCheck() {
     out.appendChild(scRow(s.TELEGRAM_ANNOUNCE_CHAT_ID, 'Chat for release announcements', s.TELEGRAM_ANNOUNCE_CHAT_ID ? '' : 'Not set. Optional. Releases still work without announcements.', true));
     const v = j.vars || {};
     out.appendChild(scRow(v.SITE_URL && v.ADMIN_EMAIL && v.PROJECT_ID, 'Site settings (SITE_URL, ADMIN_EMAIL, PROJECT_ID)', ''));
+    out.appendChild(scRow(!j.comingSoon, 'Website mode', j.comingSoon ? 'Coming soon is ON. The home page shows "Coming soon" and only News and Counselling are public. To launch, set COMING_SOON to "0" in wrangler.toml and upload it.' : 'Coming soon is OFF. The whole website is live.', j.comingSoon));
+    if (j.comingSoon) out.appendChild(scRow(j.previewKey, 'Private preview key', j.previewKey ? 'Open your-site/?preview=YOUR_KEY on a test phone to see the real website. /?preview=off ends it.' : 'Not set. Add the secret PREVIEW_KEY (a long private phrase) in Cloudflare to test the real website while Coming soon is ON.', true));
     const mins = j.cronLastRun ? Math.round((Date.now() - j.cronLastRun) / 60000) : null;
     out.appendChild(scRow(mins !== null && mins <= 25, 'Background job (every 10 minutes)', mins === null ? 'It has not run yet. After a new deploy, wait 10 minutes and check again. If it never runs, the cron trigger is missing.' : 'Last ran ' + mins + (mins === 1 ? ' minute' : ' minutes') + ' ago.' + (mins > 25 ? ' That is too long. Check the cron trigger in Cloudflare.' : '')));
   } catch (e) { out.innerHTML = ''; out.appendChild(mk('div', 'empty', 'Could not run the check: ' + e.message)); }
@@ -3513,6 +3515,7 @@ const LAUNCH_STEPS = [
   { g: 'A. Before you start', s: [
     ['a1', 'The latest Firestore rules are published', 'Firebase → Firestore → Rules. The full file includes opens, questions, practice and sample.'],
     ['a2', 'The newest files are uploaded and the build has a green tick', 'Cloudflare Deployments or the GitHub Actions tab.'],
+    ['a2b', 'Coming soon is ON and you can still see the real website with your private preview link', 'Add the secret PREVIEW_KEY in Cloudflare, then open your-site/?preview=YOUR_KEY on the test phone. Other people see only Coming soon.'],
     ['a3', 'Run the system check above: no red crosses', 'Fix any red line first. Grey lines are optional.'],
     ['a4', 'Send a test alert: it arrives in Telegram', 'If it does not, check TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID.'],
     ['a5', 'Read the Terms, Privacy and Refund pages on your phone', 'Check the names, contact details and the refund rules are what you want. Please get them checked by someone who knows Indian consumer law.'],
@@ -3550,7 +3553,8 @@ const LAUNCH_STEPS = [
     ['f1', 'Delete the test member, test payments and test attempts', 'Members and Payments tabs.'],
     ['f2', 'Take a fresh backup (download and cloud)', ''],
     ['f3', 'Check the site on an Android phone, an iPhone and a computer', ''],
-    ['f4', 'Check the Telegram channels are ready and the bot is admin in each', ''] ] }
+    ['f4', 'Check the Telegram channels are ready and the bot is admin in each', ''],
+    ['f5', 'LAUNCH: set COMING_SOON to "0" in wrangler.toml, upload it, and wait for the green build', 'Then open the site in a private tab without the preview link. You should see the full home page. Nothing was deleted while it was hidden.'] ] }
 ];
 function launchGet() { try { return JSON.parse(localStorage.getItem('pptLaunch') || '{}') || {}; } catch (e) { return {}; } }
 function launchSet(o) { try { localStorage.setItem('pptLaunch', JSON.stringify(o)); } catch (e) {} }

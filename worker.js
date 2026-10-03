@@ -270,7 +270,63 @@ const FRESH_SECONDS = 120;
 function h(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
-function siteOf(env, url) { return String(env.SITE_URL || url.origin).replace(/\/$/, ''); }
+// ---------- Coming soon mode ----------
+// COMING_SOON = "1" (in wrangler.toml) hides the home page and every page except News and Counselling.
+// Nothing is deleted. Set it to "0" to show the whole website again.
+const isOn = (v) => /^(1|true|on|yes)$/i.test(String(v || '').trim());
+function siteOf(env, url) {
+  const s = new String(String(env.SITE_URL || url.origin).replace(/\/$/, ''));
+  s.soon = isOn(env.COMING_SOON);
+  return s;
+}
+const PREVIEW_COOKIE = 'ppt_preview';
+async function previewHash(key) {
+  const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(key) + '|ppt-preview'));
+  return Array.from(new Uint8Array(d)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+function sameText(a, b) { a = String(a); b = String(b); let r = a.length ^ b.length; for (let i = 0; i < Math.max(a.length, b.length); i++) r |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0); return r === 0; }
+// Visiting /?preview=YOUR_KEY lets you (only) see the real website while Coming soon is on. /?preview=off ends it.
+async function previewParam(env, url) {
+  if (!url.searchParams.has('preview')) return null;
+  const v = url.searchParams.get('preview') || '';
+  const headers = new Headers({ Location: url.origin + '/', 'Cache-Control': 'no-store' });
+  if (v === 'off') headers.append('Set-Cookie', PREVIEW_COOKIE + '=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax');
+  else if (env.PREVIEW_KEY && String(env.PREVIEW_KEY).length >= 6 && sameText(v, env.PREVIEW_KEY)) headers.append('Set-Cookie', PREVIEW_COOKIE + '=' + await previewHash(env.PREVIEW_KEY) + '; Path=/; Max-Age=43200; HttpOnly; Secure; SameSite=Lax');
+  return new Response(null, { status: 302, headers });
+}
+async function hasPreview(request, env) {
+  if (!env.PREVIEW_KEY || String(env.PREVIEW_KEY).length < 6) return false;
+  const m = new RegExp('(?:^|;\\s*)' + PREVIEW_COOKIE + '=([a-f0-9]{64})').exec(request.headers.get('Cookie') || '');
+  return !!m && sameText(m[1], await previewHash(env.PREVIEW_KEY));
+}
+function soonPage(env, url) {
+  const site = String(siteOf(env, url));
+  const css = '*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Poppins,system-ui,sans-serif;color:#fff;background:radial-gradient(800px 460px at 88% -5%,rgba(212,175,85,.22),transparent 62%),radial-gradient(700px 520px at -5% 105%,rgba(15,143,131,.30),transparent 60%),#0A1830;display:flex;align-items:center;justify-content:center;padding:28px 20px}' +
+    '.box{max-width:520px;width:100%;text-align:center}.lg{display:block;margin:0 auto;width:150px;height:150px;border-radius:50%;box-shadow:0 0 0 2px rgba(212,175,85,.6),0 14px 40px rgba(0,0,0,.4)}' +
+    '.tag{display:inline-block;margin:22px 0 10px;background:#D4AF55;color:#0A1830;font-weight:800;font-size:12px;letter-spacing:1.4px;padding:6px 14px;border-radius:8px}' +
+    'h1{margin:6px 0 8px;font-size:40px;line-height:1.1;font-weight:800}h1 span{color:#D4AF55}p{margin:0 auto 22px;max-width:420px;color:#C9D3E6;font-size:15.5px;line-height:1.6}' +
+    '.row{display:flex;flex-direction:column;gap:10px;margin:0 auto;max-width:340px}.b{display:block;padding:14px 18px;border-radius:14px;font-weight:700;font-size:15px;text-decoration:none;text-align:center}' +
+    '.g{background:linear-gradient(135deg,#C9A24B,#EACF85);color:#0A1830}.o{border:1.5px solid rgba(255,255,255,.35);color:#fff}.f{margin-top:28px;font-size:12.5px;letter-spacing:1.6px;text-transform:uppercase;color:#D4AF55;font-weight:700}';
+  const html = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<title>PPTNEETPGHUB Premium | Coming soon</title><meta name="description" content="PPTNEETPGHUB Premium for NEET PG and INICET is coming soon. Read the latest news and counselling updates meanwhile.">' +
+    '<meta name="robots" content="noindex,follow"><link rel="canonical" href="' + h(site) + '/"><meta name="theme-color" content="#0A1830">' +
+    '<meta property="og:title" content="PPTNEETPGHUB Premium | Coming soon"><meta property="og:image" content="' + h(site) + '/icon-512.png">' +
+    '<link rel="icon" href="/icon-192.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">' +
+    '<style>' + css + '</style></head><body><main class="box"><img class="lg" src="/logo-360.webp" width="150" height="150" alt="PPTNEETPGHUB Premium">' +
+    '<div class="tag">NEET PG &middot; INICET</div><h1>Coming <span>soon</span></h1>' +
+    '<p>Notes, tests and revision tools are getting ready. Until then, read the latest news and counselling updates.</p>' +
+    '<div class="row"><a class="b g" href="/news">Latest news</a><a class="b o" href="/counselling">Counselling updates</a><a class="b o" href="https://t.me/D_V11111" target="_blank" rel="noopener">Message us on Telegram</a></div>' +
+    '<div class="f">Pray. Patience. Trust.</div></main></body></html>';
+  return new Response(html, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin' } });
+}
+// In Coming soon mode: the home page shows the Coming soon page; the other hidden pages send visitors back to it.
+function soonRoute(request, env, url) {
+  const p = url.pathname;
+  if (p === '/' || p === '/index.html') return soonPage(env, url);
+  if (p === '/study-tips' || p.startsWith('/study-tips/') || POLICIES[p]) return new Response(null, { status: 302, headers: { Location: url.origin + '/', 'Cache-Control': 'no-store' } });
+  if (p === '/api/study-tips') return new Response('{"items":[]}', { status: 200, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
+  return null;
+}
 
 function fsEq(field, value) {
   return { fieldFilter: { field: { fieldPath: field }, op: 'EQUAL', value: typeof value === 'boolean' ? { booleanValue: value } : { stringValue: value } } };
@@ -312,6 +368,7 @@ const allPublished = (env) => fsNews(env, [fsEq('published', true)]).then(sortNe
 
 // Fresh for two minutes, and an older copy is kept as a fallback if Firestore is down
 async function cachedPage(request, ttl, produce) {
+  if (request.__preview) return await produce();
   const cache = caches.default;
   const key = new Request(new URL(request.url).href, { method: 'GET' });
   const hit = await cache.match(key);
@@ -389,6 +446,25 @@ details.menu .panel hr{border:0;border-top:1px solid rgba(255,255,255,.12);margi
 @media(max-width:350px){.brand{font-size:12.5px}.brand img{width:26px!important;height:26px!important;margin-right:6px!important}header.top .in{padding:10px 10px;gap:6px}header.top .btn{padding:7px 10px;font-size:12px}nav.m{gap:6px}details.menu summary{width:34px}}`;
 
 function shell(site, o) {
+  return soonify(site, shellFull(site, o));
+}
+function soonify(site, html) {
+  if (!site.soon) return html;
+  const drop = (s, x) => s.split(x).join('');      // every copy, not just the first
+  let out = html;
+  [ '<a class="hide" href="/study-tips">Study tips</a>',
+    '<a href="/study-tips">Study tips</a>',
+    '<a href="/#features">What you get</a>',
+    '<a href="/#pricing">Pricing</a>',
+    '<a href="/#faq">FAQ</a>',
+    '<hr><a href="/" style="color:#D4AF55;font-weight:700">Member sign in</a>'
+  ].forEach(x => { out = drop(out, x); });
+  return out
+    .replace(/<a class="btn" href="[^"]*">Go Premium<\/a>/g, '')
+    .replace(/<div class="legal">.*?<\/div>/g, '')
+    .replace(/<div class="cta"><b>Preparing for NEET PG\?<\/b>.*?<\/div>/g, '');
+}
+function shellFull(site, o) {
   const canonical = site + (o.path || '/');
   const ld = (o.ld || []).map(x => '<script type="application/ld+json">' + JSON.stringify(x).replace(/</g, '\\u003c') + '</script>').join('\n');
   return '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
@@ -712,10 +788,12 @@ async function sitemapXml(env, url) {
   const tips = everything.filter(n => n.section === 'tips');
   const guide = everything.find(n => n.slug === 'counselling' && n.section === 'counselling');
   const last = (l) => (l.length ? (l[0].updatedAt || '').slice(0, 10) : '');
-  const rows = [{ loc: '/', mod: '' }, { loc: '/terms', mod: '' }, { loc: '/privacy', mod: '' }, { loc: '/refund', mod: '' }, { loc: '/news', mod: last(news) }, { loc: '/counselling', mod: guide ? (guide.updatedAt || '').slice(0, 10) : last(coun) }, { loc: '/study-tips', mod: last(tips) }];
+  const rows = site.soon
+    ? [{ loc: '/news', mod: last(news) }, { loc: '/counselling', mod: guide ? (guide.updatedAt || '').slice(0, 10) : last(coun) }]
+    : [{ loc: '/', mod: '' }, { loc: '/terms', mod: '' }, { loc: '/privacy', mod: '' }, { loc: '/refund', mod: '' }, { loc: '/news', mod: last(news) }, { loc: '/counselling', mod: guide ? (guide.updatedAt || '').slice(0, 10) : last(coun) }, { loc: '/study-tips', mod: last(tips) }];
   news.forEach(n => rows.push({ loc: '/news/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
   coun.forEach(n => rows.push({ loc: '/counselling/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
-  tips.forEach(n => rows.push({ loc: '/study-tips/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
+  if (!site.soon) tips.forEach(n => rows.push({ loc: '/study-tips/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
   const xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     rows.map(r => '<url><loc>' + h(site + r.loc) + '</loc>' + (r.mod ? '<lastmod>' + h(r.mod) + '</lastmod>' : '') + '</url>').join('\n') + '\n</urlset>';
   return new Response(xml, { status: 200, headers: { 'Content-Type': 'application/xml; charset=utf-8' } });
@@ -841,7 +919,8 @@ async function handleAdminHealth(request, env, url) {
     ok: true, r2, firestore: fire,
     secrets: { TELEGRAM_BOT_TOKEN: set('TELEGRAM_BOT_TOKEN'), TELEGRAM_CHAT_ID: set('TELEGRAM_CHAT_ID'), TG_CHAT_PREMIUM: set('TG_CHAT_PREMIUM'), TG_CHAT_INICET: set('TG_CHAT_INICET'), TG_CHAT_DISCUSS: set('TG_CHAT_DISCUSS'), TELEGRAM_ANNOUNCE_CHAT_ID: set('TELEGRAM_ANNOUNCE_CHAT_ID') },
     vars: { SITE_URL: set('SITE_URL'), ADMIN_EMAIL: set('ADMIN_EMAIL'), PROJECT_ID: set('PROJECT_ID') },
-    cronLastRun: health && health.at ? health.at : 0
+    cronLastRun: health && health.at ? health.at : 0,
+    comingSoon: isOn(env.COMING_SOON), previewKey: !!(env.PREVIEW_KEY && String(env.PREVIEW_KEY).length >= 6)
   });
 }
 
@@ -1032,6 +1111,17 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (request.method === 'GET' || request.method === 'HEAD') {
+      if (isOn(env.COMING_SOON)) {
+        const pv = await previewParam(env, url);
+        if (pv) return pv;
+        if (await hasPreview(request, env)) {            // you, previewing: the whole real website, never cached for others
+          env = Object.assign({}, env, { COMING_SOON: '0' });
+          request = new Request(request); request.__preview = true;
+        } else {
+          const hidden = soonRoute(request, env, url);
+          if (hidden) return hidden;
+        }
+      }
       const pub = await handlePublic(request, env, url);
       if (pub) return pub;
     }

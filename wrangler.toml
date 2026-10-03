@@ -5,7 +5,7 @@ compatibility_date = "2025-01-01"
 [assets]
 directory = "."
 binding = "ASSETS"
-run_worker_first = ["/api/*", "/news", "/news/*", "/study-tips", "/study-tips/*", "/counselling", "/counselling/*", "/terms", "/privacy", "/refund", "/sitemap.xml", "/robots.txt"]
+run_worker_first = ["/", "/index.html", "/api/*", "/news", "/news/*", "/study-tips", "/study-tips/*", "/counselling", "/counselling/*", "/terms", "/privacy", "/refund", "/sitemap.xml", "/robots.txt"]
 
 [[r2_buckets]]
 binding = "FILES"
@@ -15,6 +15,8 @@ bucket_name = "pptneetpghub-files"
 PROJECT_ID = "pptneetpghub"
 ADMIN_EMAIL = "devid.vachhani11@gmail.com"
 SITE_URL = "https://pptneetpghub.com"
+# "1" = show only Coming soon, News and Counselling. "0" = the whole website. Nothing is deleted either way.
+COMING_SOON = "1"
 
 [triggers]
 crons = ["*/10 * * * *"]
