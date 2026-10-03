@@ -503,6 +503,13 @@
       </div>
 
       <div class="card">
+        <h3>Practice pool for students</h3>
+        <p class="hint">Students get a "Practice by subject" card in their library. It draws random questions from this pool. Press the button after you add or delete questions in the bank.</p>
+        <div id="pp_status" class="hint">Checking…</div>
+        <button class="btn teal" id="pp_publish" style="margin-top:8px;">Update practice pool</button>
+      </div>
+
+      <div class="card">
         <h3>Browse the bank</h3>
         <div class="bk-grid"><div><select id="bk_fSubject"></select></div><div><input type="text" id="bk_fQ" placeholder="Search words"></div></div>
         <div id="bk_list"></div>
@@ -1911,6 +1918,13 @@ async function openEditTest(row) {
     const toggle = () => { box.style.display = document.getElementById('e_mode').value === 'exam' ? 'block' : 'none'; };
     document.getElementById('e_mode').addEventListener('change', toggle); toggle();
 
+    let smp = null; try { const ss = await getDoc(doc(db, 'sample', 'main')); smp = ss.exists() ? ss.data() : null; } catch (e) {}
+    const lab = document.createElement('label'); lab.className = 'bk-chk';
+    const cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = 'e_sample'; cb.checked = !!(smp && smp.testId === row.testId);
+    lab.appendChild(cb); lab.appendChild(document.createTextNode('Use as the free sample on the home page'));
+    body.appendChild(lab);
+    body.appendChild(mk('p', 'hint', 'The first 10 questions without pictures become public, with no sign-in. Only one test can be the free sample.' + (smp && smp.testId !== row.testId ? ' Ticking this replaces the current sample: ' + smp.title + '.' : '')));
+
     const ta = document.createElement('textarea'); ta.id = 'e_text'; ta.className = 't-area'; ta.rows = 14; ta.spellcheck = false;
     ta.value = questionsToText(d.qs || []);
     body.appendChild(edField('Questions (edit the text, then check)', ta));
@@ -2048,10 +2062,14 @@ async function saveTestEdit() {
     throw e;
   }
   await updateDoc(doc(db, 'resources', row.id), { title, subject, exam: document.getElementById('e_examType').value, meta: examMeta(n, exam, duration, bi) });
+  const wantSample = !!(document.getElementById('e_sample') && document.getElementById('e_sample').checked);
+  let sampleMsg = '';
+  try { await syncFreeSample(ED.testId, title, res.questions, wantSample); }
+  catch (e) { sampleMsg = (e && e.message) || 'Could not update the free sample'; }
   // pictures the test no longer uses
   const stillUsed = new Set(imageKeysOf(res.questions));
   await deleteStoredFiles((ED.oldKeys || []).filter(k => !stillUsed.has(k)));
-  showToast('✔ Test saved (' + n + ' questions)');
+  showToast('✔ Test saved (' + n + ' questions)' + (sampleMsg ? '. Free sample NOT updated: ' + sampleMsg : ''), !!sampleMsg);
 }
 
 async function saveBulkEdit() {
@@ -2966,6 +2984,7 @@ async function loadBank(force) {
     BANK.rows = []; BANK.byId = {};
     snap.forEach(d => { const x = d.data(); x.id = d.id; BANK.rows.push(x); BANK.byId[d.id] = x; });
     BANK.loaded = true;
+    ppStatus();
   } catch (e) { document.getElementById('bkStats').innerHTML = '<div class="empty">Could not load the bank: ' + e.message + '</div>'; return; }
   renderBank();
 }
@@ -3152,6 +3171,7 @@ async function publishBankTest() {
 function wireHomeBank() {
   document.getElementById('homeRefresh').addEventListener('click', loadHome);
   document.getElementById('bkRefresh').addEventListener('click', () => loadBank(true));
+  document.getElementById('pp_publish').addEventListener('click', publishPracticePool);
   document.getElementById('bk_xlfile').addEventListener('change', (e) => { bankFromFile(e.target.files[0]); e.target.value = ''; });
   document.getElementById('bk_tpl').addEventListener('click', (e) => { e.preventDefault(); downloadBankTemplate(); });
   document.getElementById('bk_pasteGo').addEventListener('click', bankFromPaste);
@@ -3162,6 +3182,79 @@ function wireHomeBank() {
   document.getElementById('bk_fQ').addEventListener('input', () => { BANK.shown = 50; renderBankList(); });
 }
 
+
+// ---------- Practice pool (what students practise from) ----------
+function slugOf(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '').slice(0, 30) || 'x'; }
+async function ppStatus() {
+  const el = document.getElementById('pp_status'); if (!el) return;
+  try {
+    const { db, doc, getDoc } = window.__fb;
+    const s = await getDoc(doc(db, 'practice', 'index'));
+    if (!s.exists()) { el.textContent = 'Not published yet. Students do not see the Practice card.'; return; }
+    const d = s.data(), subs = (d.subjects || []).length;
+    el.textContent = 'Live for students: ' + (d.total || 0) + ' questions in ' + subs + ' subject' + (subs === 1 ? '' : 's') + '. Last updated ' + fmtTime(d.updatedAt) + '. The bank has ' + BANK.rows.length + ' now.';
+  } catch (e) { el.textContent = 'Could not read the pool status: ' + e.message; }
+}
+async function publishPracticePool() {
+  const btn = document.getElementById('pp_publish');
+  const { db, doc, collection, getDocs, writeBatch, serverTimestamp } = window.__fb;
+  btn.disabled = true; btn.textContent = 'Updating…';
+  try {
+    await loadBank(true);
+    const bySub = {};
+    BANK.rows.forEach(x => { const s = String(x.s || '').trim(); if (s && x.q && Array.isArray(x.o)) (bySub[s] = bySub[s] || []).push(x); });
+    const subjects = Object.keys(bySub).sort();
+    if (!subjects.length) { showToast('The bank has no questions with a subject yet.', true); return; }
+    const chunks = [], index = [];
+    let total = 0;
+    subjects.forEach(sub => {
+      const rows = bySub[sub].slice().sort((a, b) => ((tsMs(a.createdAt) || 9e15) - (tsMs(b.createdAt) || 9e15)) || String(a.id).localeCompare(String(b.id)));
+      const slug = slugOf(sub);
+      let cur = [], size = 0, part = 0;
+      const flush = () => { if (cur.length) { chunks.push({ id: 'pr_' + slug + '_' + part, subject: sub, part: part, qs: cur }); part++; cur = []; size = 0; } };
+      rows.forEach(x => {
+        const q = { id: x.id, q: x.q, o: x.o, a: x.a, e: x.e || '' }; if (x.t) q.t = x.t;
+        const len = JSON.stringify(q).length;
+        if (cur.length >= 300 || size + len > 700000) flush();
+        cur.push(q); size += len;
+      });
+      flush();
+      index.push({ subject: sub, slug: slug, count: rows.length, parts: part });
+      total += rows.length;
+    });
+    const keep = new Set(chunks.map(c => c.id));
+    keep.add('index');
+    // new chunks first, then the index, then remove old chunks, so students never meet a missing part
+    for (let i = 0; i < chunks.length; i += 20) {
+      const batch = writeBatch(db);
+      chunks.slice(i, i + 20).forEach(c => batch.set(doc(db, 'practice', c.id), { subject: c.subject, part: c.part, qs: c.qs, updatedAt: serverTimestamp() }));
+      await batch.commit();
+    }
+    await window.__fb.setDoc(doc(db, 'practice', 'index'), { subjects: index, total: total, updatedAt: serverTimestamp() });
+    const old = await getDocs(collection(db, 'practice'));
+    const gone = []; old.forEach(d => { if (!keep.has(d.id)) gone.push(d.id); });
+    for (let i = 0; i < gone.length; i += 400) {
+      const batch = writeBatch(db);
+      gone.slice(i, i + 400).forEach(id => batch.delete(doc(db, 'practice', id)));
+      await batch.commit();
+    }
+    showToast('Practice pool updated: ' + total + ' questions in ' + subjects.length + ' subject' + (subjects.length === 1 ? '' : 's'));
+    ppStatus();
+  } catch (e) { console.error(e); showToast('Failed: ' + e.message, true); }
+  finally { btn.disabled = false; btn.textContent = 'Update practice pool'; }
+}
+
+// ---------- Free sample (public, needs no sign-in) ----------
+async function syncFreeSample(testId, title, qs, on) {
+  const { db, doc, getDoc, setDoc, deleteDoc, serverTimestamp } = window.__fb;
+  const ref = doc(db, 'sample', 'main');
+  let cur = null; try { const s = await getDoc(ref); cur = s.exists() ? s.data() : null; } catch (e) {}
+  if (!on) { if (cur && cur.testId === testId) await deleteDoc(ref); return false; }
+  const pub = qs.filter(q => !q.img && !q.eimg).slice(0, 10).map(q => { const o = { q: q.q, o: q.o, a: q.a, e: q.e || '' }; if (q.s) o.s = q.s; if (q.t) o.t = q.t; return o; });
+  if (!pub.length) throw soft('Every question in this test has a picture, so it cannot be the free sample.');
+  await setDoc(ref, { testId: testId, title: title, qs: pub, count: pub.length, updatedAt: serverTimestamp() });
+  return true;
+}
 function mk(tag, cls, text) {
   const n = document.createElement(tag);
   if (cls) n.className = cls;
