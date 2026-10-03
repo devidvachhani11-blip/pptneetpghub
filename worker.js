@@ -259,6 +259,7 @@ async function handleDelete(request, env, url) {
 // "news" collection in Firestore (anyone may read published items, only the admin may write).
 const NEWS_CATEGORIES = ['NBEMS', 'MCC', 'State counselling', 'INICET', 'Seat matrix', 'Exam notice', 'Other'];
 const COUNSELLING_CATS = ['MCC', 'State counselling', 'Seat matrix'];
+const TIP_CATEGORIES = ['Study plan', 'Revision', 'Mock tests and PYQs', 'Subject tips', 'Exam day', 'Motivation'];
 const FRESH_SECONDS = 120;
 
 function h(s) {
@@ -350,12 +351,12 @@ const clip = (s, n) => (String(s).length > n ? String(s).slice(0, n - 1).trimEnd
 
 const NEWS_CSS = `*{box-sizing:border-box}body{margin:0;font-family:'Poppins',system-ui,sans-serif;background:#FBF8F1;color:#141A22;-webkit-font-smoothing:antialiased;line-height:1.6}
 a{color:#0F8F83}header.top{background:#0A1830;position:sticky;top:0;z-index:5}header.top .in{max-width:1000px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-.brand{font-weight:800;color:#fff;text-decoration:none;font-size:16px}.brand i{font-style:normal;color:#D4AF55;margin:0 4px}
+.brand{font-weight:800;color:#fff;text-decoration:none;font-size:16px;display:inline-flex;align-items:center}.brand i{font-style:normal;color:#D4AF55;margin:0 4px}
 nav.m{display:flex;gap:18px;align-items:center}nav.m a{color:#B4C0D6;text-decoration:none;font-size:14px;font-weight:500}nav.m a:hover{color:#fff}
 .btn{display:inline-block;background:linear-gradient(135deg,#C9A24B,#EACF85);color:#0A1830!important;font-weight:700;text-decoration:none;border-radius:20px;padding:8px 16px;font-size:13px}
 main{max-width:760px;margin:0 auto;padding:26px 18px 70px}.crumbs{font-size:12.5px;color:#6E7A8A;margin-bottom:14px}.crumbs a{color:#6E7A8A}
 h1{font-size:clamp(26px,5vw,36px);line-height:1.18;color:#0A1830;margin:6px 0 10px;letter-spacing:-.3px}h2{font-size:20px;color:#0A1830;margin:26px 0 6px}
-.pill{display:inline-block;background:#E8EEF9;color:#27508F;font-size:12px;font-weight:700;border-radius:10px;padding:3px 10px;margin-right:6px}.pill.g{background:#FFF8E8;color:#8A6A1A}
+.pill{display:inline-block;background:#E8EEF9;color:#27508F;font-size:12px;font-weight:700;border-radius:10px;padding:3px 10px;margin-right:6px}.pill.g{background:#FFF8E8;color:#8A6A1A}.pill.t{background:#DDF3EF;color:#0B6F66}
 .meta{font-size:13px;color:#6E7A8A}.lead{font-size:16.5px;color:#3B4656;margin:10px 0 4px}.body p,.body li{font-size:16px}.body ul{padding-left:22px}
 .src{background:#fff;border:1px solid #E3DCC8;border-left:4px solid #0F8F83;border-radius:12px;padding:12px 14px;margin:22px 0;font-size:14px}
 .cta{background:#0A1830;color:#fff;border-radius:18px;padding:22px;margin:30px 0;text-align:center}.cta b{display:block;font-size:19px;margin-bottom:6px}.cta p{color:#A9B6CE;margin:0 0 14px;font-size:14px}
@@ -381,11 +382,11 @@ function shell(site, o) {
     '<meta name="twitter:card" content="summary"><meta name="theme-color" content="#0A1830">' +
     '<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">' +
     '<style>' + NEWS_CSS + '</style>' + ld + '</head><body>' +
-    '<header class="top"><div class="in"><a class="brand" href="/">PPTNEETPGHUB<i>&middot;</i><span class="pr">Premium</span></a><nav class="m"><a class="hide" href="/news">News</a><a class="hide" href="/counselling">Counselling</a><a class="btn" href="/#join">Go Premium</a>' +
+    '<header class="top"><div class="in"><a class="brand" href="/"><img src="/logo-96.webp" width="30" height="30" alt="" style="border-radius:50%;vertical-align:middle;margin-right:8px">PPTNEETPGHUB<i>&middot;</i><span class="pr">Premium</span></a><nav class="m"><a class="hide" href="/news">News</a><a class="hide" href="/study-tips">Study tips</a><a class="hide" href="/counselling">Counselling</a><a class="btn" href="/#join">Go Premium</a>' +
       '<details class="menu"><summary aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></summary><div class="panel">' +
-      '<a href="/">Home</a><a href="/#features">What you get</a><a href="/#pricing">Pricing</a><a href="/news">News</a><a href="/counselling">Counselling</a><a href="/#faq">FAQ</a><hr><a href="/" style="color:#D4AF55;font-weight:700">Member sign in</a></div></details></nav></div></header>' +
+      '<a href="/">Home</a><a href="/#features">What you get</a><a href="/#pricing">Pricing</a><a href="/news">News</a><a href="/study-tips">Study tips</a><a href="/counselling">Counselling</a><a href="/#faq">FAQ</a><hr><a href="/" style="color:#D4AF55;font-weight:700">Member sign in</a></div></details></nav></div></header>' +
     '<main>' + o.body + '</main>' +
-    '<footer><div><a href="/">Home</a><a href="/news">News</a><a href="/counselling">Counselling</a><a href="/#pricing">Pricing</a></div><p>Summaries of official notices. Always confirm dates and rules on the official website before acting.</p></footer><script>document.addEventListener("click",function(e){var d=document.querySelector("details.menu");if(d&&d.open&&!d.contains(e.target))d.open=false;});</script></body></html>';
+    '<footer><div><a href="/">Home</a><a href="/news">News</a><a href="/study-tips">Study tips</a><a href="/counselling">Counselling</a><a href="/#pricing">Pricing</a></div><p>Summaries of official notices. Always confirm dates and rules on the official website before acting.</p></footer><script>document.addEventListener("click",function(e){var d=document.querySelector("details.menu");if(d&&d.open&&!d.contains(e.target))d.open=false;});</script></body></html>';
 }
 function ctaBox() {
   return '<div class="cta"><b>Preparing for NEET PG?</b><p>Notes, PYQs, flash cards and timed tests, released step by step.</p><a class="btn" href="/#join">Go Premium</a></div>';
@@ -398,7 +399,7 @@ function notFoundPage(site) {
     body: '<h1>Page not found</h1><p class="lead">That update does not exist or is no longer published.</p><p><a href="/news">See all updates</a></p>' }), 404);
 }
 function itemCard(n) {
-  return '<a class="item" href="/news/' + h(n.slug) + '"><span class="pill' + (n.type === 'guide' ? ' g' : '') + '">' + h(n.type === 'guide' ? 'Guide' : n.category) + '</span><span class="meta">' + h(niceDate(n.date)) + '</span><b>' + h(n.title) + '</b><span class="s">' + h(clip(n.summary, 170)) + '</span></a>';
+  return '<a class="item" href="' + (n.type === 'tip' ? '/study-tips/' : '/news/') + h(n.slug) + '"><span class="pill' + (n.type === 'guide' ? ' g' : n.type === 'tip' ? ' t' : '') + '">' + h(n.type === 'guide' ? 'Guide' : n.category) + '</span><span class="meta">' + h(niceDate(n.date)) + '</span><b>' + h(n.title) + '</b><span class="s">' + h(clip(n.summary, 170)) + '</span></a>';
 }
 function orgLd(site) { return { '@type': 'Organization', name: 'PPTNEETPGHUB', url: site }; }
 function crumbLd(site, trail) {
@@ -409,7 +410,7 @@ async function newsListPage(env, url) {
   const site = siteOf(env, url);
   const cat = url.searchParams.get('c') || '';
   const all = await allPublished(env);
-  const list = all.filter(n => n.slug !== 'counselling' && (!cat || n.category === cat));
+  const list = all.filter(n => n.slug !== 'counselling' && n.type !== 'tip' && (!cat || n.category === cat));
   const pinned = list.filter(n => n.pinned && !cat), rest = list.filter(n => !(n.pinned && !cat));
   const chips = '<div class="chips"><a href="/news"' + (!cat ? ' class="on"' : '') + '>All</a>' +
     NEWS_CATEGORIES.map(c => '<a href="/news?c=' + encodeURIComponent(c) + '"' + (cat === c ? ' class="on"' : '') + '>' + h(c) + '</a>').join('') + '</div>';
@@ -429,9 +430,10 @@ async function articlePage(env, url, slug) {
   const rows = await fsNews(env, [fsEq('slug', slug), fsEq('published', true)]);
   const n = rows[0];
   if (!n) return notFoundPage(site);
+  if (n.type === 'tip') return Response.redirect(site + '/study-tips/' + n.slug, 301);
   if (n.slug === 'counselling') return Response.redirect(site + '/counselling', 301);
   const all = await allPublished(env);
-  const related = all.filter(x => x.id !== n.id && x.slug !== 'counselling' && x.category === n.category).slice(0, 4);
+  const related = all.filter(x => x.id !== n.id && x.slug !== 'counselling' && x.type !== 'tip' && x.category === n.category).slice(0, 4);
   const path = '/news/' + n.slug;
   const updated = n.updatedAt ? n.updatedAt.slice(0, 10) : n.date;
   const body = '<div class="crumbs"><a href="/">Home</a> › <a href="/news">News</a> › ' + h(clip(n.title, 50)) + '</div>' +
@@ -446,6 +448,64 @@ async function articlePage(env, url, slug) {
       datePublished: n.date || undefined, dateModified: updated || n.date || undefined, mainEntityOfPage: site + path, author: orgLd(site), publisher: orgLd(site) },
       crumbLd(site, [['Home', '/'], ['News', '/news'], [clip(n.title, 60), path]])]
   }));
+}
+
+// ---------- Study tips (the blog) ----------
+function tipNotFound(site) {
+  return htmlResponse(shell(site, { title: 'Page not found | PPTNEETPGHUB', desc: 'This page was not found.', path: '/study-tips', noindex: true,
+    body: '<h1>Page not found</h1><p class="lead">That study tip does not exist or is no longer published.</p><p><a href="/study-tips">See all study tips</a></p>' }), 404);
+}
+function tipsCta() {
+  return '<div class="cta"><b>Turn tips into marks.</b><p>Try 10 free questions, then practise by subject with instant answers.</p><a class="btn" href="/#sampleSec">Try the free sample</a> <a class="btn" href="/#join" style="margin-left:8px">Go Premium</a></div>';
+}
+const allTips = (env) => allPublished(env).then(list => list.filter(n => n.type === 'tip'));
+
+async function tipsListPage(env, url) {
+  const site = siteOf(env, url);
+  const cat = url.searchParams.get('c') || '';
+  const all = await allTips(env);
+  const list = all.filter(n => !cat || n.category === cat);
+  const pinned = list.filter(n => n.pinned && !cat), rest = list.filter(n => !(n.pinned && !cat));
+  const chips = '<div class="chips"><a href="/study-tips"' + (!cat ? ' class="on"' : '') + '>All</a>' +
+    TIP_CATEGORIES.map(c => '<a href="/study-tips?c=' + encodeURIComponent(c) + '"' + (cat === c ? ' class="on"' : '') + '>' + h(c) + '</a>').join('') + '</div>';
+  const body = '<div class="crumbs"><a href="/">Home</a> › Study tips</div><h1>NEET PG study tips</h1>' +
+    '<p class="lead">Simple, practical advice on planning, revision, mock tests and staying consistent.</p>' + chips +
+    (list.length ? pinned.concat(rest).map(itemCard).join('') : '<p>No study tips here yet. Check back soon.</p>') + tipsCta();
+  return htmlResponse(shell(site, {
+    title: 'NEET PG study tips: revision, mock tests, planning | PPTNEETPGHUB',
+    desc: 'Practical NEET PG and INICET study tips: how to plan revision, use mock tests, remember more and stay consistent through a long preparation.',
+    path: '/study-tips', noindex: !!cat, body,
+    ld: [crumbLd(site, [['Home', '/'], ['Study tips', '/study-tips']])]
+  }));
+}
+
+async function tipPage(env, url, slug) {
+  const site = siteOf(env, url);
+  const rows = await fsNews(env, [fsEq('slug', slug), fsEq('published', true)]);
+  const n = rows[0];
+  if (!n || n.type !== 'tip') return tipNotFound(site);
+  const all = await allTips(env);
+  const same = all.filter(x => x.id !== n.id && x.category === n.category);
+  const related = same.concat(all.filter(x => x.id !== n.id && x.category !== n.category)).slice(0, 4);
+  const path = '/study-tips/' + n.slug;
+  const updated = n.updatedAt ? n.updatedAt.slice(0, 10) : n.date;
+  const body = '<div class="crumbs"><a href="/">Home</a> › <a href="/study-tips">Study tips</a> › ' + h(clip(n.title, 50)) + '</div>' +
+    '<span class="pill t">' + h(n.category) + '</span>' +
+    '<span class="meta">' + (n.date ? h(niceDate(n.date)) : '') + (updated && updated !== n.date ? ' · Updated: ' + h(niceDate(updated)) : '') + '</span>' +
+    '<h1>' + h(n.title) + '</h1><p class="lead">' + h(n.summary) + '</p><div class="body">' + renderBody(n.body) + '</div>' +
+    (/^https?:\/\//.test(n.sourceUrl) ? '<div class="src"><b>Source:</b> <a href="' + h(n.sourceUrl) + '" target="_blank" rel="noopener">' + h(n.sourceName || n.sourceUrl) + '</a></div>' : '') +
+    tipsCta() + (related.length ? '<h2>More study tips</h2>' + related.map(itemCard).join('') : '');
+  return htmlResponse(shell(site, {
+    title: clip(n.title, 60) + ' | PPTNEETPGHUB', desc: clip(n.summary || n.title, 160), path, ogType: 'article', body,
+    ld: [{ '@context': 'https://schema.org', '@type': 'Article', headline: clip(n.title, 110), description: clip(n.summary, 200),
+      datePublished: n.date || undefined, dateModified: updated || n.date || undefined, mainEntityOfPage: site + path, author: orgLd(site), publisher: orgLd(site) },
+      crumbLd(site, [['Home', '/'], ['Study tips', '/study-tips'], [clip(n.title, 60), path]])]
+  }));
+}
+async function tipsLatestJson(env, url) {
+  const n = Math.max(1, Math.min(10, parseInt(url.searchParams.get('limit') || '3', 10) || 3));
+  const all = (await allTips(env)).slice(0, n);
+  return new Response(JSON.stringify({ items: all.map(x => ({ title: x.title, slug: x.slug, category: x.category, date: x.date })) }), { status: 200, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=60' } });
 }
 
 async function counsellingPage(env, url) {
@@ -470,11 +530,15 @@ async function counsellingPage(env, url) {
 
 async function sitemapXml(env, url) {
   const site = siteOf(env, url);
-  const all = await allPublished(env);
+  const everything = await allPublished(env);
+  const all = everything.filter(n => n.type !== 'tip');
+  const tips = everything.filter(n => n.type === 'tip');
   const rows = [{ loc: '/', mod: '' }, { loc: '/news', mod: all.length ? (all[0].updatedAt || '').slice(0, 10) : '' }];
   const g = all.find(n => n.slug === 'counselling');
   rows.push({ loc: '/counselling', mod: g ? (g.updatedAt || '').slice(0, 10) : '' });
   all.filter(n => n.slug !== 'counselling').forEach(n => rows.push({ loc: '/news/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
+  rows.push({ loc: '/study-tips', mod: tips.length ? (tips[0].updatedAt || '').slice(0, 10) : '' });
+  tips.forEach(n => rows.push({ loc: '/study-tips/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
   const xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     rows.map(r => '<url><loc>' + h(site + r.loc) + '</loc>' + (r.mod ? '<lastmod>' + h(r.mod) + '</lastmod>' : '') + '</url>').join('\n') + '\n</urlset>';
   return new Response(xml, { status: 200, headers: { 'Content-Type': 'application/xml; charset=utf-8' } });
@@ -485,7 +549,7 @@ function robotsTxt(env, url) {
 }
 async function latestJson(env, url) {
   const n = Math.max(1, Math.min(10, parseInt(url.searchParams.get('limit') || '3', 10) || 3));
-  const all = (await allPublished(env)).filter(x => x.slug !== 'counselling').slice(0, n);
+  const all = (await allPublished(env)).filter(x => x.slug !== 'counselling' && x.type !== 'tip').slice(0, n);
   return new Response(JSON.stringify({ items: all.map(x => ({ title: x.title, slug: x.slug, category: x.category, date: x.date })) }), { status: 200, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=60' } });
 }
 
@@ -497,6 +561,11 @@ async function handlePublic(request, env, url) {
   try {
     if (p === '/sitemap.xml') return await cachedPage(request, FRESH_SECONDS, () => sitemapXml(env, url));
     if (p === '/api/news') return await cachedPage(request, 60, () => latestJson(env, url));
+    if (p === '/api/study-tips') return await cachedPage(request, 60, () => tipsLatestJson(env, url));
+    if (p === '/study-tips') return await cachedPage(request, FRESH_SECONDS, () => tipsListPage(env, url));
+    const tm = /^\/study-tips\/([a-z0-9-]{3,80})$/.exec(p);
+    if (tm) return await cachedPage(request, FRESH_SECONDS, () => tipPage(env, url, tm[1]));
+    if (p.startsWith('/study-tips/')) return tipNotFound(site);
     if (p === '/news') return await cachedPage(request, FRESH_SECONDS, () => newsListPage(env, url));
     if (p === '/counselling') return await cachedPage(request, FRESH_SECONDS, () => counsellingPage(env, url));
     const m = /^\/news\/([a-z0-9-]{3,80})$/.exec(p);
