@@ -1339,6 +1339,17 @@
   .rule-foot { margin-top: 14px; padding-top: 11px; border-top: 1px solid rgba(212,175,85,0.35); text-align: center; font-size: 12.5px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: var(--gold-b); }
   .v-progress .rule-box, .v-notebook .rule-box { display: none; }
   @media (min-width: 900px) { .rule-box { padding: 22px 26px 16px; } .rule-box ol { grid-template-columns: repeat(3, 1fr); gap: 20px; } .rule-box li { flex-direction: column; gap: 8px; } }
+  @media (max-width: 350px) {
+    .l-brand { font-size: 12.5px; gap: 6px; }
+    .l-brand .lg { width: 28px; height: 28px; }
+    .lh-in { gap: 6px; }
+    .l-actions { gap: 6px; }
+    .l-actions .btn-gold.sm { padding: 7px 10px; font-size: 12px; }
+    .l-menu-btn { width: 34px; }
+  }
+  .rules-sec { background: #FBF8F1; padding: 26px 0 8px; }
+  .rules-sec .rule-box { margin: 0; }
+  @media (min-width: 900px) { .rules-sec { padding: 40px 0 12px; } }
 </style>
 </head>
 <body class="booting">
@@ -1408,6 +1419,20 @@
     </div>
     <div class="offer" id="offerBand"></div>
     <div class="hero-end"></div>
+  </div>
+</section>
+
+<section class="rules-sec" id="rules">
+  <div class="container">
+      <section class="rule-box" id="ruleBox" aria-labelledby="ruleTitle">
+        <h2 id="ruleTitle">3 Rules to Crack Your Exam</h2>
+        <ol>
+          <li><span class="rn">1</span><div><b>Stand on standard books</b><p>Build your base from the standard books of your subjects. They give you the concepts everything else depends on.</p></div></li>
+          <li><span class="rn">2</span><div><b>Follow one online coaching that suits you</b><p>Pick the course that matches your style and finish it. Changing again and again wastes time.</p></div></li>
+          <li><span class="rn">3</span><div><b>Use our resources to remember and revise</b><p>Learn from your books and coaching, then lock it in here with high-yield notes, tricks, flashcards, PYQs and tests.</p></div></li>
+        </ol>
+        <div class="rule-foot">Pray. Patience. Trust.</div>
+      </section>
   </div>
 </section>
 
@@ -1623,15 +1648,6 @@
 
 <div class="lib-wrap">
   <main class="lib-main">
-    <section class="rule-box" id="ruleBox" aria-labelledby="ruleTitle">
-      <h2 id="ruleTitle">3 Rules to Crack Your Exam</h2>
-      <ol>
-        <li><span class="rn">1</span><div><b>Stand on standard books</b><p>Build your base from the standard books of your subjects. They give you the concepts everything else depends on.</p></div></li>
-        <li><span class="rn">2</span><div><b>Follow one online coaching that suits you</b><p>Pick the course that matches your style and finish it. Changing again and again wastes time.</p></div></li>
-        <li><span class="rn">3</span><div><b>Use our resources to remember and revise</b><p>Learn from your books and coaching, then lock it in here with high-yield notes, tricks, flashcards, PYQs and tests.</p></div></li>
-      </ol>
-      <div class="rule-foot">Pray. Patience. Trust.</div>
-    </section>
     <div class="lib-title">
       <h1 id="libTitle">All resources</h1>
       <p id="libSub">Newest first</p>
