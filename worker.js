@@ -21,6 +21,9 @@ const MIME = {
   webp: 'image/webp'
 };
 
+// Internal data kept in the same bucket. Only the admin can read these.
+const RESERVED_PREFIXES = ['backups/', 'system/', 'tg-invites/', 'announce-queue/'];
+
 class HttpError extends Error {
   constructor(status, message, code) { super(message); this.status = status; this.code = code; }
 }
@@ -164,6 +167,7 @@ async function handleGet(request, env, url) {
   }
 
   const key = cleanKey(url.searchParams.get('key'));
+  if (!user.isAdmin && (RESERVED_PREFIXES.some(p => key.indexOf(p) === 0) || !MIME[key.split('.').pop()])) throw new HttpError(404, 'File not found');
   const obj = await env.FILES.get(key);
   if (!obj) throw new HttpError(404, 'File not found');
 
@@ -368,7 +372,7 @@ main{max-width:760px;margin:0 auto;padding:26px 18px 70px}.crumbs{font-size:12.5
 h1{font-size:clamp(26px,5vw,36px);line-height:1.18;color:#0A1830;margin:6px 0 10px;letter-spacing:-.3px}h2{font-size:20px;color:#0A1830;margin:26px 0 6px}
 .pill{display:inline-block;background:#E8EEF9;color:#27508F;font-size:12px;font-weight:700;border-radius:10px;padding:3px 10px;margin-right:6px}.pill.g{background:#FFF8E8;color:#8A6A1A}.pill.t{background:#DDF3EF;color:#0B6F66}
 .meta{font-size:13px;color:#6E7A8A}.lead{font-size:16.5px;color:#3B4656;margin:10px 0 4px}.body p,.body li{font-size:16px}.body ul{padding-left:22px}
-.src{background:#fff;border:1px solid #E3DCC8;border-left:4px solid #0F8F83;border-radius:12px;padding:12px 14px;margin:22px 0;font-size:14px}
+.body h2{margin-top:24px}.body p,.body li{line-height:1.65}.src{background:#fff;border:1px solid #E3DCC8;border-left:4px solid #0F8F83;border-radius:12px;padding:12px 14px;margin:22px 0;font-size:14px}
 .cta{background:#0A1830;color:#fff;border-radius:18px;padding:22px;margin:30px 0;text-align:center}.cta b{display:block;font-size:19px;margin-bottom:6px}.cta p{color:#A9B6CE;margin:0 0 14px;font-size:14px}
 .item{display:block;background:#fff;border:1px solid #E3DCC8;border-radius:14px;padding:14px 16px;margin-bottom:10px;text-decoration:none;color:inherit}.item:hover{border-color:#0F8F83}
 .item b{display:block;color:#0A1830;font-size:16px;margin:6px 0 2px}.item span.s{font-size:14px;color:#4B5766}
@@ -380,7 +384,7 @@ details.menu .panel{position:absolute;right:0;top:calc(100% + 12px);width:min(84
 details.menu .panel a{display:block;color:#E6EBF5;text-decoration:none;padding:13px 14px;border-radius:10px;font-size:15px;font-weight:500}details.menu .panel a:hover{background:rgba(255,255,255,.08)}
 details.menu .panel hr{border:0;border-top:1px solid rgba(255,255,255,.12);margin:4px 6px}
 @media(max-width:560px){nav.m a.hide{display:none}details.menu{display:block}.brand i,.brand .pr{display:none}nav.m{gap:10px}header.top .in{padding:12px 14px}}
-.btn{white-space:nowrap;line-height:1.3}footer a{white-space:nowrap;display:inline-block;margin-bottom:4px}.cta-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.btn{white-space:nowrap;line-height:1.3}footer a{white-space:nowrap;display:inline-block;margin-bottom:4px}footer .legal{margin-top:6px}footer .legal a{font-size:12.5px;opacity:.9}.cta-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
 @media(max-width:560px){header.top .btn{padding:8px 13px;font-size:12.5px}.cta-row{flex-direction:column;align-items:stretch}.cta-row .btn{display:block;text-align:center;padding:12px 16px;font-size:14px}}
 @media(max-width:350px){.brand{font-size:12.5px}.brand img{width:26px!important;height:26px!important;margin-right:6px!important}header.top .in{padding:10px 10px;gap:6px}header.top .btn{padding:7px 10px;font-size:12px}nav.m{gap:6px}details.menu summary{width:34px}}`;
 
@@ -399,7 +403,7 @@ function shell(site, o) {
       '<details class="menu"><summary aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></summary><div class="panel">' +
       '<a href="/">Home</a><a href="/#features">What you get</a><a href="/#pricing">Pricing</a><a href="/news">News</a><a href="/study-tips">Study tips</a><a href="/counselling">Counselling</a><a href="/#faq">FAQ</a><hr><a href="/" style="color:#D4AF55;font-weight:700">Member sign in</a></div></details></nav></div></header>' +
     '<main>' + o.body + '</main>' +
-    '<footer><div><a href="/">Home</a><a href="/news">News</a><a href="/study-tips">Study tips</a><a href="/counselling">Counselling</a><a href="/#pricing">Pricing</a></div><p>Summaries of official notices. Always confirm dates and rules on the official website before acting.</p></footer><script>document.addEventListener("click",function(e){var d=document.querySelector("details.menu");if(d&&d.open&&!d.contains(e.target))d.open=false;});</script></body></html>';
+    '<footer><div><a href="/">Home</a><a href="/news">News</a><a href="/study-tips">Study tips</a><a href="/counselling">Counselling</a><a href="/#pricing">Pricing</a></div><div class="legal"><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/refund">Refunds</a></div><p>Summaries of official notices. Always confirm dates and rules on the official website before acting.</p></footer><script>document.addEventListener("click",function(e){var d=document.querySelector("details.menu");if(d&&d.open&&!d.contains(e.target))d.open=false;});</script></body></html>';
 }
 function ctaBox() {
   return '<div class="cta"><b>Preparing for NEET PG?</b><p>Notes, PYQs, flash cards and timed tests, released step by step.</p><a class="btn" href="/#join">Go Premium</a></div>';
@@ -466,6 +470,126 @@ async function articlePage(env, url, slug) {
       datePublished: n.date || undefined, dateModified: updated || n.date || undefined, mainEntityOfPage: site + path, author: orgLd(site), publisher: orgLd(site) },
       crumbLd(site, [['Home', '/'], ['News', '/news'], [clip(n.title, 60), path]])]
   }));
+}
+
+// ---------- Terms, Privacy and Refund pages ----------
+const POLICY_UPDATED = '3 October 2026';
+const POLICY_CONTACT = '<p><b>Contact:</b> <a href="https://t.me/D_V11111" target="_blank" rel="noopener">Telegram @D_V11111</a> or <a href="https://wa.me/916355895222" target="_blank" rel="noopener">WhatsApp +91 63558 95222</a>.</p>';
+const POLICIES = {
+  '/terms': {
+    title: 'Terms of Use',
+    desc: 'Terms of use for PPTNEETPGHUB Premium: membership, payment, copyright of study resources and acceptable use.',
+    body: `<p class="meta">Last updated: ${POLICY_UPDATED}</p>
+<p class="lead">These terms apply when you sign in to, buy or use PPTNEETPGHUB Premium ("the website", "we", "us"). By signing in or paying, you agree to them. If you do not agree, please do not use the website.</p>
+<h2>1. What we provide</h2>
+<p>PPTNEETPGHUB is an online study resource for NEET PG and INICET preparation: notes, PDFs, flashcards, tests, question practice, and study and exam updates. We are an independent educational resource. We are not part of, and not endorsed by, NBEMS, NMC, MCC, AIIMS or any government body.</p>
+<h2>2. Your account</h2>
+<ul><li>You sign in with your Google account. You are responsible for everything done through your account.</li>
+<li>An account is for <b>one person</b>. Do not share your login with anyone.</li>
+<li>To protect the content, each account can use a limited number of registered devices (two by default). If you are signed in on more devices, new ones are blocked until you contact us.</li></ul>
+<h2>3. Membership and payment</h2>
+<ul><li>Membership is bought by UPI payment for the price and period shown on the website when you pay.</li>
+<li>After you pay, you submit the UPI transaction ID (UTR). We check it and activate your access. This is done by a person, so it can take some time.</li>
+<li>Access lasts for the period shown on your membership. Renewals are offered on the website, and the price and period shown at that time apply.</li>
+<li>Please read the <a href="/refund">Refund Policy</a> before paying.</li></ul>
+<h2>4. Copyright and ownership of the resources</h2>
+<p>All study material on the website is protected by copyright. This includes notes, PDFs, flashcards and their pictures, tests, questions, answers and explanations, study tips, news and counselling write-ups, designs, the website itself, and the PPTNEETPGHUB name and logo. These belong to PPTNEETPGHUB and its creator, or are used with permission. All rights are reserved.</p>
+<p>While your membership is active, we give you a limited, personal, non-exclusive and non-transferable licence to view and use the resources for your <b>own exam preparation only</b>.</p>
+<p>You must <b>not</b>:</p>
+<ul><li>copy, download, photograph, screenshot, screen-record or print the resources to share them with anyone;</li>
+<li>send, post or upload them to Telegram, WhatsApp, Google Drive, YouTube, Instagram, any website, app or group, free or paid;</li>
+<li>sell, rent, lend, resell or give them away, in full or in part, or use them in any coaching, course, group or business;</li>
+<li>share your login, or use automated tools to copy or collect the content;</li>
+<li>remove, hide or change any watermark, email mark or notice on the content.</li></ul>
+<p>Resources may carry a mark with your email address so that a leaked copy can be traced to the account it came from. If you break these rules, we may close your account at once <b>without any refund</b>, and we may take legal action under the Copyright Act, 1957, the Information Technology Act, 2000 and other applicable laws.</p>
+<p>If you believe something on the website copies your own work, please contact us with details and we will look into it quickly.</p>
+<h2>5. Using the website properly</h2>
+<ul><li>Do not try to break, bypass or overload the website, its payments, device limit or security.</li>
+<li>Do not submit false payment details or UTRs.</li>
+<li>Be respectful in the Telegram groups. We may remove anyone who spams or abuses others.</li></ul>
+<h2>6. No guarantee of results</h2>
+<p>We work to keep the content correct and useful, but we do not promise any rank, score, selection or result. Exam rules, dates, seat matrix and counselling details change, and our write-ups are summaries. Always confirm them on the official website before acting. If you find a mistake, use the "Report a mistake" button and we will fix it.</p>
+<h2>7. Telegram channels</h2>
+<p>Premium members may ask for invite links to our Telegram channels and group. Links are for one person and expire. Telegram's own terms apply there, and the copyright rules above apply to everything posted in them.</p>
+<h2>8. Stopping or suspending access</h2>
+<p>We may suspend or end access if these terms are broken, if a payment is found to be false or reversed, or if the account is shared. We may also change, pause or improve parts of the website. We will try to give notice of major changes.</p>
+<h2>9. Limit of our responsibility</h2>
+<p>The website is provided "as it is". To the extent allowed by law, we are not responsible for losses from interruptions, errors, exam outcomes or things outside our control, and our total responsibility for any claim is limited to the amount you paid for your membership.</p>
+<h2>10. Changes to these terms</h2>
+<p>We may update these terms. The date at the top shows the latest version. If you keep using the website after a change, you accept the new terms.</p>
+<h2>11. Law and place of disputes</h2>
+<p>These terms follow the laws of India. Any dispute is subject to the courts at Rajkot, Gujarat, India.</p>
+<h2>12. Contact</h2>` + POLICY_CONTACT
+  },
+  '/privacy': {
+    title: 'Privacy Policy',
+    desc: 'How PPTNEETPGHUB collects, uses and protects your information: Google sign-in, payments, study activity and Telegram.',
+    body: `<p class="meta">Last updated: ${POLICY_UPDATED}</p>
+<p class="lead">This policy explains what information PPTNEETPGHUB collects when you use the website, why, and what you can ask us to do with it. We keep it to what is needed to run your membership.</p>
+<h2>1. What we collect</h2>
+<ul><li><b>Sign-in details:</b> your name and email address, from your Google account. We never see your Google password.</li>
+<li><b>Payment details:</b> the UPI transaction ID (UTR) you submit, the amount, and the time. We do not receive or store your card or bank account details.</li>
+<li><b>Membership details:</b> your start and end dates and notes we add when we approve you.</li>
+<li><b>Device details:</b> a random device ID and a short device label (for example "Chrome on Android") so we can enforce the device limit.</li>
+<li><b>Study activity:</b> your test attempts and scores, answers, mistake notebook, flashcard progress, the files and tests you open, and where you stopped reading. This powers "My progress" and "Continue where you left off".</li>
+<li><b>Reports and messages:</b> mistake reports you send, and messages you send us on Telegram or WhatsApp.</li>
+<li><b>Technical data:</b> basic request information such as IP address and browser type, handled by our hosting provider for security and to keep the website running.</li></ul>
+<h2>2. How we use it</h2>
+<ul><li>To sign you in, check your payment and activate and renew your membership.</li>
+<li>To show your progress and save your work across your devices.</li>
+<li>To protect the content from sharing, and to trace leaks. Files carry a mark with your email.</li>
+<li>To fix mistakes, answer your messages, and improve the website, for example by seeing which files are opened most.</li>
+<li>To send you the Telegram invite links you ask for, and to alert us about new payments and problems.</li></ul>
+<h2>3. Who handles your data</h2>
+<p>We do not sell your personal information and we show no ads. We use these services to run the website, and your data is processed by them under their own terms:</p>
+<ul><li><b>Google (Firebase):</b> sign-in and the database that stores your account, progress and payments.</li>
+<li><b>Cloudflare:</b> hosting, security and private storage of the study files.</li>
+<li><b>Telegram:</b> alerts to us about payments and problems, and the optional member channels.</li>
+<li><b>GitHub:</b> where the website's code is kept. It does not hold student data.</li></ul>
+<p>Your data may be stored on servers outside India. We may also share information if the law requires it.</p>
+<h2>4. Cookies and local storage</h2>
+<p>We do not use advertising or tracking cookies. The website stores small items on your device, such as your device ID, your test in progress, your notebook and where you stopped reading, so the website works smoothly. Clearing your browser data removes them.</p>
+<h2>5. How long we keep it</h2>
+<p>We keep your account, payment and progress records while your membership is active and for a reasonable time afterwards, for accounts, disputes and the law. You can ask us to delete your data (see below).</p>
+<h2>6. Your choices</h2>
+<ul><li>You can ask us to show, correct or delete the personal information we hold about you.</li>
+<li>You can stop using the website at any time and clear the data stored on your device.</li>
+<li>Deleting your data may end your access, and payments already made are covered by the <a href="/refund">Refund Policy</a>.</li></ul>
+<h2>7. Security</h2>
+<p>Files are kept private and are only given to signed-in members with active access. Access to the database is limited by rules, and each student can see only their own progress. No online service is completely secure, so please keep your Google account safe.</p>
+<h2>8. Children</h2>
+<p>The website is made for medical graduates preparing for postgraduate entrance exams. It is not meant for anyone under 18.</p>
+<h2>9. Changes</h2>
+<p>We may update this policy. The date at the top shows the latest version.</p>
+<h2>10. Contact</h2>` + POLICY_CONTACT
+  },
+  '/refund': {
+    title: 'Refund Policy',
+    desc: 'Refund policy for PPTNEETPGHUB Premium: when a refund is given, how to ask for one and how long it takes.',
+    body: `<p class="meta">Last updated: ${POLICY_UPDATED}</p>
+<p class="lead">PPTNEETPGHUB Premium is digital study material that you can use as soon as your access is activated. Please read this before you pay.</p>
+<h2>1. General rule</h2>
+<p>Because the content is delivered digitally and you can view it right away, <b>we do not give refunds once your access has been activated</b>, and we do not refund for reasons such as a change of mind, not having time to study, or a change in your exam plans.</p>
+<h2>2. When we do refund</h2>
+<ul><li><b>Duplicate payment:</b> you paid more than once for the same membership. We refund the extra payment.</li>
+<li><b>Payment taken but no access:</b> money left your account, but your access was not activated within 48 hours of you submitting the payment, and we cannot sort it out.</li>
+<li><b>Technical problem on our side:</b> you cannot use the website because of a fault that we could not fix within 7 days of you telling us.</li>
+<li><b>Wrong amount or wrong account:</b> you paid the wrong amount by mistake. We refund the difference or the payment, as is correct.</li></ul>
+<h2>3. When we do not refund</h2>
+<ul><li>If your account is closed because the copyright or use rules in the <a href="/terms">Terms of Use</a> were broken, for example sharing the login or the content.</li>
+<li>If the payment details you submitted were false.</li>
+<li>For renewals after the membership period has started.</li></ul>
+<h2>4. How to ask</h2>
+<p>Message us within <b>7 days</b> of the payment. Please send the email you signed in with, the UTR, the date and amount, and a screenshot of the payment. We reply as soon as we can.</p>
+<h2>5. How long it takes</h2>
+<p>Approved refunds are sent back by UPI to the account that paid, usually within 7 working days. Your bank may take a little longer to show it.</p>
+<h2>6. Questions</h2>` + POLICY_CONTACT
+  }
+};
+async function policyPage(env, url, path) {
+  const site = siteOf(env, url), p = POLICIES[path];
+  const body = '<div class="crumbs"><a href="/">Home</a> › ' + h(p.title) + '</div><h1>' + h(p.title) + '</h1><div class="body">' + p.body + '</div>';
+  return htmlResponse(shell(site, { title: p.title + ' | PPTNEETPGHUB', desc: p.desc, path, body, ld: [crumbLd(site, [['Home', '/'], [p.title, path]])] }));
 }
 
 // ---------- Study tips (the blog) ----------
@@ -588,7 +712,7 @@ async function sitemapXml(env, url) {
   const tips = everything.filter(n => n.section === 'tips');
   const guide = everything.find(n => n.slug === 'counselling' && n.section === 'counselling');
   const last = (l) => (l.length ? (l[0].updatedAt || '').slice(0, 10) : '');
-  const rows = [{ loc: '/', mod: '' }, { loc: '/news', mod: last(news) }, { loc: '/counselling', mod: guide ? (guide.updatedAt || '').slice(0, 10) : last(coun) }, { loc: '/study-tips', mod: last(tips) }];
+  const rows = [{ loc: '/', mod: '' }, { loc: '/terms', mod: '' }, { loc: '/privacy', mod: '' }, { loc: '/refund', mod: '' }, { loc: '/news', mod: last(news) }, { loc: '/counselling', mod: guide ? (guide.updatedAt || '').slice(0, 10) : last(coun) }, { loc: '/study-tips', mod: last(tips) }];
   news.forEach(n => rows.push({ loc: '/news/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
   coun.forEach(n => rows.push({ loc: '/counselling/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
   tips.forEach(n => rows.push({ loc: '/study-tips/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
@@ -614,6 +738,7 @@ async function handlePublic(request, env, url) {
   try {
     if (p === '/sitemap.xml') return await cachedPage(request, FRESH_SECONDS, () => sitemapXml(env, url));
     if (p === '/api/news') return await cachedPage(request, 60, () => latestJson(env, url));
+    if (POLICIES[p]) return await cachedPage(request, 3600, () => policyPage(env, url, p));
     if (p === '/api/study-tips') return await cachedPage(request, 60, () => tipsLatestJson(env, url));
     if (p === '/study-tips') return await cachedPage(request, FRESH_SECONDS, () => tipsListPage(env, url));
     const tm = /^\/study-tips\/([a-z0-9-]{3,80})$/.exec(p);
@@ -629,12 +754,131 @@ async function handlePublic(request, env, url) {
     if (p.startsWith('/news/')) return notFoundPage(site);
   } catch (e) {
     console.error('News page failed', e);
+    await tgAlert(env, 'public-pages', 'The public pages (/news, /counselling, /study-tips) could not load from the database: ' + String(e && e.message).slice(0, 120));
     return htmlResponse(shell(site, { title: 'Temporarily unavailable | PPTNEETPGHUB', desc: 'Please try again in a moment.', path: '/news', noindex: true,
       body: '<h1>Temporarily unavailable</h1><p class="lead">Updates could not be loaded just now. Please try again in a minute.</p><p><a href="/">Back to home</a></p>' }), 503);
   }
   return null;
 }
 
+
+// ---------- Alerts to the admin on Telegram when something breaks ----------
+const alertSeen = new Map();   // key -> time, so the same problem is not repeated for a while
+async function tgAlert(env, key, text, gapMs) {
+  try {
+    if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) return false;
+    const gap = gapMs === undefined ? 30 * 60 * 1000 : gapMs;
+    if (Date.now() - (alertSeen.get(key) || 0) < gap) return false;
+    alertSeen.set(key, Date.now()); trimMap(alertSeen, 200);
+    const site = String(env.SITE_URL || '').replace(/\/$/, '');
+    return await tgSend(env, env.TELEGRAM_CHAT_ID, '\u26A0\uFE0F PPTNEETPGHUB problem\n' + text, site ? site + '/admin.html' : '', 'Open admin panel');
+  } catch (e) { return false; }
+}
+
+// The website tells us when something failed for a student (payment not saved, library not loading).
+const PROBLEM_LABELS = {
+  'payment-save': 'A student could not save a payment',
+  'library-load': 'A paid member\'s library did not load',
+  'attempt-save': 'A test result could not be saved',
+  'other': 'The website reported a problem'
+};
+const problemByUser = new Map();   // email -> times, per hour
+let problemGlobal = [];
+async function handleReportProblem(request, env) {
+  const user = await requireUser(request, env);
+  if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) return json({ ok: true, skipped: true });
+  let body = {}; try { body = await request.json(); } catch (e) {}
+  const kind = PROBLEM_LABELS[body.kind] ? body.kind : 'other';
+  const now = Date.now(), hour = 3600000;
+  const mine = (problemByUser.get(user.email) || []).filter(t => now - t < hour);
+  problemGlobal = problemGlobal.filter(t => now - t < hour);
+  if (mine.length >= 3 || problemGlobal.length >= 20) return json({ ok: true, skipped: true });
+  mine.push(now); problemGlobal.push(now); problemByUser.set(user.email, mine); trimMap(problemByUser, 500);
+  const detail = String(body.detail || '').replace(/[\r\n]+/g, ' ').slice(0, 200);
+  const sent = await tgSend(env, env.TELEGRAM_CHAT_ID, '\u26A0\uFE0F PPTNEETPGHUB problem\n' + PROBLEM_LABELS[kind] + '\nStudent: ' + user.email + (detail ? '\nDetail: ' + detail : ''), String(env.SITE_URL || '').replace(/\/$/, '') + '/admin.html', 'Open admin panel').catch(() => false);
+  return json({ ok: true, sent: !!sent });
+}
+
+// Every 10 minutes: is the database reachable, is the file storage working? Alert after two failures in a row.
+async function runHealth(env) {
+  const checks = { firestore: false, r2: false };
+  try {
+    const r = await fetch('https://firestore.googleapis.com/v1/projects/' + env.PROJECT_ID + '/databases/(default)/documents/config/pricing');
+    checks.firestore = r.status === 200 || r.status === 404;
+  } catch (e) {}
+  let prev = { fails: {}, alerted: {} };
+  try { const o = await env.FILES.get('system/health.json'); if (o) prev = JSON.parse(await o.text()); checks.r2 = true; } catch (e) {}
+  if (!checks.r2) { try { await env.FILES.list({ limit: 1 }); checks.r2 = true; } catch (e) {} }
+  const next = { fails: {}, alerted: {}, at: Date.now() };
+  const names = { firestore: 'The database (Firestore) is not reachable from the website', r2: 'The private file storage (R2) is not working' };
+  for (const k of Object.keys(checks)) {
+    const fails = checks[k] ? 0 : ((prev.fails && prev.fails[k]) || 0) + 1;
+    next.fails[k] = fails;
+    const wasAlerted = !!(prev.alerted && prev.alerted[k]);
+    if (fails >= 2 && !wasAlerted) { await tgAlert(env, 'health:' + k, names[k] + '. Students may not be able to use the website.', 0); next.alerted[k] = true; }
+    else if (fails >= 2) next.alerted[k] = true;
+    else if (checks[k] && wasAlerted) await tgAlert(env, 'health-ok:' + k, 'Recovered: ' + names[k].replace('is not', 'was not').replace(' not ', ' not ') + ', but it is working again.', 0);
+  }
+  try { await env.FILES.put('system/health.json', JSON.stringify(next), { httpMetadata: { contentType: 'application/json' } }); } catch (e) {}
+  return checks;
+}
+
+// Admin: which settings are in place, plus a test message to Telegram
+async function handleAdminHealth(request, env, url) {
+  const user = await requireUser(request, env);
+  if (!user.isAdmin) throw new HttpError(403, 'Admin only');
+  if (request.method === 'POST') {
+    if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) return json({ ok: false, reason: 'Telegram is not set up: add TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID.' });
+    const ok = await tgSend(env, env.TELEGRAM_CHAT_ID, '\u2705 Test alert from PPTNEETPGHUB. Alerts to this chat are working.', String(env.SITE_URL || '').replace(/\/$/, '') + '/admin.html', 'Open admin panel');
+    return json({ ok, reason: ok ? '' : 'Telegram refused the message. Check the bot token and that the bot can write to the chat.' });
+  }
+  let r2 = false; try { await env.FILES.list({ limit: 1 }); r2 = true; } catch (e) {}
+  let fire = false;
+  try { const r = await fetch('https://firestore.googleapis.com/v1/projects/' + env.PROJECT_ID + '/databases/(default)/documents/config/pricing'); fire = r.status === 200 || r.status === 404; } catch (e) {}
+  let health = null; try { const o = await env.FILES.get('system/health.json'); if (o) health = JSON.parse(await o.text()); } catch (e) {}
+  const set = (k) => !!env[k];
+  return json({
+    ok: true, r2, firestore: fire,
+    secrets: { TELEGRAM_BOT_TOKEN: set('TELEGRAM_BOT_TOKEN'), TELEGRAM_CHAT_ID: set('TELEGRAM_CHAT_ID'), TG_CHAT_PREMIUM: set('TG_CHAT_PREMIUM'), TG_CHAT_INICET: set('TG_CHAT_INICET'), TG_CHAT_DISCUSS: set('TG_CHAT_DISCUSS'), TELEGRAM_ANNOUNCE_CHAT_ID: set('TELEGRAM_ANNOUNCE_CHAT_ID') },
+    vars: { SITE_URL: set('SITE_URL'), ADMIN_EMAIL: set('ADMIN_EMAIL'), PROJECT_ID: set('PROJECT_ID') },
+    cronLastRun: health && health.at ? health.at : 0
+  });
+}
+
+// ---------- Backups kept in the private file storage ----------
+const BACKUP_KEEP = 12, BACKUP_MAX_BYTES = 40 * 1024 * 1024;
+async function handleBackup(request, env, url) {
+  const user = await requireUser(request, env);
+  if (!user.isAdmin) throw new HttpError(403, 'Admin only');
+  const reqKey = url.searchParams.get('key');
+  const okKey = (k) => /^backups\/pptneetpghub-backup-\d{8}-\d{6}\.json$/.test(String(k || ''));
+  if (request.method === 'POST') {
+    const text = await request.text();
+    if (!text || text.length > BACKUP_MAX_BYTES) throw new HttpError(413, 'The backup is empty or too large');
+    let data; try { data = JSON.parse(text); } catch (e) { throw new HttpError(400, 'Not a valid backup'); }
+    if (!data || data.app !== 'pptneetpghub' || !data.collections || typeof data.collections !== 'object') throw new HttpError(400, 'Not a PPTNEETPGHUB backup');
+    const d = new Date(), z = (n, l) => String(n).padStart(l || 2, '0');
+    const key = 'backups/pptneetpghub-backup-' + d.getUTCFullYear() + z(d.getUTCMonth() + 1) + z(d.getUTCDate()) + '-' + z(d.getUTCHours()) + z(d.getUTCMinutes()) + z(d.getUTCSeconds()) + '.json';
+    await env.FILES.put(key, text, { httpMetadata: { contentType: 'application/json' } });
+    const all = (await env.FILES.list({ prefix: 'backups/', limit: 200 })).objects.map(o => o.key).filter(okKey).sort().reverse();
+    for (const old of all.slice(BACKUP_KEEP)) await env.FILES.delete(old);
+    return json({ ok: true, key, size: text.length, kept: Math.min(all.length, BACKUP_KEEP) });
+  }
+  if (request.method === 'DELETE') {
+    if (!okKey(reqKey)) throw new HttpError(400, 'Invalid backup name');
+    await env.FILES.delete(reqKey);
+    return json({ ok: true });
+  }
+  if (reqKey) {
+    if (!okKey(reqKey)) throw new HttpError(400, 'Invalid backup name');
+    const o = await env.FILES.get(reqKey);
+    if (!o) throw new HttpError(404, 'Backup not found');
+    return new Response(o.body, { headers: { 'Content-Type': 'application/json', 'Content-Disposition': 'attachment; filename="' + reqKey.split('/').pop() + '"', 'Cache-Control': 'private, no-store' } });
+  }
+  const list = (await env.FILES.list({ prefix: 'backups/', limit: 200 })).objects.filter(o => okKey(o.key)).map(o => ({ key: o.key, size: o.size, uploaded: o.uploaded ? new Date(o.uploaded).getTime() : 0 }));
+  list.sort((a, b) => (a.key < b.key ? 1 : -1));
+  return json({ ok: true, backups: list });
+}
 
 // ---------- Telegram helpers ----------
 async function tgCall(env, method, payload) {
@@ -785,7 +1029,7 @@ async function handleNotifyReport(request, env, url) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (request.method === 'GET' || request.method === 'HEAD') {
       const pub = await handlePublic(request, env, url);
@@ -798,16 +1042,22 @@ export default {
       if (url.pathname === '/api/notify-payment' && request.method === 'POST') return await handleNotify(request, env, url);
       if (url.pathname === '/api/notify-report' && request.method === 'POST') return await handleNotifyReport(request, env, url);
       if (url.pathname === '/api/announce' && request.method === 'POST') return await handleAnnounce(request, env);
+      if (url.pathname === '/api/report-problem' && request.method === 'POST') return await handleReportProblem(request, env);
+      if (url.pathname === '/api/admin-health' && (request.method === 'GET' || request.method === 'POST')) return await handleAdminHealth(request, env, url);
+      if (url.pathname === '/api/backup' && ['GET', 'POST', 'DELETE'].indexOf(request.method) > -1) return await handleBackup(request, env, url);
       if (url.pathname === '/api/telegram-links' && (request.method === 'POST' || request.method === 'DELETE')) return await handleTelegramLinks(request, env, url);
       if (url.pathname.startsWith('/api/')) throw new HttpError(404, 'Not found');
     } catch (e) {
       if (e instanceof HttpError) return json({ error: e.message, code: e.code }, e.status);
       console.error('Worker error', e);
+      const note = tgAlert(env, 'worker:' + url.pathname + ':' + String(e && e.message).slice(0, 40), 'Server error on ' + request.method + ' ' + url.pathname + '\n' + String(e && e.message).slice(0, 150));
+      if (ctx && ctx.waitUntil) ctx.waitUntil(note); else await note;
       return json({ error: 'Server error' }, 500);
     }
     return env.ASSETS.fetch(request);
   },
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(runAnnouncements(env).catch(e => console.error('Cron failed', e)));
+    ctx.waitUntil(runAnnouncements(env).catch(e => { console.error('Cron failed', e); return tgAlert(env, 'cron-announce', 'The scheduled announcements job failed: ' + String(e && e.message).slice(0, 150)); }));
+    ctx.waitUntil(runHealth(env).catch(e => console.error('Health check failed', e)));
   }
 };

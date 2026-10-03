@@ -5,7 +5,7 @@ compatibility_date = "2025-01-01"
 [assets]
 directory = "."
 binding = "ASSETS"
-run_worker_first = ["/api/*", "/news", "/news/*", "/study-tips", "/study-tips/*", "/counselling", "/counselling/*", "/sitemap.xml", "/robots.txt"]
+run_worker_first = ["/api/*", "/news", "/news/*", "/study-tips", "/study-tips/*", "/counselling", "/counselling/*", "/terms", "/privacy", "/refund", "/sitemap.xml", "/robots.txt"]
 
 [[r2_buckets]]
 binding = "FILES"

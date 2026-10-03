@@ -1380,6 +1380,13 @@
   .tr-cta b { display: block; font-size: 16px; color: var(--gold-b); }
   .tr-cta span { display: block; margin: 4px 0 12px; font-size: 13.5px; color: #C9D3E6; }
   .tr-cta button { width: 100%; }
+  .terms-ck { display: flex; gap: 10px; align-items: flex-start; margin-top: 16px; font-size: 13px; line-height: 1.5; color: var(--ink); cursor: pointer; }
+  .terms-ck input { width: 20px; height: 20px; margin-top: 1px; flex-shrink: 0; accent-color: var(--navy); }
+  .terms-ck a { color: var(--teal); font-weight: 600; }
+  .legal-links { margin: 6px 0 4px; }
+  .legal-links a { color: #D4AF55; margin: 0 8px; text-decoration: none; font-size: 13px; white-space: nowrap; display: inline-block; }
+  .lib-legal { margin: 26px 0 8px; text-align: center; font-size: 12.5px; }
+  .lib-legal a { color: var(--gray); margin: 0 8px; text-decoration: none; white-space: nowrap; display: inline-block; }
 </style>
 </head>
 <body class="booting">
@@ -1674,6 +1681,7 @@
   <div class="container">
     <img class="foot-logo" src="/logo-96.webp" width="64" height="64" alt="" loading="lazy"><div class="fb">PPTNEETPGHUB</div>
     <p><a href="/news" style="color:#D4AF55;margin:0 8px;text-decoration:none">News</a><a href="/study-tips" style="color:#D4AF55;margin:0 8px;text-decoration:none">Study tips</a><a href="/counselling" style="color:#D4AF55;margin:0 8px;text-decoration:none">Counselling</a></p>
+    <p class="legal-links"><a href="/terms">Terms of Use</a><a href="/privacy">Privacy Policy</a><a href="/refund">Refund Policy</a></p>
     <p>Free samples and updates on Telegram: PPTNEETPGINICETHUB</p>
     <div class="contact-row">
       <a class="contact-btn telegram" href="https://t.me/D_V11111" target="_blank" rel="noopener">Telegram</a>
@@ -1733,6 +1741,7 @@
     <div id="libNotebook" style="display:none;"></div>
 
     <p class="lib-foot" id="accessNoteText">Signed in as: &mdash;</p>
+    <div class="lib-legal"><a href="/terms" target="_blank" rel="noopener">Terms</a><a href="/privacy" target="_blank" rel="noopener">Privacy</a><a href="/refund" target="_blank" rel="noopener">Refunds</a></div>
   </main>
 
   <aside class="lib-side" id="libSide" aria-label="Filter by subject">
@@ -1857,6 +1866,7 @@ let signInIntent = null;
 let currentPrice = 500;          // overridden by Firestore config/pricing
 let paymentInfo = { latest: null };
 let utrDraft = "";
+let termsDraft = false;
 let submittingUtr = false;
 
 const UPI_ID = "devid.vachhani11@oksbi";
@@ -2369,7 +2379,8 @@ function renderJoin() {
       '<div class="jc-kick">Step 3</div><h3>Submit your payment details</h3>' +
       '<label class="fld" for="utrInput">UTR / UPI transaction ID</label>' +
       '<input class="inp utr" id="utrInput" type="text" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="12-digit number" value="' + esc(utrDraft) + '">' +
-      '<button class="btn-navy big block" id="submitUtrBtn" style="margin-top:18px">Submit payment</button>' +
+      '<label class="terms-ck"><input type="checkbox" id="termsCk"' + (termsDraft ? ' checked' : '') + '><span>I agree to the <a href="/terms" target="_blank" rel="noopener">Terms of Use</a>, <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a> and <a href="/refund" target="_blank" rel="noopener">Refund Policy</a>, including that the study material is copyrighted and must not be shared.</span></label>' +
+      '<button class="btn-navy big block" id="submitUtrBtn" style="margin-top:14px">Submit payment</button>' +
       '<div class="tg-note"><b>Telegram Premium is optional.</b> It is included with your membership: Premium channel, INICET Bonus channel and discussion group. After you submit, drop us a message and we will send the links.</div>' +
       '<p class="who">Access will be activated for <b>' + esc(email) + '</b><br><button class="linkbtn" id="switchAcctBtn">Use a different account</button></p>' +
       '<div class="help-line">Need help? Message us.</div>' +
@@ -2378,6 +2389,7 @@ function renderJoin() {
 
   const utr = document.getElementById('utrInput');
   utr.addEventListener('input', () => { utr.value = utr.value.replace(/\D/g, '').slice(0, 12); utrDraft = utr.value; });
+  document.getElementById('termsCk').addEventListener('change', (e) => { termsDraft = e.target.checked; });
   document.getElementById('submitUtrBtn').onclick = submitUtr;
   document.getElementById('copyUpiBtn').onclick = copyUpiId;
   document.getElementById('switchAcctBtn').onclick = signOutUser;
@@ -2416,6 +2428,7 @@ async function submitUtr() {
   if (submittingUtr || !currentUser || !window.__fb) return;
   const utr = utrDraft.replace(/\D/g, '');
   if (!/^\d{12}$/.test(utr)) { showToast('Enter the 12-digit UTR number', true); return; }
+  if (!termsDraft) { showToast('Please tick the box to agree to the Terms, Privacy and Refund policies', true); const ck = document.getElementById('termsCk'); if (ck) ck.focus(); return; }
 
   const { db, doc, setDoc, serverTimestamp } = window.__fb;
   const email = (currentUser.email || '').toLowerCase();
@@ -2441,6 +2454,7 @@ async function submitUtr() {
     renderJoin();
   } catch (e) {
     console.error('Payment submit failed', e);
+    reportProblem('payment-save', e);
     showToast(e && e.code === 'permission-denied'
       ? 'Could not submit. This UTR may already be submitted. Message us if it keeps failing.'
       : 'Could not submit. Check your connection and try again.', true);
@@ -3512,6 +3526,7 @@ async function trSaveAttempt(r) {
     await addDoc(collection(db, "attempts"), rec);
   } catch (e) {
     console.error("Could not save attempt", e);
+    reportProblem("attempt-save", e);
   }
 }
 
@@ -4209,6 +4224,7 @@ async function loadResourcesFromFirestore() {
   } catch (e) {
     console.error("Could not load resources from Firestore", e);
     libError = true;
+    if (isPaidMember) reportProblem("library-load", e);
   }
   render();
 }
@@ -4869,6 +4885,19 @@ document.getElementById("libInstall2").onclick = doInstall;
 paintInstall();
 if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
   window.addEventListener("load", () => { navigator.serviceWorker.register("/sw.js").catch(() => {}); });
+}
+
+// ---------- Tell the admin when something breaks for a student (sent to Telegram by the Worker) ----------
+const PROBLEM_SENT = {};
+async function reportProblem(kind, err) {
+  try {
+    if (!currentUser || !currentUser.getIdToken || isAdminUser()) return;
+    if (Date.now() - (PROBLEM_SENT[kind] || 0) < 10 * 60 * 1000) return;
+    PROBLEM_SENT[kind] = Date.now();
+    const detail = String((err && (err.code ? err.code + ' ' : '') + (err.message || err)) || '').slice(0, 180);
+    const token = await currentUser.getIdToken();
+    fetch('/api/report-problem', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ kind: kind, detail: detail }) }).catch(() => {});
+  } catch (e) {}
 }
 
 // ---------- Which files students open (for the admin Home screen) ----------

@@ -366,6 +366,13 @@
     .card { padding: 18px 16px; }
     .pay-row .actions { flex-direction: column; }
   }
+  @media (max-width: 380px) {
+    .site-header { padding-left: 12px; padding-right: 12px; gap: 8px; }
+    .brand { font-size: 13px; }
+    .brand img { width: 26px !important; height: 26px !important; }
+    .brand em { font-size: 10px; letter-spacing: 1px; margin-left: 5px; padding: 3px 6px; }
+    .account-pill { padding: 7px 11px; font-size: 12px; }
+  }
   .hm-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
   .hm-top h3 { margin: 0; }
   .hm-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
@@ -393,6 +400,24 @@
   .bk-q small { color: var(--gray); display: block; margin-top: 2px; }
   .bk-q button { margin-top: 6px; background: transparent; color: #C0392B; font-weight: 700; font-size: 12.5px; font-family: inherit; }
   .bk-ok { color: #0F8F83; font-weight: 700; } .bk-bad { color: #C0392B; }
+  .lc-bar { height: 10px; border-radius: 6px; background: #E7E0CF; overflow: hidden; margin: 8px 0 4px; }
+  .lc-bar i { display: block; height: 100%; background: linear-gradient(90deg, #0F8F83, #3FBFAE); width: 0; transition: width .25s; }
+  .lc-group { margin-top: 18px; }
+  .lc-group h4 { margin: 0 0 4px; font-size: 14px; color: var(--navy); }
+  .lc-step { display: flex; gap: 12px; align-items: flex-start; padding: 11px 0; border-top: 1px solid #EEE7D5; cursor: pointer; }
+  .lc-group h4 + .lc-step { border-top: 0; }
+  .lc-step input { width: 22px; height: 22px; margin-top: 1px; flex-shrink: 0; accent-color: #0F8F83; }
+  .lc-step b { display: block; font-size: 14px; font-weight: 600; color: var(--ink); line-height: 1.4; }
+  .lc-step span { display: block; font-size: 12.5px; color: var(--gray); line-height: 1.45; margin-top: 2px; }
+  .lc-step.done b { color: var(--gray); text-decoration: line-through; }
+  .sc-row { display: flex; gap: 10px; align-items: baseline; padding: 8px 0; border-top: 1px solid #EEE7D5; font-size: 14px; }
+  .sc-row:first-child { border-top: 0; }
+  .sc-row .dot { width: 18px; flex-shrink: 0; font-weight: 800; }
+  .sc-row.ok .dot { color: #0F8F83; } .sc-row.bad .dot { color: #C0392B; } .sc-row.opt .dot { color: #9AA3B0; }
+  .sc-row .tx { flex: 1; min-width: 0; } .sc-row .tx span { display: block; font-size: 12.5px; color: var(--gray); }
+  .cb-row { display: flex; gap: 10px; align-items: center; padding: 10px 0; border-top: 1px solid #EEE7D5; font-size: 13.5px; }
+  .cb-row:first-child { border-top: 0; }
+  .cb-row .tx { flex: 1; min-width: 0; } .cb-row .tx span { display: block; font-size: 12px; color: var(--gray); }
   #bk_prev ul, #bk_bPrev ul { margin: 6px 0 0; padding-left: 18px; font-size: 13px; }
 </style>
 
@@ -436,6 +461,7 @@
       <button class="tab-btn" data-panel="reportsPanel">Reports<span class="tab-count" id="repCount" style="display:none;">0</span></button>
       <button class="tab-btn" data-panel="resultsPanel">Results</button>
       <button class="tab-btn" data-panel="backupPanel">Backup</button>
+      <button class="tab-btn" data-panel="launchPanel">Launch check</button>
       <button class="tab-btn" data-panel="membersPanel">Members</button>
       <button class="tab-btn" data-panel="listPanel">All Resources</button>
     </div>
@@ -699,13 +725,41 @@
           <button class="btn outline" id="bk_pay">Payments (CSV)</button>
         </div>
         <p class="hint" id="bk_status"></p>
+        <div class="t-actions"><button class="btn teal" id="bk_cloud">Save a copy to private cloud storage</button></div>
+        <p class="hint">The cloud copy is kept in your private Cloudflare storage and only you can open it. The newest 12 are kept. It is the same file as the download. Do both once a week.</p>
         <div class="ed-note">Your uploaded files (PDFs, flash cards, pictures) are stored separately and are not in this backup. Keep your original files on your computer or Drive.</div>
+      </div>
+      <div class="card">
+        <h3>Cloud backups</h3>
+        <div class="t-actions"><button class="btn outline" id="cb_refresh">Refresh</button></div>
+        <div id="cb_list"><div class="empty">Open this tab to load them.</div></div>
       </div>
       <div class="card">
         <h3>Restore from a backup</h3>
         <p class="hint" style="margin-top:-6px">Choose a backup file you downloaded earlier. You will see what is inside before anything is written.</p>
         <input type="file" id="bk_file" class="file-inp" accept=".json,application/json">
         <div id="bk_preview"></div>
+      </div>
+    </div>
+
+    <!-- Launch check -->
+    <div id="launchPanel" style="display:none;">
+      <div class="card">
+        <h3>System check</h3>
+        <p class="hint" style="margin-top:-6px">Checks the settings in Cloudflare and that the database, file storage and Telegram alerts work. Secret values are never shown.</p>
+        <div class="t-actions">
+          <button class="btn teal" id="sc_run">Run system check</button>
+          <button class="btn outline" id="sc_test">Send a test alert</button>
+        </div>
+        <div id="sc_out"></div>
+      </div>
+      <div class="card">
+        <h3>Launch test</h3>
+        <p class="hint" style="margin-top:-6px">Do these with a second Google account on another phone or a private tab. Tick each step when it works. Your ticks stay on this device.</p>
+        <div class="lc-bar"><i id="lc_fill"></i></div>
+        <p class="hint" id="lc_text"></p>
+        <div id="lc_list"></div>
+        <div class="t-actions"><button class="btn outline" id="lc_reset">Start over</button></div>
       </div>
     </div>
 
@@ -913,6 +967,12 @@ window.addEventListener('fbReady', () => {
   document.getElementById('s_devSave').addEventListener('click', saveDeviceLimit);
   document.getElementById('m_search').addEventListener('input', renderMembers);
   document.getElementById('bk_all').addEventListener('click', downloadBackup);
+  document.getElementById('bk_cloud').addEventListener('click', cloudBackup);
+  document.getElementById('cb_refresh').addEventListener('click', cloudList);
+  document.getElementById('sc_run').addEventListener('click', runSystemCheck);
+  document.getElementById('sc_test').addEventListener('click', sendTestAlert);
+  document.getElementById('lc_reset').addEventListener('click', resetLaunch);
+  cloudList(true);
   document.getElementById('bk_members').addEventListener('click', () => downloadCsv('members'));
   document.getElementById('bk_pay').addEventListener('click', () => downloadCsv('payments'));
   document.getElementById('bk_file').addEventListener('change', (e) => bkPreview(e.target.files[0]));
@@ -956,7 +1016,7 @@ window.addEventListener('fbReady', () => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      ['homePanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'membersPanel', 'listPanel'].forEach(id => {
+      ['homePanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'launchPanel', 'membersPanel', 'listPanel'].forEach(id => {
         document.getElementById(id).style.display = (id === btn.dataset.panel) ? 'block' : 'none';
       });
       if (btn.dataset.panel === 'homePanel') loadHome();
@@ -964,6 +1024,8 @@ window.addEventListener('fbReady', () => {
       if (btn.dataset.panel === 'resultsPanel' && !RESULTS.loaded) loadResults();
       if (['newsPanel', 'counsellingPanel', 'tipsPanel'].indexOf(btn.dataset.panel) > -1 && !NEWS.loaded) loadNews();
       if (btn.dataset.panel === 'reportsPanel') loadReports();
+      if (btn.dataset.panel === 'backupPanel') cloudList();
+      if (btn.dataset.panel === 'launchPanel') renderLaunch();
       if (btn.dataset.panel === 'membersPanel') { loadSettings(); }
     });
   });
@@ -2770,30 +2832,94 @@ function bkDownload(name, text, type) {
 function paintBackupNote() {
   const el = document.getElementById('backupNote'); if (!el) return;
   let t = 0; try { t = Number(localStorage.getItem('pptLastBackup') || 0); } catch (e) {}
+  t = Math.max(t, CLOUD_LAST || 0);
   const days = t ? Math.floor((Date.now() - t) / DAY_MS) : null;
   el.className = 'bk-note' + (days === null || days >= 7 ? ' warn' : '');
-  el.textContent = days === null ? 'No backup yet. Tap to download one.' : days === 0 ? 'Last backup: today' : 'Last backup: ' + days + (days === 1 ? ' day ago' : ' days ago') + (days >= 7 ? '. Tap to back up again.' : '');
+  el.textContent = days === null ? 'No backup yet. Tap to back up.' : days === 0 ? 'Last backup: today' : 'Last backup: ' + days + (days === 1 ? ' day ago' : ' days ago') + (days >= 7 ? '. Tap to back up again.' : '');
 }
 
-async function downloadBackup() {
+async function buildBackup(st) {
   const { db, collection, getDocs } = window.__fb;
+  const out = { app: 'pptneetpghub', version: 1, createdAt: new Date().toISOString(), collections: {} };
+  let total = 0;
+  for (const c of BK_COLLECTIONS) {
+    st.textContent = 'Reading ' + c + '…';
+    const snap = await getDocs(collection(db, c));
+    const list = []; snap.forEach(d => list.push({ id: d.id, data: bkSer(d.data()) }));
+    out.collections[c] = list; total += list.length;
+  }
+  return { out, total };
+}
+async function downloadBackup() {
   const btn = document.getElementById('bk_all'), st = document.getElementById('bk_status');
   btn.disabled = true;
   try {
-    const out = { app: 'pptneetpghub', version: 1, createdAt: new Date().toISOString(), collections: {} };
-    let total = 0;
-    for (const c of BK_COLLECTIONS) {
-      st.textContent = 'Reading ' + c + '…';
-      const snap = await getDocs(collection(db, c));
-      const list = []; snap.forEach(d => list.push({ id: d.id, data: bkSer(d.data()) }));
-      out.collections[c] = list; total += list.length;
-    }
+    const { out, total } = await buildBackup(st);
     bkDownload('pptneetpghub-backup-' + ymd(Date.now()) + '.json', JSON.stringify(out));
     try { localStorage.setItem('pptLastBackup', String(Date.now())); } catch (e) {}
     st.textContent = '✔ Backup downloaded: ' + total + ' items from ' + BK_COLLECTIONS.length + ' collections.';
     paintBackupNote();
   } catch (e) { st.textContent = 'Backup failed: ' + e.message; showToast('Backup failed: ' + e.message, true); }
   finally { btn.disabled = false; }
+}
+
+// ---------- Backups kept in your private cloud storage ----------
+let CLOUD_LAST = 0;
+async function adminToken() { return await window.__fb.auth.currentUser.getIdToken(); }
+async function cloudBackup() {
+  const btn = document.getElementById('bk_cloud'), st = document.getElementById('bk_status');
+  btn.disabled = true;
+  try {
+    const { out, total } = await buildBackup(st);
+    st.textContent = 'Saving to private cloud storage…';
+    const res = await fetch('/api/backup', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + await adminToken() }, body: JSON.stringify(out) });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(j.error || ('Server said ' + res.status));
+    CLOUD_LAST = Date.now();
+    try { localStorage.setItem('pptLastBackup', String(Date.now())); } catch (e) {}
+    st.textContent = '✔ Saved to private cloud storage: ' + total + ' items. ' + j.kept + ' cloud backup' + (j.kept === 1 ? ' is' : 's are') + ' kept.';
+    paintBackupNote(); cloudList();
+  } catch (e) { st.textContent = 'Cloud backup failed: ' + e.message; showToast('Cloud backup failed: ' + e.message, true); }
+  finally { btn.disabled = false; }
+}
+function cbWhen(ms) { return ms ? new Date(ms).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'; }
+function cbKeyTime(k) { const m = /backup-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})\.json$/.exec(k); return m ? Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]) : 0; }
+async function cloudList(quiet) {
+  const el = document.getElementById('cb_list');
+  try {
+    if (!window.__fb || !window.__fb.auth.currentUser) return;
+    const res = await fetch('/api/backup', { headers: { Authorization: 'Bearer ' + await adminToken() } });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(j.error || ('Server said ' + res.status));
+    const list = j.backups || [];
+    CLOUD_LAST = list.length ? Math.max.apply(null, list.map(b => cbKeyTime(b.key) || b.uploaded || 0)) : 0;
+    paintBackupNote();
+    el.innerHTML = '';
+    if (!list.length) { el.appendChild(mk('div', 'empty', 'No cloud backups yet. Tap "Save a copy to private cloud storage" above.')); return; }
+    list.forEach(b => {
+      const row = mk('div', 'cb-row'), tx = mk('div', 'tx');
+      tx.appendChild(mk('b', null, cbWhen(cbKeyTime(b.key) || b.uploaded))); tx.appendChild(mk('span', null, (b.size / 1024 / 1024 >= 1 ? (b.size / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(b.size / 1024)) + ' KB')));
+      row.appendChild(tx);
+      const dl = mk('button', 'ed-btn', 'Download'); dl.addEventListener('click', () => cloudDownload(b.key)); row.appendChild(dl);
+      const del = mk('button', 'del-btn', 'Delete'); del.addEventListener('click', () => cloudDelete(b.key)); row.appendChild(del);
+      el.appendChild(row);
+    });
+  } catch (e) { if (!quiet && el) { el.innerHTML = ''; el.appendChild(mk('div', 'empty', 'Could not load cloud backups: ' + e.message)); } }
+}
+async function cloudDownload(key) {
+  try {
+    const res = await fetch('/api/backup?key=' + encodeURIComponent(key), { headers: { Authorization: 'Bearer ' + await adminToken() } });
+    if (!res.ok) throw new Error('Server said ' + res.status);
+    bkDownload(key.split('/').pop(), await res.text());
+  } catch (e) { showToast('Could not download: ' + e.message, true); }
+}
+async function cloudDelete(key) {
+  if (!confirm('Delete this cloud backup? This cannot be undone.')) return;
+  try {
+    const res = await fetch('/api/backup?key=' + encodeURIComponent(key), { method: 'DELETE', headers: { Authorization: 'Bearer ' + await adminToken() } });
+    if (!res.ok) throw new Error('Server said ' + res.status);
+    showToast('Deleted'); cloudList();
+  } catch (e) { showToast('Could not delete: ' + e.message, true); }
 }
 
 function csvCell(v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; }
@@ -3345,6 +3471,110 @@ async function syncFreeSample(testId, title, qs, on) {
   await setDoc(ref, { testId: testId, title: title, qs: pub, count: pub.length, updatedAt: serverTimestamp() });
   return true;
 }
+
+// ---------- System check and launch test ----------
+function scRow(ok, label, note, optional) { const r = mk('div', 'sc-row ' + (ok ? 'ok' : optional ? 'opt' : 'bad')); r.appendChild(mk('div', 'dot', ok ? '✔' : optional ? '–' : '✘')); const t = mk('div', 'tx'); t.appendChild(mk('b', null, label)); if (note) t.appendChild(mk('span', null, note)); r.appendChild(t); return r; }
+async function runSystemCheck() {
+  const out = document.getElementById('sc_out'), btn = document.getElementById('sc_run');
+  btn.disabled = true; out.innerHTML = ''; out.appendChild(mk('div', 'empty', 'Checking…'));
+  try {
+    const res = await fetch('/api/admin-health', { headers: { Authorization: 'Bearer ' + await adminToken() } });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(j.error || ('Server said ' + res.status));
+    out.innerHTML = '';
+    out.appendChild(scRow(j.r2, 'Private file storage (R2)', j.r2 ? '' : 'The R2 bucket is not connected to the Worker.'));
+    out.appendChild(scRow(j.firestore, 'Database reachable from the website', j.firestore ? '' : 'Check the PROJECT_ID setting and Firestore rules.'));
+    const s = j.secrets || {};
+    out.appendChild(scRow(s.TELEGRAM_BOT_TOKEN, 'Telegram bot token', s.TELEGRAM_BOT_TOKEN ? '' : 'Add the secret TELEGRAM_BOT_TOKEN in Cloudflare.'));
+    out.appendChild(scRow(s.TELEGRAM_CHAT_ID, 'Chat for payment and problem alerts', s.TELEGRAM_CHAT_ID ? '' : 'Add the secret TELEGRAM_CHAT_ID in Cloudflare.'));
+    out.appendChild(scRow(s.TG_CHAT_PREMIUM, 'Premium channel (for invite links)', s.TG_CHAT_PREMIUM ? '' : 'Not set. Add TG_CHAT_PREMIUM if you want invite links.', true));
+    out.appendChild(scRow(s.TG_CHAT_INICET, 'INICET channel (for invite links)', s.TG_CHAT_INICET ? '' : 'Not set. Optional.', true));
+    out.appendChild(scRow(s.TG_CHAT_DISCUSS, 'Discussion group (for invite links)', s.TG_CHAT_DISCUSS ? '' : 'Not set. Optional.', true));
+    out.appendChild(scRow(s.TELEGRAM_ANNOUNCE_CHAT_ID, 'Chat for release announcements', s.TELEGRAM_ANNOUNCE_CHAT_ID ? '' : 'Not set. Optional. Releases still work without announcements.', true));
+    const v = j.vars || {};
+    out.appendChild(scRow(v.SITE_URL && v.ADMIN_EMAIL && v.PROJECT_ID, 'Site settings (SITE_URL, ADMIN_EMAIL, PROJECT_ID)', ''));
+    const mins = j.cronLastRun ? Math.round((Date.now() - j.cronLastRun) / 60000) : null;
+    out.appendChild(scRow(mins !== null && mins <= 25, 'Background job (every 10 minutes)', mins === null ? 'It has not run yet. After a new deploy, wait 10 minutes and check again. If it never runs, the cron trigger is missing.' : 'Last ran ' + mins + (mins === 1 ? ' minute' : ' minutes') + ' ago.' + (mins > 25 ? ' That is too long. Check the cron trigger in Cloudflare.' : '')));
+  } catch (e) { out.innerHTML = ''; out.appendChild(mk('div', 'empty', 'Could not run the check: ' + e.message)); }
+  finally { btn.disabled = false; }
+}
+async function sendTestAlert() {
+  const btn = document.getElementById('sc_test'); btn.disabled = true;
+  try {
+    const res = await fetch('/api/admin-health', { method: 'POST', headers: { Authorization: 'Bearer ' + await adminToken() } });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(j.error || ('Server said ' + res.status));
+    showToast(j.ok ? '✔ Test alert sent. Check Telegram.' : (j.reason || 'The test alert was not sent.'), !j.ok);
+  } catch (e) { showToast('Could not send: ' + e.message, true); }
+  finally { btn.disabled = false; }
+}
+
+const LAUNCH_STEPS = [
+  { g: 'A. Before you start', s: [
+    ['a1', 'The latest Firestore rules are published', 'Firebase → Firestore → Rules. The full file includes opens, questions, practice and sample.'],
+    ['a2', 'The newest files are uploaded and the build has a green tick', 'Cloudflare Deployments or the GitHub Actions tab.'],
+    ['a3', 'Run the system check above: no red crosses', 'Fix any red line first. Grey lines are optional.'],
+    ['a4', 'Send a test alert: it arrives in Telegram', 'If it does not, check TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID.'],
+    ['a5', 'Read the Terms, Privacy and Refund pages on your phone', 'Check the names, contact details and the refund rules are what you want. Please get them checked by someone who knows Indian consumer law.'],
+    ['a6', 'Question Bank → Update practice pool has been pressed', 'Only if the bank has questions.'] ] },
+  { g: 'B. Buy as a new student (second Google account)', s: [
+    ['b1', 'Signed out, the home page shows the 3 Rules, Study tips and "Try it free"', 'Try the free sample to the end.'],
+    ['b2', 'Sign in with the second Google account: you see the payment steps, not the library', ''],
+    ['b3', 'Submitting without ticking the agreement is blocked', 'You should see a message.'],
+    ['b4', 'Pay the real price by UPI, enter the UTR, tick the agreement, submit', 'Use a real payment once so you know the full journey.'],
+    ['b5', 'The payment alert arrives in your Telegram', ''],
+    ['b6', 'Admin → Payments: approve it and set an end date', ''],
+    ['b7', 'The student refreshes and the library opens', ''] ] },
+  { g: 'C. Use every feature as the student', s: [
+    ['c1', 'Library: search, subject filters, INICET section, New this week', ''],
+    ['c2', 'Open a PDF: it fits the screen, zoom works, the page is remembered', 'Close it and see "Continue where you left off".'],
+    ['c3', 'Flashcards: Again and Got it work', ''],
+    ['c4', 'Take an instant test and a timed test', 'For a timed block test, start a block, leave and come back.'],
+    ['c5', 'Result, review, and wrong answers appear in the Notebook', ''],
+    ['c6', 'Practice by subject: 10 questions, then check the notebook', ''],
+    ['c7', 'My progress: "Your weak areas" appears after 10 answered questions', ''],
+    ['c8', 'Report a mistake: the alert reaches Telegram and shows in Admin → Reports', ''],
+    ['c9', 'Get my invite links: all the links you set appear and open', ''],
+    ['c10', 'Install the app: Android install bar, or iPhone Add to Home Screen', 'The icon should be your logo.'],
+    ['c11', 'Sign in on a second and a third device: the third is blocked', 'Then reset it in Admin → Members.'] ] },
+  { g: 'D. Admin side', s: [
+    ['d1', 'Admin Home shows the new member, revenue and pending payments', ''],
+    ['d2', 'Add a resource with a release time 10 minutes ahead: hidden, then it appears', 'If announcements are on, the Telegram message arrives.'],
+    ['d3', 'Import 5 questions from Excel, build a test, publish it', ''],
+    ['d4', 'Publish one item each in News, Counselling and Study Tips', 'Open /news, /counselling and /study-tips. Wait 2 minutes for the pages to refresh.'],
+    ['d5', 'Save a copy to private cloud storage and download it', 'It should appear in the Cloud backups list.'] ] },
+  { g: 'E. End of membership and renewal', s: [
+    ['e1', 'Set the second account\'s end date to yesterday: the library locks with a renew message', ''],
+    ['e2', 'Renew: pay, submit the UTR, approve, and access returns with the new end date', ''] ] },
+  { g: 'F. Before real students arrive', s: [
+    ['f1', 'Delete the test member, test payments and test attempts', 'Members and Payments tabs.'],
+    ['f2', 'Take a fresh backup (download and cloud)', ''],
+    ['f3', 'Check the site on an Android phone, an iPhone and a computer', ''],
+    ['f4', 'Check the Telegram channels are ready and the bot is admin in each', ''] ] }
+];
+function launchGet() { try { return JSON.parse(localStorage.getItem('pptLaunch') || '{}') || {}; } catch (e) { return {}; } }
+function launchSet(o) { try { localStorage.setItem('pptLaunch', JSON.stringify(o)); } catch (e) {} }
+function renderLaunch() {
+  const box = document.getElementById('lc_list'), done = launchGet();
+  box.innerHTML = '';
+  let n = 0, total = 0;
+  LAUNCH_STEPS.forEach(g => {
+    const grp = mk('div', 'lc-group'); grp.appendChild(mk('h4', null, g.g));
+    g.s.forEach(st => {
+      total++; if (done[st[0]]) n++;
+      const lab = mk('label', 'lc-step' + (done[st[0]] ? ' done' : ''));
+      const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!done[st[0]]; cb.id = 'lc_' + st[0];
+      cb.addEventListener('change', () => { const d = launchGet(); if (cb.checked) d[st[0]] = 1; else delete d[st[0]]; launchSet(d); renderLaunch(); });
+      const tx = mk('div'); tx.appendChild(mk('b', null, st[1])); if (st[2]) tx.appendChild(mk('span', null, st[2]));
+      lab.appendChild(cb); lab.appendChild(tx); grp.appendChild(lab);
+    });
+    box.appendChild(grp);
+  });
+  document.getElementById('lc_fill').style.width = Math.round(n / total * 100) + '%';
+  document.getElementById('lc_text').textContent = n + ' of ' + total + ' steps done' + (n === total ? '. You are ready to launch.' : '.');
+}
+function resetLaunch() { if (confirm('Clear all the ticks and start the launch test again?')) { launchSet({}); renderLaunch(); } }
+
 function mk(tag, cls, text) {
   const n = document.createElement(tag);
   if (cls) n.className = cls;
