@@ -1350,6 +1350,35 @@
   .rules-sec { background: #FBF8F1; padding: 26px 0 8px; }
   .rules-sec .rule-box { margin: 0; }
   @media (min-width: 900px) { .rules-sec { padding: 40px 0 12px; } }
+  .pr-card { background: #fff; border: 1px solid var(--border); border-left: 4px solid #0F8F83; border-radius: 14px; padding: 14px; margin-bottom: 14px; }
+  .pr-card h4 { margin: 0 0 3px; font-size: 15px; font-weight: 800; color: var(--navy); }
+  .pr-card .sub { margin: 0 0 10px; font-size: 12.5px; color: var(--gray); line-height: 1.45; }
+  .pr-sel { width: 100%; min-height: 46px; padding: 0 42px 0 14px; border: 1.5px solid var(--border); border-radius: 12px; background-color: #fff; font-family: inherit; font-size: 16px; color: var(--ink); -webkit-appearance: none; appearance: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1.5l6 6 6-6' fill='none' stroke='%230A1830' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 15px center; background-size: 14px 9px; }
+  .pr-sel option, .pr-sel optgroup { font-size: 16px; color: #141A22; }
+  .pr-row { display: flex; gap: 8px; margin-top: 10px; align-items: stretch; }
+  .pr-n { flex: 1; min-height: 44px; border: 1.5px solid var(--border); border-radius: 12px; background: #fff; font-family: inherit; font-size: 15px; font-weight: 700; color: var(--gray); }
+  .pr-n.on { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .pr-go { width: 100%; min-height: 46px; margin-top: 10px; border-radius: 12px; background: #0F8F83; color: #fff; font-family: inherit; font-size: 15px; font-weight: 800; }
+  .pg-weak { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-top: 8px; }
+  .pg-weak .t { display: flex; align-items: baseline; gap: 8px; }
+  .pg-weak .t span { font-weight: 700; color: var(--ink); flex: 1; min-width: 0; }
+  .pg-weak .t em { font-style: normal; font-size: 12.5px; color: var(--gray); white-space: nowrap; }
+  .pg-weak .tag { font-size: 11px; font-weight: 800; border-radius: 9px; padding: 2px 8px; }
+  .pg-weak .tag.weak { background: #FBE9DD; color: #A5481E; } .pg-weak .tag.mid { background: #FBF1D4; color: #7A5C12; } .pg-weak .tag.good { background: #DDF3EF; color: #0B6F66; }
+  .pg-weak .acts { display: flex; gap: 8px; margin-top: 10px; }
+  .pg-weak .acts button { flex: 1; min-height: 40px; border-radius: 10px; font-family: inherit; font-size: 13.5px; font-weight: 700; border: 1.5px solid var(--border); background: #fff; color: var(--navy); }
+  .pg-weak .acts button.pri { background: #0F8F83; border-color: #0F8F83; color: #fff; }
+  .sample-sec { background: #FBF8F1; padding: 18px 0 6px; }
+  .sample-box { display: flex; align-items: center; gap: 16px; justify-content: space-between; flex-wrap: wrap; background: #fff; border: 1.5px solid var(--border); border-left: 4px solid #0F8F83; border-radius: 16px; padding: 18px; }
+  .sample-box h2 { margin: 0 0 4px; font-size: 20px; font-weight: 800; color: var(--navy); }
+  .sample-box p { margin: 0; font-size: 14px; color: var(--gray); line-height: 1.5; }
+  .sample-box .btn { flex-shrink: 0; }
+  @media (max-width: 560px) { .sample-box .btn { width: 100%; } }
+  .tr-cta { margin-top: 16px; background: linear-gradient(160deg, #0F2447, #0A1830); border: 1.5px solid var(--gold-b); border-radius: 14px; padding: 16px; text-align: center; color: #fff; }
+  .tr-cta b { display: block; font-size: 16px; color: var(--gold-b); }
+  .tr-cta span { display: block; margin: 4px 0 12px; font-size: 13.5px; color: #C9D3E6; }
+  .tr-cta button { width: 100%; }
 </style>
 </head>
 <body class="booting">
@@ -1433,6 +1462,15 @@
         </ol>
         <div class="rule-foot">Pray. Patience. Trust.</div>
       </section>
+  </div>
+</section>
+
+<section class="sample-sec" id="sampleSec" style="display:none;">
+  <div class="container">
+    <div class="sample-box">
+      <div><h2>Try it free</h2><p>Answer <b id="sampleN">10</b> real questions with full explanations. No sign-in needed.</p></div>
+      <button class="btn btn-gold" id="sampleStart" type="button">Start free sample</button>
+    </div>
   </div>
 </section>
 
@@ -1666,6 +1704,7 @@
     <div id="libBrowse">
     <button class="inst-bar" id="libInstall2" type="button"><img src="/logo-96.webp" width="26" height="26" alt="" style="border-radius:50%;display:block">Install the app on your phone</button>
     <div class="rs-card" id="libResume" style="display:none;"></div>
+    <div class="pr-card" id="libPractice" style="display:none;"></div>
     <div class="lib-search">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
       <input class="lib-q" id="libSearch" type="search" placeholder="Search by title or subject" autocomplete="off">
@@ -1938,7 +1977,7 @@ async function ensureDevice() {
 
 function afterAccessReady() {
   updateView(); render(); renderDeviceGate();
-  if (isPaidMember && deviceState.status === "ok") { loadResourcesFromFirestore(); loadAttempts(); loadTgInfo(); loadNotebook(); window.scrollTo(0, 0); }
+  if (isPaidMember && deviceState.status === "ok") { loadResourcesFromFirestore(); loadAttempts(); loadTgInfo(); loadNotebook(); prLoadIndex(); window.scrollTo(0, 0); }
 }
 
 async function replaceDevice(oldId, label) {
@@ -2086,6 +2125,7 @@ function showInApp(failed) {
 onFbReady(() => {
   const { auth, onAuthStateChanged } = window.__fb;
   loadPricing();
+  loadSample();
 
   onAuthStateChanged(auth, async (user) => {
     currentUser = user;
@@ -2096,7 +2136,7 @@ onFbReady(() => {
     paymentInfo.latest = null;
     memberInfo = { exists: false, endMs: 0 };
     memberExpired = false;
-    CARDS.loaded = false; CARDS.loading = null; CARDS.map = {}; NB.loaded = false; NB.loading = null; NB.items = []; NB.gone = []; NB.tests = {}; NB.open = new Set();
+    CARDS.loaded = false; CARDS.loading = null; CARDS.map = {}; NB.loaded = false; NB.loading = null; NB.items = []; NB.gone = []; NB.tests = {}; NB.open = new Set(); PR.index = null; PR.parts = {}; PR.loading = null;
     deviceState = { status: user ? "checking" : "ok", list: [], lastChange: 0 };
     updateView();
     renderJoin();
@@ -2120,6 +2160,7 @@ onFbReady(() => {
       loadAttempts();
       loadTgInfo();
       loadNotebook();
+      prLoadIndex();
       window.scrollTo(0, 0);
     } else if (user && !isPaidMember && memberExpired) {
       showToast("Your membership has ended. Renew below to continue.", true);
@@ -2991,6 +3032,7 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeRepor
 
 // "Report a mistake" link under an explanation in a test
 function reportLink(q, i) {
+  if (TR.t && TR.t.sample) return "";
   return '<button class="tr-report" data-act="report" data-i="' + i + '">Report a mistake in this question</button>';
 }
 
@@ -3294,6 +3336,7 @@ function trOptionsHTML(q, i, mode) {
 
 function trRefOf(i) { return TR.t.refs ? TR.t.refs[i] : { t: TR.t.id, i: i }; }
 function saveBtn(i) {
+  if (TR.t && TR.t.sample) return "";
   const r = trRefOf(i), on = nbSaved(r.t, r.i);
   return '<button class="tr-save' + (on ? " on" : "") + '" data-act="nbsave" data-i="' + i + '">' + (on ? "★ Saved for revision" : "☆ Save for revision") + '</button>';
 }
@@ -3396,10 +3439,10 @@ async function trFinish(auto) {
   TR.prev = trSynthetic() ? null : lastAttemptOf(t.id);   // for "last time vs now" on the result screen
   TR.res = trCompute();
   trForget();
-  TR.nbNote = trSynthetic() ? nbPracticeDone(t, TR.ans) : 0;
+  TR.nbNote = t.practice ? practiceRecord(t, TR.ans) : t.sample ? 0 : trSynthetic() ? nbPracticeDone(t, TR.ans) : 0;
   if (!trSynthetic()) nbRecordResult(t, TR.ans);
   trRenderResult();
-  if (!trSynthetic()) trSaveAttempt(TR.res);
+  if (!trSynthetic() || t.practice) trSaveAttempt(TR.res);
 }
 
 function trSubjectOf(q) {
@@ -3410,7 +3453,7 @@ function trSubjectOf(q) {
 
 async function trSaveAttempt(r) {
   const t = TR.t;
-  if (!t || !currentUser || trSynthetic()) return;
+  if (!t || !currentUser || (trSynthetic() && !t.practice)) return;
   const by = {};
   t.qs.forEach((q, i) => {
     const k = trSubjectOf(q), a = TR.ans[i];
@@ -3419,7 +3462,7 @@ async function trSaveAttempt(r) {
   });
   // show it in "My progress" straight away
   MY_ATTEMPTS.push({
-    testId: t.id, title: t.title, subject: t.subject, mode: t.mode, score: r.score, maxScore: r.max,
+    testId: (t.practice ? "practice:" + t.slug : t.id), title: t.title, subject: t.subject, mode: t.mode, score: r.score, maxScore: r.max,
     correct: r.c, wrong: r.w, skipped: r.s, total: r.n, seconds: r.seconds, bySubject: by, t: Date.now()
   });
   attemptsLoaded = true;
@@ -3428,7 +3471,7 @@ async function trSaveAttempt(r) {
   try {
     const { db, collection, addDoc, serverTimestamp } = window.__fb;
     const rec = {
-      email: (currentUser.email || "").toLowerCase(), testId: t.id, title: t.title, subject: t.subject, mode: t.mode,
+      email: (currentUser.email || "").toLowerCase(), testId: (t.practice ? "practice:" + t.slug : t.id), title: t.title, subject: t.subject, mode: t.mode,
       score: r.score, maxScore: r.max, correct: r.c, wrong: r.w, skipped: r.s, total: r.n, seconds: r.seconds,
       bySubject: by, answers: TR.ans.slice(), createdAt: serverTimestamp()
     };
@@ -3452,7 +3495,8 @@ function trRenderResult() {
       '<div class="tr-stats"><div class="tr-st c"><b>' + r.c + '</b><span>Correct</span></div><div class="tr-st w"><b>' + r.w + '</b><span>Wrong</span></div><div class="tr-st s"><b>' + r.s + '</b><span>Skipped</span></div><div class="tr-st t"><b>' + trClock(r.seconds) + '</b><span>Time</span></div></div>' +
       (r.blocks ? '<div class="blk-res">' + r.blocks.map(b => '<div class="row"><b>' + esc(b.name) + ' · ' + b.score + '</b><span>' + b.c + ' right, ' + b.w + ' wrong, ' + b.s + ' skipped</span></div>').join("") + '</div>' : "") +
       (TR.nbNote ? '<div class="tr-cmp">' + TR.nbNote + (TR.nbNote === 1 ? " question" : " questions") + ' mastered and removed from your notebook.</div>' : "") +
-      (!trSynthetic() && r.w > 0 ? '<div class="tr-cmp">Your ' + r.w + (r.w === 1 ? " wrong answer was" : " wrong answers were") + ' added to your Mistake notebook.</div>' : "") +
+      ((!trSynthetic() || t.practice) && r.w > 0 ? '<div class="tr-cmp">Your ' + r.w + (r.w === 1 ? " wrong answer was" : " wrong answers were") + ' added to your Mistake notebook.</div>' : "") +
+    (t.sample ? '<div class="tr-cta"><b>Want the full question bank?</b><span>Unlock every test, note and flashcard deck.</span><button class="tr-btn pri" data-act="join">Go Premium</button></div>' : '') +
     '</div></div></div>' +
     '<div class="tr-foot"><button class="tr-btn sec" data-act="retake">' + (trSynthetic() ? "Practise again" : "Retake") + '</button><button class="tr-btn pri" data-act="review">Review answers</button></div>';
 }
@@ -3497,7 +3541,7 @@ document.getElementById("trOverlay").addEventListener("click", (e) => {
     if (t && (TR.phase === "run" || TR.phase === "blocks") && t.mode === "exam" && !confirm("Leave the test? Your answers are saved and the timer keeps running.")) return;
     trCloseOverlay(); return;
   }
-  if (act === "report") { const qi = Number(b.dataset.i), q = t.qs[qi], ref = trRefOf(qi); return openReport({ kind: "test", testId: ref.t, title: t.refs ? "Mistake notebook question" : t.title, questionNo: ref.i + 1, questionText: q ? q.q : "" }); }
+  if (act === "report") { const qi = Number(b.dataset.i), q = t.qs[qi], ref = trRefOf(qi); return openReport({ kind: "test", testId: ref.t, title: t.practice ? "Practice question" : t.refs ? "Mistake notebook question" : t.title, questionNo: ref.i + 1, questionText: q ? q.q : "" }); }
   if (act === "nbsave") {
     const qi = Number(b.dataset.i), ref = trRefOf(qi);
     return loadNotebook().then(() => { nbToggleSaved(ref.t, ref.i, t.qs[qi]); if (TR.phase === "review") trRenderReview(); else trRenderRun(); });
@@ -3528,7 +3572,9 @@ document.getElementById("trOverlay").addEventListener("click", (e) => {
   if (act === "review") { TR.phase = "review"; TR.filter = "All"; return trRenderReview(); }
   if (act === "result") { TR.phase = "result"; return trRenderResult(); }
   if (act === "filter") { TR.filter = b.dataset.f; return trRenderReview(); }
+  if (act === "join") { trCloseOverlay(); const p = document.getElementById("pricing"); if (p) p.scrollIntoView({ behavior: "smooth" }); return; }
   if (act === "retake") {
+    if (t && t.practice) return prStart(t.sel, t.nPick);
     if (!confirm(trSynthetic() ? "Practise these questions again?" : "Start this test again?")) return;
     trFresh(); TR.phase = trHasBlocks() ? "blocks" : "run"; TR.res = null; TR.nbNote = 0; trStartTimer(); return trRender();
   }
@@ -3643,26 +3689,35 @@ function renderProgress() {
       o.c += Number(a.correct) || 0; o.n += (Number(a.correct) || 0) + (Number(a.wrong) || 0) + (Number(a.skipped) || 0);
     }
   });
-  const subjList = Object.keys(subj).filter(k => subj[k].n > 0 && k !== "Untagged" && k.toLowerCase() !== "mixed")
-    .map(k => ({ k, p: subj[k].c / subj[k].n * 100, c: subj[k].c, n: subj[k].n })).sort((a, b) => a.p - b.p);
-  if (subjList.length) {
-    const sc = libEl("div", "pg-card");
-    sc.appendChild(libEl("h3", null, "Subject-wise accuracy"));
-    sc.appendChild(libEl("p", "cap", "Weakest first, from all your attempts. Tap a subject to practise it."));
+  const subjAll = Object.keys(subj).filter(k => k !== "Untagged" && k.toLowerCase() !== "mixed" && !/^practice$/i.test(k))
+    .map(k => ({ k, p: subj[k].n > 0 ? subj[k].c / subj[k].n * 100 : 0, c: subj[k].c, n: subj[k].n }));
+  const subjList = subjAll.filter(x => x.n >= 10).sort((a, b) => a.p - b.p);
+  const sc = libEl("div", "pg-card");
+  sc.appendChild(libEl("h3", null, "Your weak areas"));
+  if (!subjList.length) {
+    sc.appendChild(libEl("p", "cap", "Take a few more tests. A subject appears here after you have answered 10 of its questions."));
+  } else {
+    sc.appendChild(libEl("p", "cap", "Weakest first, from all your attempts. Revise the red ones first."));
     subjList.forEach(x => {
-      const b = libEl("button", "pg-sub");
+      const row = libEl("div", "pg-weak");
       const t = libEl("div", "t"); t.appendChild(libEl("span", null, x.k));
       t.appendChild(libEl("em", null, Math.round(x.p) + "% \u00B7 " + x.c + " of " + x.n));
-      b.appendChild(t);
+      t.appendChild(libEl("span", "tag " + (x.p < 50 ? "weak" : x.p < 70 ? "mid" : "good"), x.p < 50 ? "Weak" : x.p < 70 ? "Improve" : "Strong"));
+      row.appendChild(t);
       const tk = libEl("div", "pg-track"); const f = document.createElement("i");
       f.style.width = Math.max(3, Math.round(x.p)) + "%";
       f.style.background = x.p < 50 ? "#D98B54" : x.p < 70 ? "#D4AF55" : "#0F8F83";
-      tk.appendChild(f); b.appendChild(tk);
-      b.onclick = () => { lib.subject = canonSubject(x.k); lib.tab = "All"; setLibView("library"); };
-      sc.appendChild(b);
+      tk.appendChild(f); row.appendChild(tk);
+      const acts = libEl("div", "acts");
+      const ps = prSubjectEntry(x.k);
+      if (ps) { const pb = libEl("button", "pri", "Practise"); pb.onclick = () => prStart(ps.subject, PR.n); acts.appendChild(pb); }
+      const rb = libEl("button", null, "Resources"); rb.onclick = () => { lib.subject = canonSubject(x.k); lib.tab = "All"; setLibView("library"); };
+      acts.appendChild(rb);
+      row.appendChild(acts);
+      sc.appendChild(row);
     });
-    box.appendChild(sc);
   }
+  box.appendChild(sc);
 
   // each test, scores in order
   box.appendChild(libEl("div", "pg-h", "Your tests"));
@@ -3979,7 +4034,7 @@ async function nbLoadTests() {
   const ids = Array.from(new Set(NB.items.map(x => x.t))).filter(id => !(id in NB.tests));
   const { db, doc, getDoc } = window.__fb;
   await Promise.all(ids.map(async id => {
-    try { const s = await getDoc(doc(db, "tests", id)); NB.tests[id] = s.exists() ? { qs: Array.isArray(s.data().qs) ? s.data().qs : [], title: s.data().title || "", subject: s.data().subject || "" } : null; }
+    try { const s = await getDoc(doc(db, id.indexOf("pr_") === 0 ? "practice" : "tests", id)); NB.tests[id] = s.exists() ? { qs: Array.isArray(s.data().qs) ? s.data().qs : [], title: s.data().title || (id.indexOf("pr_") === 0 ? "Practice · " + (s.data().subject || "") : ""), subject: s.data().subject || "" } : null; }
     catch (e) { NB.tests[id] = undefined; }
   }));
   // drop questions that were deleted or changed since they were added
@@ -4299,6 +4354,7 @@ function renderList() {
   const box = document.getElementById("libList");
   box.innerHTML = "";
   paintResume();
+  paintPractice();
 
   if (!libLoaded && !libError) {
     box.appendChild(libEl("div", "lib-empty", "Loading your library…"));
@@ -4812,6 +4868,158 @@ async function opFlush() {
   } catch (e) { console.error("Could not save opens", e); }
 }
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && OP.timer) opFlush(); });
+
+// ---------- Practice by subject ----------
+// The admin copies the question bank into "practice": an index document and chunks named pr_<subject>_<n>.
+const PR = { index: null, loading: null, parts: {}, n: 20, sel: "" };
+try { const v = Number(localStorage.getItem("pptPrN")); if (v === 10 || v === 20 || v === 30) PR.n = v; PR.sel = localStorage.getItem("pptPrSel") || ""; } catch (e) {}
+function prLoadIndex() {
+  if (PR.index) { paintPractice(); return Promise.resolve(); }
+  if (PR.loading) return PR.loading;
+  PR.loading = (async () => {
+    try {
+      const { db, doc, getDoc } = window.__fb;
+      const s = await getDoc(doc(db, "practice", "index"));
+      const d = s.exists() ? (s.data() || {}) : {};
+      PR.index = { subjects: (Array.isArray(d.subjects) ? d.subjects : []).filter(x => x && x.subject && x.slug && Number(x.count) > 0), total: Number(d.total) || 0 };
+    } catch (e) { console.error("Could not load practice", e); PR.index = null; }
+    PR.loading = null;
+    paintPractice();
+  })();
+  return PR.loading;
+}
+function prSubjectEntry(name) {
+  if (!PR.index) return null;
+  const k = String(name || "").toLowerCase();
+  return PR.index.subjects.find(s => String(s.subject).toLowerCase() === k) || null;
+}
+function prSeenKey() { return "pptPrSeen:" + String((currentUser && currentUser.email) || "").toLowerCase(); }
+function prSeenGet() { try { const a = JSON.parse(localStorage.getItem(prSeenKey()) || "[]"); return new Set(Array.isArray(a) ? a : []); } catch (e) { return new Set(); } }
+function prSeenAdd(keys) {
+  const s = prSeenGet(); keys.forEach(k => s.add(k));
+  let a = Array.from(s); if (a.length > 4000) a = a.slice(a.length - 4000);
+  try { localStorage.setItem(prSeenKey(), JSON.stringify(a)); } catch (e) {}
+}
+function prShuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+async function prPart(s, p) {
+  const id = "pr_" + s.slug + "_" + p;
+  if (PR.parts[id]) return PR.parts[id];
+  const { db, doc, getDoc } = window.__fb;
+  const snap = await getDoc(doc(db, "practice", id));
+  if (!snap.exists() || !Array.isArray(snap.data().qs)) throw new Error("part missing");
+  const d = snap.data();
+  PR.parts[id] = { id: id, subject: d.subject || s.subject, qs: d.qs };
+  NB.tests[id] = { qs: d.qs, title: "Practice \u00B7 " + (d.subject || s.subject), subject: d.subject || s.subject };
+  return PR.parts[id];
+}
+function paintPractice() {
+  const box = document.getElementById("libPractice");
+  if (!box) return;
+  const ix = PR.index;
+  if (!ix || !ix.total || !libLoaded || libError || !currentUser || lib.q) { box.style.display = "none"; return; }
+  box.innerHTML = ""; box.style.display = "";
+  box.appendChild(libEl("h4", null, "Practice by subject"));
+  box.appendChild(libEl("p", "sub", "Random questions with instant answers. Your wrong answers go to the Mistake notebook."));
+  const sel = document.createElement("select"); sel.className = "pr-sel"; sel.setAttribute("aria-label", "Subject");
+  const add = (parent, value, label) => { const o = document.createElement("option"); o.value = value; o.textContent = label; parent.appendChild(o); };
+  add(sel, "__all", "Mixed \u00B7 all subjects (" + ix.total + ")");
+  const used = new Set();
+  SUBJECT_GROUPS.forEach(g => {
+    const rows = g.list.map(n => prSubjectEntry(n)).filter(Boolean);
+    if (!rows.length) return;
+    const og = document.createElement("optgroup"); og.label = g.label;
+    rows.forEach(r => { used.add(r.subject); add(og, r.subject, r.subject + " (" + r.count + ")"); });
+    sel.appendChild(og);
+  });
+  const rest = ix.subjects.filter(r => !used.has(r.subject));
+  if (rest.length) { const og = document.createElement("optgroup"); og.label = "Other subjects"; rest.forEach(r => add(og, r.subject, r.subject + " (" + r.count + ")")); sel.appendChild(og); }
+  const want = (lib.subject !== "All" && prSubjectEntry(lib.subject)) ? prSubjectEntry(lib.subject).subject : PR.sel;
+  sel.value = Array.from(sel.options).some(o => o.value === want) ? want : "__all";
+  sel.onchange = () => { PR.sel = sel.value; try { localStorage.setItem("pptPrSel", PR.sel); } catch (e) {} };
+  box.appendChild(sel);
+  const row = libEl("div", "pr-row");
+  [10, 20, 30].forEach(n => { const b = libEl("button", "pr-n" + (PR.n === n ? " on" : ""), String(n)); b.type = "button"; b.setAttribute("aria-label", n + " questions"); b.onclick = () => { PR.n = n; try { localStorage.setItem("pptPrN", String(n)); } catch (e) {} PR.sel = sel.value; paintPractice(); }; row.appendChild(b); });
+  box.appendChild(row);
+  const go = libEl("button", "pr-go", "Start practice"); go.type = "button"; go.onclick = () => prStart(sel.value, PR.n);
+  box.appendChild(go);
+}
+async function prStart(sel, n) {
+  if (!PR.index) { await prLoadIndex(); }
+  const ix = PR.index;
+  const subs = !ix ? [] : (sel === "__all" || !sel) ? ix.subjects : ix.subjects.filter(s => String(s.subject).toLowerCase() === String(sel).toLowerCase());
+  if (!subs.length) { showToast("No practice questions for this subject yet.", true); return; }
+  const all = (sel === "__all" || !sel);
+  trOverlay().classList.add("on"); document.body.style.overflow = "hidden";
+  trLoading("Getting your questions\u2026");
+  try {
+    const need = [];
+    subs.forEach(s => {
+      const parts = []; for (let p = 0; p < (Number(s.parts) || 1); p++) parts.push(p);
+      if (all) need.push({ s: s, p: parts[Math.floor(Math.random() * parts.length)] }); else parts.forEach(p => need.push({ s: s, p: p }));
+    });
+    const docs = await Promise.all(need.map(x => prPart(x.s, x.p)));
+    const pool = [];
+    docs.forEach(d => d.qs.forEach((q, i) => { if (q && q.q && Array.isArray(q.o)) pool.push({ q: q, ref: { t: d.id, i: i }, subject: d.subject, key: d.id + ":" + i }); }));
+    if (!pool.length) throw new Error("empty");
+    const seen = prSeenGet();
+    prShuffle(pool);
+    pool.sort((a, b) => (seen.has(a.key) ? 1 : 0) - (seen.has(b.key) ? 1 : 0));      // questions you have not seen come first
+    const take = Math.min(n || 20, pool.length);
+    const pick = prShuffle(pool.slice(0, take));
+    const name = all ? "Mixed" : subs[0].subject;
+    TR.t = { id: "__practice__", practice: true, slug: all ? "all" : subs[0].slug, sel: all ? "__all" : subs[0].subject, nPick: n || 20,
+      title: "Practice \u00B7 " + name, subject: name, mode: "instant", duration: 0, plus: 1, minus: 0,
+      qs: pick.map(x => Object.assign({}, x.q, { s: x.subject })), origs: pick.map(x => x.q), refs: pick.map(x => x.ref) };
+    TR.phase = "run"; TR.pal = false; TR.filter = "All"; TR.res = null; TR.prev = null; TR.blocks = []; TR.blk = -1;
+    trFresh(); trStartTimer(); trRender();
+  } catch (e) {
+    console.error("Practice failed", e);
+    trCloseOverlay();
+    PR.index = null; PR.parts = {};
+    showToast("Practice is being updated. Please try again in a minute.", true);
+    prLoadIndex();
+  }
+}
+// A practice session ended: wrong answers go to the notebook, right answers wear them down
+function practiceRecord(t, ans) {
+  let mastered = 0;
+  if (NB.loaded) {
+    t.refs.forEach((ref, k) => {
+      const a = ans[k]; if (a < 0) return;
+      if (a !== t.qs[k].a) nbUpsert(ref.t, ref.i, t.origs[k], x => ({ n: x.n + 1, s: 0 }));
+      else { const x = nbFind(ref.t, ref.i); if (x && x.n > 0) { x.s = (x.s || 0) + 1; x.last = Date.now(); if (x.s >= 2 && !x.saved) { nbRemove(ref.t, ref.i); mastered++; } } }
+    });
+    nbChanged();
+  }
+  prSeenAdd(t.refs.map(r => r.t + ":" + r.i));
+  return mastered;
+}
+
+// ---------- Free sample on the public home page ----------
+const SMP = { data: null };
+async function loadSample() {
+  try {
+    const { db, doc, getDoc } = window.__fb;
+    const s = await getDoc(doc(db, "sample", "main"));
+    const d = s.exists() ? s.data() : null;
+    SMP.data = d && Array.isArray(d.qs) && d.qs.length ? d : null;
+  } catch (e) { SMP.data = null; }
+  const sec = document.getElementById("sampleSec");
+  if (!sec) return;
+  if (!SMP.data) { sec.style.display = "none"; return; }
+  document.getElementById("sampleN").textContent = String(SMP.data.qs.length);
+  sec.style.display = "";
+}
+function startSample() {
+  if (!SMP.data) return;
+  TR.t = { id: "__sample__", sample: true, title: "Free sample", subject: "Mixed", mode: "instant", duration: 0, plus: 1, minus: 0,
+    qs: SMP.data.qs.map(q => ({ q: q.q, o: q.o, a: q.a, e: q.e || "", s: q.s, t: q.t })) };
+  TR.phase = "run"; TR.pal = false; TR.filter = "All"; TR.res = null; TR.prev = null; TR.blocks = []; TR.blk = -1;
+  trOverlay().classList.add("on"); document.body.style.overflow = "hidden";
+  trFresh(); trStartTimer(); trRender();
+}
+document.getElementById("sampleStart").onclick = startSample;
+
 
 render();
 initLanding();
