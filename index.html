@@ -1156,6 +1156,7 @@
   .upd .pill { display: inline-block; background: #E8EEF9; color: #27508F; font-size: 11.5px; font-weight: 700; border-radius: 10px; padding: 3px 9px; }
   .upd .dt { font-size: 12px; color: var(--gray); margin-left: 6px; }
   .upd b { display: block; margin-top: 8px; font-size: 15px; line-height: 1.4; color: var(--navy); }
+  #tips .upd .pill { background: #DDF3EF; color: #0B6F66; }
   .upd-more { display: inline-block; margin-top: 16px; font-weight: 700; font-size: 14px; color: var(--teal); text-decoration: none; }
   .lib-news { background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--gold-b); border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; }
   .lib-news h4 { margin: 0 0 6px; font-size: 13px; font-weight: 800; color: var(--navy); }
@@ -1396,6 +1397,7 @@
       <a href="#journey">Journey</a>
       <a href="#pricing">Pricing</a>
       <a href="/news">News</a>
+      <a href="/study-tips">Study tips</a>
       <a href="/counselling">Counselling</a>
       <a href="#faq">FAQ</a>
     </nav>
@@ -1411,6 +1413,7 @@
           <a href="#journey">Journey</a>
           <a href="#pricing">Pricing</a>
           <a href="/news">News</a>
+          <a href="/study-tips">Study tips</a>
           <a href="/counselling">Counselling</a>
           <a href="#faq">FAQ</a>
           <div class="sep"></div>
@@ -1482,6 +1485,17 @@
     </div>
     <div class="upd-grid" id="updatesList"></div>
     <a class="upd-more" href="/news">See all updates &rarr;</a>
+  </div>
+</section>
+
+<section class="sec cream" id="tips" style="display:none;padding:44px 0 4px;">
+  <div class="container">
+    <div class="sec-head" style="--bar:var(--teal)">
+      <h2>Study tips.</h2>
+      <p>Simple advice on planning, revision and mock tests.</p>
+    </div>
+    <div class="upd-grid" id="tipsList"></div>
+    <a class="upd-more" href="/study-tips">See all study tips &rarr;</a>
   </div>
 </section>
 
@@ -1659,7 +1673,7 @@
 <footer class="l-footer">
   <div class="container">
     <img class="foot-logo" src="/logo-96.webp" width="64" height="64" alt="" loading="lazy"><div class="fb">PPTNEETPGHUB</div>
-    <p><a href="/news" style="color:#D4AF55;margin:0 8px;text-decoration:none">News</a><a href="/counselling" style="color:#D4AF55;margin:0 8px;text-decoration:none">Counselling</a></p>
+    <p><a href="/news" style="color:#D4AF55;margin:0 8px;text-decoration:none">News</a><a href="/study-tips" style="color:#D4AF55;margin:0 8px;text-decoration:none">Study tips</a><a href="/counselling" style="color:#D4AF55;margin:0 8px;text-decoration:none">Counselling</a></p>
     <p>Free samples and updates on Telegram: PPTNEETPGINICETHUB</p>
     <div class="contact-row">
       <a class="contact-btn telegram" href="https://t.me/D_V11111" target="_blank" rel="noopener">Telegram</a>
@@ -2477,6 +2491,24 @@ async function loadLatestUpdates() {
   }
   paintLibNews();
 }
+async function loadStudyTips() {
+  let items = [];
+  try {
+    const res = await fetch('/api/study-tips?limit=3');
+    if (!res.ok) return;
+    items = ((await res.json()).items || []).filter(x => x && x.slug && x.title);
+  } catch (e) { return; }
+  const sec = document.getElementById('tips'), list = document.getElementById('tipsList');
+  if (!sec || !list || !items.length) return;
+  list.innerHTML = '';
+  items.forEach(n => {
+    const a = document.createElement('a'); a.className = 'upd'; a.href = '/study-tips/' + encodeURIComponent(n.slug);
+    const p = document.createElement('span'); p.className = 'pill'; p.textContent = n.category || 'Study tip';
+    const b = document.createElement('b'); b.textContent = n.title;
+    a.appendChild(p); a.appendChild(b); list.appendChild(a);
+  });
+  sec.style.display = '';
+}
 function paintLibNews() {
   const box = document.getElementById('libNews');
   if (!box) return;
@@ -2515,6 +2547,7 @@ function initLanding() {
   showInApp(false);
   paintRenewBar();
   loadLatestUpdates();
+  loadStudyTips();
   document.querySelectorAll('[data-go="join"]').forEach(b => b.addEventListener('click', goToJoin));
   document.getElementById('heroSignIn').addEventListener('click', () => { if (currentUser) signOutUser(); else signIn('member'); });
   document.getElementById('lhSignIn').addEventListener('click', () => { if (currentUser) signOutUser(); else signIn('member'); });
