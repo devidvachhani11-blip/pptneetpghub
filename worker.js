@@ -257,8 +257,9 @@ async function handleDelete(request, env, url) {
 // ---------- Public news and counselling pages ----------
 // Rendered here on the server, so search engines get real HTML. The content comes from the
 // "news" collection in Firestore (anyone may read published items, only the admin may write).
-const NEWS_CATEGORIES = ['NBEMS', 'MCC', 'State counselling', 'INICET', 'Seat matrix', 'Exam notice', 'Other'];
-const COUNSELLING_CATS = ['MCC', 'State counselling', 'Seat matrix'];
+const NEWS_CATEGORIES = ['Government', 'NBEMS', 'INICET', 'Seat matrix', 'Exam notice', 'Other'];
+const COUNSELLING_CATEGORIES = ['Central (MCC)', 'State counselling', 'Seat matrix', 'Dates and rounds', 'Documents', 'Other'];
+const LEGACY_COUNSELLING_CATS = ['MCC', 'State counselling', 'Seat matrix'];   // items saved before the Counselling section existed
 const TIP_CATEGORIES = ['Study plan', 'Revision', 'Mock tests and PYQs', 'Subject tips', 'Exam day', 'Motivation'];
 const FRESH_SECONDS = 120;
 
@@ -275,13 +276,22 @@ function decodeNews(doc) {
   const s = (k) => (f[k] && f[k].stringValue !== undefined ? f[k].stringValue : '');
   const t = (k) => (f[k] && f[k].timestampValue ? f[k].timestampValue : '');
   const date = s('date');
-  return {
+  const n = {
     id: doc.name.split('/').pop(), title: s('title'), slug: s('slug'), type: s('type') || 'update',
     category: s('category') || 'Other', summary: s('summary'), body: s('body'),
     sourceUrl: s('sourceUrl'), sourceName: s('sourceName'), date,
     pinned: !!(f.pinned && f.pinned.booleanValue),
     updatedAt: t('updatedAt') || t('createdAt') || (date ? date + 'T00:00:00Z' : '')
   };
+  // Which page it belongs to: news, counselling or tips. Older items without the field are sorted by their type and category.
+  const raw = s('section');
+  if (n.type === 'tip' || raw === 'tips') n.section = 'tips';
+  else if (raw === 'news' || raw === 'counselling') n.section = raw;
+  else if (n.slug === 'counselling') n.section = 'counselling';
+  else if (n.type === 'guide') n.section = 'news';
+  else n.section = LEGACY_COUNSELLING_CATS.indexOf(n.category) > -1 ? 'counselling' : 'news';
+  if (n.section === 'counselling' && n.category === 'MCC') n.category = 'Central (MCC)';
+  return n;
 }
 async function fsNews(env, filters) {
   const body = { structuredQuery: { from: [{ collectionId: 'news' }], where: filters.length === 1 ? filters[0] : { compositeFilter: { op: 'AND', filters } }, limit: 300 } };
@@ -401,8 +411,13 @@ function notFoundPage(site) {
   return htmlResponse(shell(site, { title: 'Page not found | PPTNEETPGHUB', desc: 'This page was not found.', path: '/news', noindex: true,
     body: '<h1>Page not found</h1><p class="lead">That update does not exist or is no longer published.</p><p><a href="/news">See all updates</a></p>' }), 404);
 }
+function pathOf(n) {
+  if (n.section === 'tips') return '/study-tips/' + h(n.slug);
+  if (n.section === 'counselling') return n.slug === 'counselling' ? '/counselling' : '/counselling/' + h(n.slug);
+  return '/news/' + h(n.slug);
+}
 function itemCard(n) {
-  return '<a class="item" href="' + (n.type === 'tip' ? '/study-tips/' : '/news/') + h(n.slug) + '"><span class="pill' + (n.type === 'guide' ? ' g' : n.type === 'tip' ? ' t' : '') + '">' + h(n.type === 'guide' ? 'Guide' : n.category) + '</span><span class="meta">' + h(niceDate(n.date)) + '</span><b>' + h(n.title) + '</b><span class="s">' + h(clip(n.summary, 170)) + '</span></a>';
+  return '<a class="item" href="' + pathOf(n) + '"><span class="pill' + (n.type === 'guide' ? ' g' : n.section === 'tips' ? ' t' : '') + '">' + h(n.type === 'guide' ? 'Guide' : n.category) + '</span><span class="meta">' + h(niceDate(n.date)) + '</span><b>' + h(n.title) + '</b><span class="s">' + h(clip(n.summary, 170)) + '</span></a>';
 }
 function orgLd(site) { return { '@type': 'Organization', name: 'PPTNEETPGHUB', url: site }; }
 function crumbLd(site, trail) {
@@ -413,16 +428,17 @@ async function newsListPage(env, url) {
   const site = siteOf(env, url);
   const cat = url.searchParams.get('c') || '';
   const all = await allPublished(env);
-  const list = all.filter(n => n.slug !== 'counselling' && n.type !== 'tip' && (!cat || n.category === cat));
+  const list = all.filter(n => n.section === 'news' && (!cat || n.category === cat));
   const pinned = list.filter(n => n.pinned && !cat), rest = list.filter(n => !(n.pinned && !cat));
   const chips = '<div class="chips"><a href="/news"' + (!cat ? ' class="on"' : '') + '>All</a>' +
     NEWS_CATEGORIES.map(c => '<a href="/news?c=' + encodeURIComponent(c) + '"' + (cat === c ? ' class="on"' : '') + '>' + h(c) + '</a>').join('') + '</div>';
-  const body = '<div class="crumbs"><a href="/">Home</a> › News</div><h1>NEET PG and INICET updates</h1>' +
-    '<p class="lead">Counselling, seat matrix, exam notices and guides, summarised from official sources.</p>' + chips +
+  const body = '<div class="crumbs"><a href="/">Home</a> › News</div><h1>NEET PG and INICET news</h1>' +
+    '<p class="lead">Government and exam notices, seat matrix and other NEET PG and INICET updates, summarised from official sources.</p>' +
+    '<p class="meta">Looking for counselling dates and rounds? See <a href="/counselling">Counselling</a>.</p>' + chips +
     (list.length ? pinned.concat(rest).map(itemCard).join('') : '<p>No updates here yet. Check back soon.</p>') + ctaBox();
   return htmlResponse(shell(site, {
-    title: 'NEET PG & INICET news, counselling updates | PPTNEETPGHUB',
-    desc: 'Latest NEET PG and INICET updates: MCC and state counselling, seat matrix, NBEMS notices and exam guides, with links to the official sources.',
+    title: 'NEET PG & INICET news and exam updates | PPTNEETPGHUB',
+    desc: 'Latest NEET PG and INICET news: government and NBEMS notices, exam updates and seat matrix, with links to the official sources.',
     path: '/news', noindex: !!cat, body,
     ld: [crumbLd(site, [['Home', '/'], ['News', '/news']])]
   }));
@@ -433,10 +449,9 @@ async function articlePage(env, url, slug) {
   const rows = await fsNews(env, [fsEq('slug', slug), fsEq('published', true)]);
   const n = rows[0];
   if (!n) return notFoundPage(site);
-  if (n.type === 'tip') return Response.redirect(site + '/study-tips/' + n.slug, 301);
-  if (n.slug === 'counselling') return Response.redirect(site + '/counselling', 301);
+  if (n.section !== 'news') return Response.redirect(site + pathOf(n), 301);
   const all = await allPublished(env);
-  const related = all.filter(x => x.id !== n.id && x.slug !== 'counselling' && x.type !== 'tip' && x.category === n.category).slice(0, 4);
+  const related = all.filter(x => x.id !== n.id && x.section === 'news' && x.category === n.category).slice(0, 4);
   const path = '/news/' + n.slug;
   const updated = n.updatedAt ? n.updatedAt.slice(0, 10) : n.date;
   const body = '<div class="crumbs"><a href="/">Home</a> › <a href="/news">News</a> › ' + h(clip(n.title, 50)) + '</div>' +
@@ -444,7 +459,7 @@ async function articlePage(env, url, slug) {
     '<span class="meta">' + (n.date ? 'Date: ' + h(niceDate(n.date)) : '') + (updated && updated !== n.date ? ' · Last updated: ' + h(niceDate(updated)) : '') + '</span>' +
     '<h1>' + h(n.title) + '</h1><p class="lead">' + h(n.summary) + '</p><div class="body">' + renderBody(n.body) + '</div>' +
     (/^https?:\/\//.test(n.sourceUrl) ? '<div class="src"><b>Official source:</b> <a href="' + h(n.sourceUrl) + '" target="_blank" rel="noopener">' + h(n.sourceName || n.sourceUrl) + '</a><br><span class="meta">Always confirm on the official website.</span></div>' : '') +
-    ctaBox() + (related.length ? '<h2>More ' + h(n.category) + ' updates</h2>' + related.map(itemCard).join('') : '');
+    ctaBox() + (related.length ? '<h2>More ' + h(n.category) + ' news</h2>' + related.map(itemCard).join('') : '');
   return htmlResponse(shell(site, {
     title: clip(n.title, 60) + ' | PPTNEETPGHUB', desc: clip(n.summary || n.title, 160), path, ogType: 'article', body,
     ld: [{ '@context': 'https://schema.org', '@type': n.type === 'guide' ? 'Article' : 'NewsArticle', headline: clip(n.title, 110), description: clip(n.summary, 200),
@@ -461,7 +476,7 @@ function tipNotFound(site) {
 function tipsCta() {
   return '<div class="cta"><b>Turn tips into marks.</b><p>Try 10 free questions, then practise by subject with instant answers.</p><div class="cta-row"><a class="btn" href="/#sampleSec">Try the free sample</a><a class="btn" href="/#join">Go Premium</a></div></div>';
 }
-const allTips = (env) => allPublished(env).then(list => list.filter(n => n.type === 'tip'));
+const allTips = (env) => allPublished(env).then(list => list.filter(n => n.section === 'tips'));
 
 async function tipsListPage(env, url) {
   const site = siteOf(env, url);
@@ -486,7 +501,7 @@ async function tipPage(env, url, slug) {
   const site = siteOf(env, url);
   const rows = await fsNews(env, [fsEq('slug', slug), fsEq('published', true)]);
   const n = rows[0];
-  if (!n || n.type !== 'tip') return tipNotFound(site);
+  if (!n || n.section !== 'tips') return tipNotFound(site);
   const all = await allTips(env);
   const same = all.filter(x => x.id !== n.id && x.category === n.category);
   const related = same.concat(all.filter(x => x.id !== n.id && x.category !== n.category)).slice(0, 4);
@@ -513,34 +528,69 @@ async function tipsLatestJson(env, url) {
 
 async function counsellingPage(env, url) {
   const site = siteOf(env, url);
+  const cat = url.searchParams.get('c') || '';
   const all = await allPublished(env);
-  const guide = all.find(n => n.slug === 'counselling');
-  const latest = all.filter(n => n.slug !== 'counselling' && COUNSELLING_CATS.indexOf(n.category) > -1).slice(0, 8);
+  const guide = all.find(n => n.slug === 'counselling' && n.section === 'counselling');
+  const items = all.filter(n => n.section === 'counselling' && n.slug !== 'counselling' && (!cat || n.category === cat));
+  const pinned = items.filter(n => n.pinned && !cat), rest = items.filter(n => !(n.pinned && !cat));
   const updated = guide && guide.updatedAt ? guide.updatedAt.slice(0, 10) : '';
+  const chips = '<div class="chips"><a href="/counselling#updates"' + (!cat ? ' class="on"' : '') + '>All</a>' +
+    COUNSELLING_CATEGORIES.map(c => '<a href="/counselling?c=' + encodeURIComponent(c) + '#updates"' + (cat === c ? ' class="on"' : '') + '>' + h(c) + '</a>').join('') + '</div>';
   const body = '<div class="crumbs"><a href="/">Home</a> › Counselling</div>' +
     '<h1>' + h(guide ? guide.title : 'NEET PG counselling: rounds, seat matrix and updates') + '</h1>' +
     (guide ? '<p class="meta">' + (updated ? 'Last updated: ' + h(niceDate(updated)) : '') + '</p><p class="lead">' + h(guide.summary) + '</p><div class="body">' + renderBody(guide.body) + '</div>' +
       (/^https?:\/\//.test(guide.sourceUrl) ? '<div class="src"><b>Official source:</b> <a href="' + h(guide.sourceUrl) + '" target="_blank" rel="noopener">' + h(guide.sourceName || guide.sourceUrl) + '</a></div>' : '')
       : '<p class="lead">Counselling dates, rounds and seat matrix updates are listed below as soon as they are published.</p>') +
-    '<h2>Latest counselling updates</h2>' + (latest.length ? latest.map(itemCard).join('') : '<p>No counselling updates yet. Check back soon.</p>') +
-    '<p><a href="/news">See all updates →</a></p>' + ctaBox();
+    '<h2 id="updates">Counselling updates</h2>' + chips +
+    (items.length ? pinned.concat(rest).slice(0, 60).map(itemCard).join('') : '<p>No counselling updates here yet. Check back soon.</p>') +
+    '<p><a href="/news">Government and exam news →</a></p>' + ctaBox();
   return htmlResponse(shell(site, {
     title: clip(guide ? guide.title : 'NEET PG counselling: rounds, seat matrix, updates', 60) + ' | PPTNEETPGHUB',
-    desc: clip(guide && guide.summary ? guide.summary : 'NEET PG counselling guide: MCC and state counselling rounds, seat matrix, documents and the latest updates with official links.', 160),
-    path: '/counselling', body, ld: [crumbLd(site, [['Home', '/'], ['Counselling', '/counselling']])]
+    desc: clip(guide && guide.summary ? guide.summary : 'NEET PG counselling guide: central (MCC) and state counselling rounds, seat matrix, documents and the latest updates with official links.', 160),
+    path: '/counselling', noindex: !!cat, body, ld: [crumbLd(site, [['Home', '/'], ['Counselling', '/counselling']])]
+  }));
+}
+
+function counsellingNotFound(site) {
+  return htmlResponse(shell(site, { title: 'Page not found | PPTNEETPGHUB', desc: 'This page was not found.', path: '/counselling', noindex: true,
+    body: '<h1>Page not found</h1><p class="lead">That counselling update does not exist or is no longer published.</p><p><a href="/counselling">See all counselling updates</a></p>' }), 404);
+}
+async function counsellingItemPage(env, url, slug) {
+  const site = siteOf(env, url);
+  const rows = await fsNews(env, [fsEq('slug', slug), fsEq('published', true)]);
+  const n = rows[0];
+  if (!n) return counsellingNotFound(site);
+  if (n.section !== 'counselling') return Response.redirect(site + pathOf(n), 301);
+  if (n.slug === 'counselling') return Response.redirect(site + '/counselling', 301);
+  const all = await allPublished(env);
+  const related = all.filter(x => x.id !== n.id && x.section === 'counselling' && x.slug !== 'counselling' && x.category === n.category).slice(0, 4);
+  const path = '/counselling/' + n.slug;
+  const updated = n.updatedAt ? n.updatedAt.slice(0, 10) : n.date;
+  const body = '<div class="crumbs"><a href="/">Home</a> › <a href="/counselling">Counselling</a> › ' + h(clip(n.title, 50)) + '</div>' +
+    '<span class="pill' + (n.type === 'guide' ? ' g' : '') + '">' + h(n.type === 'guide' ? 'Guide' : n.category) + '</span>' +
+    '<span class="meta">' + (n.date ? 'Date: ' + h(niceDate(n.date)) : '') + (updated && updated !== n.date ? ' · Last updated: ' + h(niceDate(updated)) : '') + '</span>' +
+    '<h1>' + h(n.title) + '</h1><p class="lead">' + h(n.summary) + '</p><div class="body">' + renderBody(n.body) + '</div>' +
+    (/^https?:\/\//.test(n.sourceUrl) ? '<div class="src"><b>Official source:</b> <a href="' + h(n.sourceUrl) + '" target="_blank" rel="noopener">' + h(n.sourceName || n.sourceUrl) + '</a><br><span class="meta">Always confirm on the official website.</span></div>' : '') +
+    ctaBox() + (related.length ? '<h2>More ' + h(n.category) + ' updates</h2>' + related.map(itemCard).join('') : '<p><a href="/counselling">All counselling updates →</a></p>');
+  return htmlResponse(shell(site, {
+    title: clip(n.title, 60) + ' | PPTNEETPGHUB', desc: clip(n.summary || n.title, 160), path, ogType: 'article', body,
+    ld: [{ '@context': 'https://schema.org', '@type': n.type === 'guide' ? 'Article' : 'NewsArticle', headline: clip(n.title, 110), description: clip(n.summary, 200),
+      datePublished: n.date || undefined, dateModified: updated || n.date || undefined, mainEntityOfPage: site + path, author: orgLd(site), publisher: orgLd(site) },
+      crumbLd(site, [['Home', '/'], ['Counselling', '/counselling'], [clip(n.title, 60), path]])]
   }));
 }
 
 async function sitemapXml(env, url) {
   const site = siteOf(env, url);
   const everything = await allPublished(env);
-  const all = everything.filter(n => n.type !== 'tip');
-  const tips = everything.filter(n => n.type === 'tip');
-  const rows = [{ loc: '/', mod: '' }, { loc: '/news', mod: all.length ? (all[0].updatedAt || '').slice(0, 10) : '' }];
-  const g = all.find(n => n.slug === 'counselling');
-  rows.push({ loc: '/counselling', mod: g ? (g.updatedAt || '').slice(0, 10) : '' });
-  all.filter(n => n.slug !== 'counselling').forEach(n => rows.push({ loc: '/news/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
-  rows.push({ loc: '/study-tips', mod: tips.length ? (tips[0].updatedAt || '').slice(0, 10) : '' });
+  const news = everything.filter(n => n.section === 'news');
+  const coun = everything.filter(n => n.section === 'counselling' && n.slug !== 'counselling');
+  const tips = everything.filter(n => n.section === 'tips');
+  const guide = everything.find(n => n.slug === 'counselling' && n.section === 'counselling');
+  const last = (l) => (l.length ? (l[0].updatedAt || '').slice(0, 10) : '');
+  const rows = [{ loc: '/', mod: '' }, { loc: '/news', mod: last(news) }, { loc: '/counselling', mod: guide ? (guide.updatedAt || '').slice(0, 10) : last(coun) }, { loc: '/study-tips', mod: last(tips) }];
+  news.forEach(n => rows.push({ loc: '/news/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
+  coun.forEach(n => rows.push({ loc: '/counselling/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
   tips.forEach(n => rows.push({ loc: '/study-tips/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
   const xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     rows.map(r => '<url><loc>' + h(site + r.loc) + '</loc>' + (r.mod ? '<lastmod>' + h(r.mod) + '</lastmod>' : '') + '</url>').join('\n') + '\n</urlset>';
@@ -552,7 +602,7 @@ function robotsTxt(env, url) {
 }
 async function latestJson(env, url) {
   const n = Math.max(1, Math.min(10, parseInt(url.searchParams.get('limit') || '3', 10) || 3));
-  const all = (await allPublished(env)).filter(x => x.slug !== 'counselling' && x.type !== 'tip').slice(0, n);
+  const all = (await allPublished(env)).filter(x => x.section === 'news').slice(0, n);
   return new Response(JSON.stringify({ items: all.map(x => ({ title: x.title, slug: x.slug, category: x.category, date: x.date })) }), { status: 200, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=60' } });
 }
 
@@ -571,6 +621,9 @@ async function handlePublic(request, env, url) {
     if (p.startsWith('/study-tips/')) return tipNotFound(site);
     if (p === '/news') return await cachedPage(request, FRESH_SECONDS, () => newsListPage(env, url));
     if (p === '/counselling') return await cachedPage(request, FRESH_SECONDS, () => counsellingPage(env, url));
+    const cm = /^\/counselling\/([a-z0-9-]{3,80})$/.exec(p);
+    if (cm) return await cachedPage(request, FRESH_SECONDS, () => counsellingItemPage(env, url, cm[1]));
+    if (p.startsWith('/counselling/')) return counsellingNotFound(site);
     const m = /^\/news\/([a-z0-9-]{3,80})$/.exec(p);
     if (m) return await cachedPage(request, FRESH_SECONDS, () => articlePage(env, url, m[1]));
     if (p.startsWith('/news/')) return notFoundPage(site);
