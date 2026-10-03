@@ -431,6 +431,7 @@
       <button class="tab-btn" data-panel="testsPanel">Add Test</button>
       <button class="tab-btn" data-panel="bankPanel">Question Bank</button>
       <button class="tab-btn" data-panel="newsPanel">News</button>
+      <button class="tab-btn" data-panel="counsellingPanel">Counselling</button>
       <button class="tab-btn" data-panel="tipsPanel">Study Tips</button>
       <button class="tab-btn" data-panel="reportsPanel">Reports<span class="tab-count" id="repCount" style="display:none;">0</span></button>
       <button class="tab-btn" data-panel="resultsPanel">Results</button>
@@ -652,13 +653,25 @@
     <!-- News and counselling -->
     <div id="newsPanel" style="display:none;">
       <div class="card">
-        <h3>News and counselling</h3>
-        <p class="hint" style="margin-top:-6px">Items here appear on /news, /counselling and the home page. Only published items are public. Drafts stay hidden. Study tips have their own tab.</p>
+        <h3>News</h3>
+        <p class="hint" style="margin-top:-6px">Government notices, NBEMS, INICET, exam updates and seat matrix. Shown on /news and in "Latest updates" on the home page. Counselling and Study tips have their own tabs. Only published items are public.</p>
         <div class="t-actions">
           <button class="btn" id="n_new">New update</button>
           <button class="btn outline" id="n_refresh">Refresh</button>
         </div>
         <div id="newsList"><div class="empty">Loading…</div></div>
+      </div>
+    </div>
+
+    <div id="counsellingPanel" style="display:none;">
+      <div class="card">
+        <h3>Counselling</h3>
+        <p class="hint" style="margin-top:-6px">Central (MCC) and state counselling dates, rounds, seat matrix and documents. Shown only on /counselling, never in News. The main counselling guide uses the address "counselling". Only published items are public.</p>
+        <div class="t-actions">
+          <button class="btn" id="c_new">New counselling update</button>
+          <button class="btn outline" id="c_refresh">Refresh</button>
+        </div>
+        <div id="counsellingListAdmin"><div class="empty">Loading…</div></div>
       </div>
     </div>
 
@@ -893,7 +906,7 @@ window.addEventListener('fbReady', () => {
   });
   document.getElementById('l_del').addEventListener('click', () => deleteRows(RLIST.rows.filter(r => RLIST.sel.has(r.id))));
   document.getElementById('l_edit').addEventListener('click', () => openBulkEdit(RLIST.rows.filter(r => RLIST.sel.has(r.id))));
-  document.getElementById('n_new').addEventListener('click', () => openNewsEdit(null));
+  document.getElementById('n_new').addEventListener('click', () => openNewsEdit(null, 'news'));
   document.getElementById('repRefresh').addEventListener('click', loadReports);
   loadReports();
   document.getElementById('s_endSave').addEventListener('click', saveEndDate);
@@ -934,20 +947,22 @@ window.addEventListener('fbReady', () => {
   fillSubjectSelects();
   wireHomeBank();
   document.getElementById('tipStarter').addEventListener('click', addStarterTips);
-  document.getElementById('tip_new').addEventListener('click', () => openNewsEdit(null, 'tip'));
+  document.getElementById('tip_new').addEventListener('click', () => openNewsEdit(null, 'tips'));
   document.getElementById('tip_refresh').addEventListener('click', loadNews);
+  document.getElementById('c_new').addEventListener('click', () => openNewsEdit(null, 'counselling'));
+  document.getElementById('c_refresh').addEventListener('click', loadNews);
 
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      ['homePanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'newsPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'membersPanel', 'listPanel'].forEach(id => {
+      ['homePanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'membersPanel', 'listPanel'].forEach(id => {
         document.getElementById(id).style.display = (id === btn.dataset.panel) ? 'block' : 'none';
       });
       if (btn.dataset.panel === 'homePanel') loadHome();
       if (btn.dataset.panel === 'bankPanel') { fillTestPicker(); loadBank(); }
       if (btn.dataset.panel === 'resultsPanel' && !RESULTS.loaded) loadResults();
-      if ((btn.dataset.panel === 'newsPanel' || btn.dataset.panel === 'tipsPanel') && !NEWS.loaded) loadNews();
+      if (['newsPanel', 'counsellingPanel', 'tipsPanel'].indexOf(btn.dataset.panel) > -1 && !NEWS.loaded) loadNews();
       if (btn.dataset.panel === 'reportsPanel') loadReports();
       if (btn.dataset.panel === 'membersPanel') { loadSettings(); }
     });
@@ -1388,7 +1403,18 @@ async function publishTest() {
 // ---------- News and counselling ----------
 // Saved in the "news" collection. The Worker turns published items into real web pages
 // (/news, /news/the-title, /counselling) and a sitemap, so Google can find them.
-const NEWS_CATS = ['NBEMS', 'MCC', 'State counselling', 'INICET', 'Seat matrix', 'Exam notice', 'Other'];
+const NEWS_CATS = ['Government', 'NBEMS', 'INICET', 'Seat matrix', 'Exam notice', 'Other'];
+const COUN_CATS = ['Central (MCC)', 'State counselling', 'Seat matrix', 'Dates and rounds', 'Documents', 'Other'];
+// Which page an item belongs to. Items saved before the sections existed are sorted by their type and category.
+function sectionOf(r) {
+  if (r.type === 'tip' || r.section === 'tips') return 'tips';
+  if (r.section === 'news' || r.section === 'counselling') return r.section;
+  if (r.slug === 'counselling') return 'counselling';
+  if (r.type === 'guide') return 'news';
+  return ['MCC', 'State counselling', 'Seat matrix'].indexOf(r.category) > -1 ? 'counselling' : 'news';
+}
+function catsFor(section) { return section === 'tips' ? TIP_CATS : section === 'counselling' ? COUN_CATS : NEWS_CATS; }
+function newsPath(r) { const s = sectionOf(r); return s === 'tips' ? '/study-tips/' + r.slug : s === 'counselling' ? (r.slug === 'counselling' ? '/counselling' : '/counselling/' + r.slug) : '/news/' + r.slug; }
 const TIP_CATS = ['Study plan', 'Revision', 'Mock tests and PYQs', 'Subject tips', 'Exam day', 'Motivation'];
 const STARTER_TIPS = [{"slug": "neet-pg-revision-plan", "category": "Study plan", "title": "How to build a NEET PG revision plan you can actually follow", "summary": "A simple way to split your time between new topics, revision and tests, so your plan survives a busy week instead of breaking on day three.", "body": "Most revision plans fail for one reason: they are written for an ideal week that never happens. A plan you can follow on a bad day is worth more than a perfect plan you drop after a week.\n\n## Start from the days you have, not the days you wish for\n\nCount the real hours you can study on a normal day, then take away 20 percent. That smaller number is your plan. Anything extra is a bonus, not a promise.\n\n## Split every week into three parts\n\n- **Learn:** new topics or topics you have not covered properly yet.\n- **Revise:** topics you have already read once. This should grow every week.\n- **Test:** practice questions and mock tests, then time to go through the mistakes.\n\nIn the early months, give most of the time to learning. As the exam gets closer, move time from learning to revision and tests.\n\n## Plan by topic, not by clock\n\n\"Study Pharmacology for 3 hours\" is vague. \"Finish autonomic drugs and do 30 questions on them\" has a clear end. When a topic is done, you know you made progress.\n\n## Keep one catch-up slot every week\n\nFix one half day a week as a catch-up slot. Missed sessions move there. Without it, every missed day pushes everything else back and the plan slowly collapses.\n\n## Review the plan every Sunday\n\nSpend 15 minutes looking at what you finished and what you did not. Move the unfinished topics, cut anything unrealistic, and write next week's list. A plan that changes is a plan that works.\n\n## A starting point\n\n- Pick the subjects that carry the most questions and the ones you find hardest. Put them early in the week, when you are fresh.\n- Do a short revision of yesterday's topic before starting something new.\n- End each day by writing the first task for tomorrow.\n\nCheck your own exam's official information for the pattern and dates, and build your plan around those."}, {"slug": "how-to-use-mock-tests", "category": "Mock tests and PYQs", "title": "How to use mock tests to raise your score, not just measure it", "summary": "A mock test is a learning tool. Here is how to attempt it, review it and turn each wrong answer into a point you will not lose next time.", "body": "Many students take a mock test, look at the score, feel good or bad, and move on. The score is the least useful part of a mock. The real value is what you learn from it.\n\n## Attempt it like the real exam\n\n- Sit in one place, with no phone and no notes.\n- Keep to the time limit.\n- Skip questions you cannot solve and come back, instead of getting stuck.\n\nThis trains your pace and your nerves, which a relaxed practice session does not.\n\n## Spend more time on the review than on the test\n\nA good rule: give the review at least as long as the test itself. For every question you got wrong or guessed, find out which of these happened:\n\n- **You did not know the fact.** Revise that topic.\n- **You knew it but misread the question.** Slow down and underline the key words.\n- **You changed a right answer to a wrong one.** Trust your first reasoning unless you find a clear reason to change.\n- **You guessed and were right.** Treat it as wrong. You still do not know it.\n\n## Write down every mistake\n\nKeep one place for mistakes, either a notebook or the Mistake notebook in your library. Write the question, the right answer and why. Revisit the list often. A mistake you have seen three times is a mistake you rarely make again.\n\n## Look for patterns\n\nAfter four or five tests, look at your wrong answers together. If most come from the same two subjects, those are your next study blocks. If most come from careless reading, your fix is a habit, not more content.\n\n## Do not chase the score\n\nScores go up and down between tests. Watch the trend over several tests, and watch how many repeated mistakes you still make. Fewer repeated mistakes means you are improving."}, {"slug": "active-recall-and-spaced-revision", "category": "Revision", "title": "Active recall and spaced revision: remember more in less time", "summary": "Re-reading feels productive but fades fast. Two simple habits, testing yourself and revising at gaps, make facts stay for the exam.", "body": "If you finish a chapter and feel that you know it, that feeling can be misleading. Recognising a page you have just read is easy. Recalling the facts a week later, with the book closed, is what the exam asks.\n\n## Active recall\n\nActive recall means pulling information out of your memory instead of putting it in again.\n\n- Close the book and write down everything you remember about a topic. Then check what you missed.\n- Turn headings into questions and answer them aloud.\n- Use flashcards and answer before you flip the card.\n- Do practice questions on a topic soon after reading it.\n\nIt feels harder than re-reading, and that difficulty is the reason it works.\n\n## Spaced revision\n\nRevise a topic again just as you are starting to forget it, and then again after a longer gap. A simple pattern:\n\n- The next day.\n- After about a week.\n- After about three weeks.\n- Then once a month until the exam.\n\nYou do not need exact dates. What matters is that every topic comes back several times at growing gaps.\n\n## Mark what you got wrong\n\nWhen you recall something wrongly, mark it. Those items get more revision than the ones you know well. Flashcards with a simple \"again\" and \"got it\" button do this for you: the \"again\" cards come back sooner.\n\n## Keep sessions short and mixed\n\nForty-five minutes of focused recall, then a short break, beats three hours of passive reading. Mixing two or three subjects across a day also helps your memory hold on to each one.\n\n## Use tricks and short notes for the hard facts\n\nFor lists and numbers you keep forgetting, make a short memory trick or a one-line note and put it where you will see it often. Then test yourself on it again after a few days."}, {"slug": "week-before-exam-checklist", "category": "Exam day", "title": "The week before your exam: a calm checklist", "summary": "What to do, and what to stop doing, in the last week, so you walk into the exam centre rested and prepared.", "body": "The last week is not for learning new subjects. It is for keeping what you know, staying healthy and removing small problems that can cost you on the day.\n\n## Sort the logistics early\n\n- Check your admit card and the official instructions for what to carry and what is not allowed.\n- Find out how you will reach the centre, how long it takes, and plan to arrive early.\n- If the centre is in another city, book travel and stay in advance.\n- Keep a printed copy of your documents and a spare in a different bag.\n\nAlways follow the official instructions of your exam authority, as rules can change.\n\n## Study smart in the final days\n\n- Revise your short notes, mistake list and flashcards instead of opening big books.\n- Do a few timed practice sets, then stop. One or two tests in the last days are enough.\n- Do not start a new heavy topic now.\n\n## Protect your sleep and health\n\n- Keep a regular sleep time. A rested mind recalls better than a tired one.\n- Eat normal, simple food. Avoid anything new that could upset your stomach.\n- Take short walks and drink enough water.\n\n## Avoid the panic traps\n\n- Stay away from rumours and last-minute \"leaked topic\" messages.\n- Do not compare your preparation with others. It only adds worry.\n- If you feel anxious, slow your breathing for a minute and go back to your list.\n\n## The night before\n\nPack your bag, set two alarms, and sleep on time. You have done the work. Your job now is to show up calm and answer the questions you know."}, {"slug": "stay-consistent-long-preparation", "category": "Motivation", "title": "How to stay consistent during a long NEET PG preparation", "summary": "Motivation comes and goes. Habits and a few simple rules keep you studying on the days you do not feel like it.", "body": "Almost everyone starts with energy. The real test is month four, when the novelty is gone and the exam still feels far away. Consistency is built by small rules, not by mood.\n\n## Make the start small\n\nOn low days, promise yourself only 20 minutes. Starting is the hard part. Once you begin, you will often continue. If you stop after 20 minutes, you still kept the habit.\n\n## Fix a time and a place\n\nStudying at the same time and in the same place removes the daily decision. Your mind learns that this is study time.\n\n## Track the streak, not the hours\n\nMark each day you finished your minimum plan. A visible chain of days is a strong reason not to break it. One missed day is fine. Two in a row is the point to restart quickly.\n\n## Plan rest on purpose\n\nRest is part of the plan. Take one lighter half day each week and one proper break from screens. People who never rest tend to stop suddenly instead of slowing a little.\n\n## Look after the basics\n\n- Sleep enough.\n- Move your body for some time every day.\n- Eat regular meals.\n\nLow energy is often a sleep or food problem, not a motivation problem.\n\n## Keep one person to talk to\n\nShare your weekly goal with a friend, a family member or a study partner. Saying it aloud makes it real, and a short chat on a hard day helps more than you expect.\n\n## When you fall behind\n\nDo not try to cover everything you missed in one day. Drop the least important topics, move the rest into the catch-up slot of your plan, and carry on. Progress is made by continuing, not by being perfect.\n\nIf you feel overwhelmed for many days in a row, talk to someone you trust or a counsellor. Asking for support is part of preparing well."}];
 const NEWS = { rows: [], loaded: false };
@@ -1444,7 +1470,7 @@ async function addStarterTips() {
   btn.disabled = true; btn.textContent = 'Adding…';
   try {
     for (const p of todo) {
-      await addDoc(collection(db, 'news'), { title: p.title, type: 'tip', category: p.category, slug: p.slug, date: todayIso(), summary: p.summary, body: p.body, sourceName: '', sourceUrl: '', pinned: false, published: false, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+      await addDoc(collection(db, 'news'), { title: p.title, type: 'tip', section: 'tips', category: p.category, slug: p.slug, date: todayIso(), summary: p.summary, body: p.body, sourceName: '', sourceUrl: '', pinned: false, published: false, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
     }
     showToast('Added ' + todo.length + ' drafts. Open each one, read it, then tick Published.');
     await loadNews();
@@ -1452,22 +1478,27 @@ async function addStarterTips() {
   finally { btn.disabled = false; btn.textContent = 'Add 5 starter study tips (as drafts)'; }
 }
 function renderNewsList() {
-  renderNewsRows(document.getElementById('newsList'), NEWS.rows.filter(r => r.type !== 'tip'), 'No updates yet. Tap "New update" to add the first one.');
-  renderNewsRows(document.getElementById('tipsListAdmin'), NEWS.rows.filter(r => r.type === 'tip'), 'No study tips yet. Tap "New study tip", or add the 5 starter tips.');
+  const by = (s) => NEWS.rows.filter(r => sectionOf(r) === s);
+  renderNewsRows(document.getElementById('newsList'), by('news'), 'No news yet. Tap "New update" to add the first one.');
+  const c = by('counselling').sort((x, y) => (y.slug === 'counselling') - (x.slug === 'counselling'));
+  renderNewsRows(document.getElementById('counsellingListAdmin'), c, 'No counselling updates yet. Tap "New counselling update" to add the first one.');
+  renderNewsRows(document.getElementById('tipsListAdmin'), by('tips'), 'No study tips yet. Tap "New study tip", or add the 5 starter tips.');
 }
 function renderNewsRows(el, rows, emptyText) {
   el.innerHTML = '';
   if (!rows.length) { el.appendChild(mk('div', 'empty', emptyText)); return; }
   rows.forEach(r => {
+    const sec = sectionOf(r);
     const row = mk('div', 'list-item');
     const info = mk('div');
     info.style.minWidth = '0';
     info.appendChild(mk('div', 'title', r.title || 'Untitled'));
-    info.appendChild(mk('div', 'meta', (r.type === 'guide' ? 'Guide' : r.type === 'tip' ? 'Study tip · ' + (r.category || '') : (r.category || 'Other')) + ' · ' + (r.date || '—') + ' · /' + (r.slug === 'counselling' ? 'counselling' : (r.type === 'tip' ? 'study-tips/' : 'news/') + (r.slug || '')) + ' · ' + (r.published ? 'Published' : 'Draft') + (r.pinned ? ' · Pinned' : '')));
+    const kind = r.slug === 'counselling' && sec === 'counselling' ? 'Main counselling page' : r.type === 'guide' ? 'Guide · ' + (r.category || '') : (r.category === 'MCC' && sec === 'counselling' ? 'Central (MCC)' : (r.category || 'Other'));
+    info.appendChild(mk('div', 'meta', kind + ' · ' + (r.date || '—') + ' · ' + newsPath(r) + ' · ' + (r.published ? 'Published' : 'Draft') + (r.pinned ? ' · Pinned' : '')));
     row.appendChild(info);
     const btns = mk('div', 'l-btns');
     if (r.published && r.slug) {
-      const v = mk('a', 'ed-btn', 'View'); v.href = r.slug === 'counselling' ? '/counselling' : (r.type === 'tip' ? '/study-tips/' : '/news/') + r.slug; v.target = '_blank'; v.rel = 'noopener'; v.style.textDecoration = 'none'; btns.appendChild(v);
+      const v = mk('a', 'ed-btn', 'View'); v.href = newsPath(r); v.target = '_blank'; v.rel = 'noopener'; v.style.textDecoration = 'none'; btns.appendChild(v);
     }
     const ed = mk('button', 'ed-btn', 'Edit'); ed.addEventListener('click', () => openNewsEdit(r)); btns.appendChild(ed);
     const del = mk('button', 'del-btn', 'Delete'); del.addEventListener('click', () => deleteNews(r)); btns.appendChild(del);
@@ -1480,26 +1511,29 @@ function edArea(id, value, rows, max) {
   const t = document.createElement('textarea'); t.id = id; t.value = value || ''; t.rows = rows || 3; if (max) t.maxLength = max; return t;
 }
 
-function openNewsEdit(row, defType) {
+function openNewsEdit(row, defSection) {
   ED.mode = 'news'; ED.row = row || null;
   const isNew = !row;
-  const r = row || { type: defType === 'tip' ? 'tip' : 'update', category: defType === 'tip' ? 'Study plan' : 'MCC', date: todayIso(), published: true, pinned: false, title: '', slug: '', summary: '', body: '', sourceName: '', sourceUrl: '' };
+  const sec0 = row ? sectionOf(row) : (defSection || 'news');
+  const r = row || { type: sec0 === 'tips' ? 'tip' : 'update', category: catsFor(sec0)[0], date: todayIso(), published: true, pinned: false, title: '', slug: '', summary: '', body: '', sourceName: '', sourceUrl: '' };
+  const cat0 = (sec0 === 'counselling' && r.category === 'MCC') ? 'Central (MCC)' : r.category;
   const body = document.getElementById('edBody'); body.innerHTML = '';
-  const title = edInput('n_title', r.title, 'e.g. MCC releases round 1 seat matrix');
+  const title = edInput('n_title', r.title, sec0 === 'counselling' ? 'e.g. MCC releases round 1 seat matrix' : sec0 === 'tips' ? 'e.g. How to revise in the last month' : 'e.g. NBEMS releases the exam schedule');
   body.appendChild(edField('Title', title));
+  body.appendChild(edField('Show on', edSelect('n_section', [['news', 'News page (/news)'], ['counselling', 'Counselling page (/counselling)'], ['tips', 'Study tips page (/study-tips)']], sec0)));
   const two = document.createElement('div'); two.className = 'ed-two';
-  const a = document.createElement('div'); a.appendChild(edField('Page type', edSelect('n_type', [['update', 'Update (news item)'], ['guide', 'Guide page (stays up to date)'], ['tip', 'Study tip (blog post)']], r.type === 'guide' ? 'guide' : r.type === 'tip' ? 'tip' : 'update')));
-  const b = document.createElement('div'); const catList = r.type === 'tip' ? TIP_CATS : NEWS_CATS;
-  b.appendChild(edField('Category', edSelect('n_cat', catList, catList.indexOf(r.category) > -1 ? r.category : (r.type === 'tip' ? 'Study plan' : 'Other'))));
+  const a = document.createElement('div'); a.id = 'n_typeWrap'; a.appendChild(edField('Page type', edSelect('n_type', [['update', 'Update (a news item)'], ['guide', 'Guide page (stays up to date)']], r.type === 'guide' ? 'guide' : 'update')));
+  const b = document.createElement('div'); const catList = catsFor(sec0);
+  b.appendChild(edField('Category', edSelect('n_cat', catList, catList.indexOf(cat0) > -1 ? cat0 : catList[catList.length - 1])));
   two.appendChild(a); two.appendChild(b); body.appendChild(two);
   const slug = edInput('n_slug', r.slug, 'letters, numbers and dashes');
   body.appendChild(edField('Web address (slug)', slug));
-  body.appendChild(mk('p', 'hint', 'Use "counselling" for the main counselling page. It opens at /counselling. Changing a slug later breaks old links.'));
+  const slugHint = mk('p', 'hint', ''); body.appendChild(slugHint);
   let slugTouched = !isNew;
   slug.addEventListener('input', () => { slugTouched = true; });
   title.addEventListener('input', () => { if (!slugTouched) slug.value = slugify(title.value); });
   const date = document.createElement('input'); date.type = 'date'; date.id = 'n_date'; date.value = r.date || todayIso();
-  body.appendChild(edField('Date of the news', date));
+  body.appendChild(edField('Date', date));
   const sum = edArea('n_summary', r.summary, 3, 200);
   body.appendChild(edField('Short summary (shows in Google, up to 200 characters)', sum));
   const cnt = mk('p', 'hint', (r.summary || '').length + ' / 200'); sum.addEventListener('input', () => { cnt.textContent = sum.value.length + ' / 200'; }); body.appendChild(cnt);
@@ -1509,21 +1543,29 @@ function openNewsEdit(row, defType) {
   const st = mk('button', 'btn outline', 'Insert counselling starter outline'); st.style.marginTop = '8px';
   st.addEventListener('click', () => { if (!text.value.trim() || confirm('Replace the text with the starter outline?')) text.value = STARTER_OUTLINE; });
   body.appendChild(st);
-  body.appendChild(edField('Source name (optional)', edInput('n_srcname', r.sourceName, 'e.g. MCC official notice')));
-  body.appendChild(edField('Official source link (strongly recommended)', edInput('n_srcurl', r.sourceUrl, 'https://...')));
+  const srcWrap = document.createElement('div');
+  srcWrap.appendChild(edField('Source name (optional)', edInput('n_srcname', r.sourceName, 'e.g. MCC official notice')));
+  srcWrap.appendChild(edField('Official source link (strongly recommended)', edInput('n_srcurl', r.sourceUrl, 'https://...')));
+  body.appendChild(srcWrap);
   const pin = document.createElement('label'); pin.className = 'l-all'; pin.style.marginTop = '16px';
-  const pc = document.createElement('input'); pc.type = 'checkbox'; pc.id = 'n_pinned'; pc.checked = !!r.pinned; pin.appendChild(pc); pin.appendChild(document.createTextNode(' Pin to the top of its page (News or Study tips)'));
+  const pc = document.createElement('input'); pc.type = 'checkbox'; pc.id = 'n_pinned'; pc.checked = !!r.pinned; pin.appendChild(pc); pin.appendChild(document.createTextNode(' Pin to the top of its page'));
   body.appendChild(pin);
   const pub = document.createElement('label'); pub.className = 'l-all'; pub.style.marginTop = '10px';
   const pb = document.createElement('input'); pb.type = 'checkbox'; pb.id = 'n_pub'; pb.checked = r.published !== false; pub.appendChild(pb); pub.appendChild(document.createTextNode(' Published (untick to keep it as a hidden draft)'));
   body.appendChild(pub);
-  const typeSel = document.getElementById('n_type');
-  typeSel.addEventListener('change', () => {
-    const list = typeSel.value === 'tip' ? TIP_CATS : NEWS_CATS, cat = document.getElementById('n_cat'), keep = cat.value;
+  const secSel = document.getElementById('n_section');
+  const sync = () => {
+    const sec = secSel.value, cat = document.getElementById('n_cat'), keep = cat.value, list = catsFor(sec);
     cat.innerHTML = ''; list.forEach(x => { const o = document.createElement('option'); o.value = x; o.textContent = x; cat.appendChild(o); });
-    cat.value = list.indexOf(keep) > -1 ? keep : list[0];
-  });
-  openEditModal(isNew ? (r.type === 'tip' ? 'New study tip' : 'New update') : (r.type === 'tip' ? 'Edit study tip' : 'Edit update'));
+    cat.value = list.indexOf(keep) > -1 ? keep : list[list.length - 1];
+    document.getElementById('n_typeWrap').style.display = sec === 'tips' ? 'none' : '';
+    st.style.display = sec === 'counselling' ? '' : 'none';
+    srcWrap.style.display = '';
+    slugHint.textContent = sec === 'counselling' ? 'Opens at /counselling/your-address. Use "counselling" with page type Guide for the main counselling page at /counselling. Changing a slug later breaks old links.'
+      : sec === 'tips' ? 'Opens at /study-tips/your-address. Changing a slug later breaks old links.' : 'Opens at /news/your-address. Changing a slug later breaks old links.';
+  };
+  secSel.addEventListener('change', sync); sync();
+  openEditModal(isNew ? (sec0 === 'tips' ? 'New study tip' : sec0 === 'counselling' ? 'New counselling update' : 'New news update') : (sec0 === 'tips' ? 'Edit study tip' : sec0 === 'counselling' ? 'Edit counselling update' : 'Edit news update'));
 }
 
 async function saveNewsEdit() {
@@ -1531,7 +1573,7 @@ async function saveNewsEdit() {
   const row = ED.row;
   const v = (id) => document.getElementById(id).value.trim();
   const data = {
-    title: v('n_title'), type: v('n_type'), category: v('n_cat'), slug: v('n_slug').toLowerCase(), date: v('n_date'),
+    title: v('n_title'), section: v('n_section'), type: v('n_section') === 'tips' ? 'tip' : v('n_type'), category: v('n_cat'), slug: v('n_slug').toLowerCase(), date: v('n_date'),
     summary: v('n_summary'), body: document.getElementById('n_body').value.trim(),
     sourceName: v('n_srcname'), sourceUrl: v('n_srcurl'),
     pinned: document.getElementById('n_pinned').checked, published: document.getElementById('n_pub').checked
@@ -1544,7 +1586,8 @@ async function saveNewsEdit() {
   if (data.sourceUrl && !/^https?:\/\//i.test(data.sourceUrl)) throw soft('The source link must start with https://');
   if (!data.body) throw soft('Add the full text.');
   if (data.published && /TODO/.test(data.body)) throw soft('The text still has TODO notes. Replace them with real details from the official notice, or untick Published.');
-  if (data.slug === 'counselling' && data.type !== 'guide') throw soft('The "counselling" address is for a Guide page.');
+  if (data.slug === 'counselling' && (data.type !== 'guide' || data.section !== 'counselling')) throw soft('The "counselling" address is only for the main Guide page, shown on the Counselling page.');
+  if (catsFor(data.section).indexOf(data.category) < 0) throw soft('Choose a category for this page.');
   if (row) {
     await updateDoc(doc(db, 'news', row.id), Object.assign({}, data, { updatedAt: serverTimestamp() }));
     showToast(data.published ? '✔ Saved. The public page updates within about 2 minutes.' : '✔ Saved as draft');
