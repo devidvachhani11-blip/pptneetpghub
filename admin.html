@@ -419,6 +419,9 @@
   .cb-row:first-child { border-top: 0; }
   .cb-row .tx { flex: 1; min-width: 0; } .cb-row .tx span { display: block; font-size: 12px; color: var(--gray); }
   #bk_prev ul, #bk_bPrev ul { margin: 6px 0 0; padding-left: 18px; font-size: 13px; }
+.gt-box{margin:12px 0 4px}.gt-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}.gt-head b{font-size:14px}
+.gt-cnt{font-size:12.5px;font-weight:700;color:#6E7A8A}.gt-cnt.ok{color:#0F8F83}.gt-cnt.bad{color:#C0392B}
+.gt-sum{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin:8px 0;font-size:13.5px}.gt-sum .g-ok{color:#0F8F83;font-weight:700}.gt-sum .g-bad{color:#C0392B;font-weight:700}
 </style>
 
 </head>
@@ -454,6 +457,7 @@
       <button class="tab-btn" data-panel="resourcesPanel">Add Resource</button>
       <button class="tab-btn" data-panel="bulkPanel">Bulk Upload</button>
       <button class="tab-btn" data-panel="testsPanel">Add Test</button>
+      <button class="tab-btn" data-panel="gtPanel">Real Test (GT)</button>
       <button class="tab-btn" data-panel="bankPanel">Question Bank</button>
       <button class="tab-btn" data-panel="newsPanel">News</button>
       <button class="tab-btn" data-panel="counsellingPanel">Counselling</button>
@@ -673,6 +677,41 @@
         </div>
         <div id="t_preview" class="t-preview"></div>
         <button class="btn" id="t_publish">Publish test</button>
+      </div>
+    </div>
+
+    <!-- Real Test (GT) -->
+    <div id="gtPanel" style="display:none;">
+      <div class="card">
+        <h3>Real Test (GT style)</h3>
+        <p class="hint" style="margin-top:-6px">Full exam: 180 MCQs in 5 groups (A to E) of 36. 42 minutes per group, 3 h 30 m in all. +4 correct, &minus;1 wrong, 0 skipped. Maximum 720. Students cannot go back to a finished group or open the next one early.</p>
+        <label>Title</label>
+        <input type="text" id="gt_title" placeholder="e.g. NEET PG 2027 Grand Test 1">
+        <label>Exam</label>
+        <select id="gt_exam"><option value="NEET PG">NEET PG</option><option value="INICET">INICET</option></select>
+        <label>Release on (optional)</label>
+        <input type="datetime-local" id="gt_release">
+        <label class="l-all" style="margin-top:6px"><input type="checkbox" id="gt_announce"> Post on Telegram when it goes live</label>
+
+        <label style="margin-top:14px">Way 1: Excel file with all 180 questions</label>
+        <input type="file" id="gt_xl" class="file-inp" accept=".xlsx,.xls,.csv">
+        <p class="hint">Headings in row 1: Subject (optional), Question, A, B, C, D, Answer, Explanation. Questions 1 to 36 go to Group A, 37 to 72 to Group B, and so on. They fill the 5 boxes below, so you can still change anything. <a href="#" id="gt_tpl">Download the template</a></p>
+
+        <label style="margin-top:14px">Way 2: Paste each group in its own box (36 questions each)</label>
+        <p class="hint" style="margin-top:0">Same format as Add Test: Q1. question, options A to D, Answer: B, Explanation: ... You can use both ways together. An Excel file only replaces the boxes when you choose it.</p>
+        <div id="gt_boxes"></div>
+
+        <label>Question pictures (optional)</label>
+        <input type="file" id="gt_imgs" class="file-inp" multiple accept=".png,.jpg,.jpeg,.webp">
+        <p class="hint">For X-rays and slides: choose the picture files here, then write <b>Image: xray1.png</b> under that question in its box.</p>
+        <div class="img-chips" id="gt_imgList"></div>
+
+        <div class="t-actions">
+          <button class="btn teal" id="gt_check">Final check (all 180)</button>
+          <button class="btn outline" id="gt_clear">Clear all</button>
+        </div>
+        <div id="gt_preview" class="t-preview"></div>
+        <button class="btn" id="gt_publish">Publish Real Test</button>
       </div>
     </div>
 
@@ -998,6 +1037,7 @@ window.addEventListener('fbReady', () => {
   });
   document.getElementById('t_publish').addEventListener('click', publishTest);
   document.getElementById('t_imgs').addEventListener('change', (e) => { pickImages(TIMG, e.target.files, document.getElementById('t_imgList'), true); e.target.value = ''; });
+  initGT();
   document.getElementById('resTests').addEventListener('click', () => { RESULTS.view = 'tests'; renderResults(); });
   document.getElementById('resStudents').addEventListener('click', () => { RESULTS.view = 'students'; renderResults(); });
   document.getElementById('resRefresh').addEventListener('click', loadResults);
@@ -1016,7 +1056,7 @@ window.addEventListener('fbReady', () => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      ['homePanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'launchPanel', 'membersPanel', 'listPanel'].forEach(id => {
+      ['homePanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'gtPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'launchPanel', 'membersPanel', 'listPanel'].forEach(id => {
         document.getElementById(id).style.display = (id === btn.dataset.panel) ? 'block' : 'none';
       });
       if (btn.dataset.panel === 'homePanel') loadHome();
@@ -1460,6 +1500,193 @@ async function publishTest() {
   }
 }
 
+
+
+// ---------- Real Test (GT style) ----------
+// 180 MCQs = 5 groups (A to E) x 36. 42 minutes per group, +4 / -1 / 0, maximum 720.
+// It is saved as a normal exam test with blockSize 36, blockMinutes 42 and gt: true.
+const GT = { groups: ['A', 'B', 'C', 'D', 'E'], per: 36, minutes: 42, plus: 4, minus: 1, files: [] };
+const GT_TOTAL = GT.groups.length * GT.per;
+const GT_META = GT_TOTAL + ' Qs \u00B7 5 groups \u00B7 3 h 30 m \u00B7 Real exam';
+const gtBox = (i) => document.getElementById('gt_box' + i);
+
+function gtPaint(i) {
+  const raw = gtBox(i).value, el = document.getElementById('gt_cnt' + i);
+  if (!raw.trim()) { el.textContent = '0 / ' + GT.per; el.className = 'gt-cnt'; return; }
+  const r = parseQuestions(raw);
+  const ok = r.questions.length === GT.per && !r.errors.length;
+  el.textContent = r.questions.length + ' / ' + GT.per + (r.errors.length ? ' \u00B7 ' + r.errors.length + (r.errors.length === 1 ? ' problem' : ' problems') : '');
+  el.className = 'gt-cnt ' + (ok ? 'ok' : 'bad');
+}
+function gtSaveDraft() {
+  try { localStorage.setItem('pptGtDraft', JSON.stringify({ title: document.getElementById('gt_title').value, boxes: GT.groups.map((g, i) => gtBox(i).value) })); } catch (e) {}
+}
+function gtFill(texts) {
+  GT.groups.forEach((g, i) => { gtBox(i).value = texts[i] || ''; gtPaint(i); });
+  gtSaveDraft();
+}
+
+function initGT() {
+  const wrap = document.getElementById('gt_boxes');
+  GT.groups.forEach((g, i) => {
+    const d = mk('div', 'gt-box');
+    const head = mk('div', 'gt-head');
+    head.appendChild(mk('b', null, 'Group ' + g));
+    const c = mk('span', 'gt-cnt', '0 / ' + GT.per); c.id = 'gt_cnt' + i; head.appendChild(c);
+    d.appendChild(head);
+    const ta = document.createElement('textarea');
+    ta.id = 'gt_box' + i; ta.className = 't-area'; ta.rows = 6; ta.spellcheck = false;
+    ta.placeholder = 'Paste the ' + GT.per + ' questions of Group ' + g + ' here\nQ1. Question text\nA. ...\nB. ...\nC. ...\nD. ...\nAnswer: B\nExplanation: ...';
+    let t = null;
+    ta.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => { gtPaint(i); gtSaveDraft(); }, 400); });
+    d.appendChild(ta);
+    wrap.appendChild(d);
+  });
+  try {
+    const dr = JSON.parse(localStorage.getItem('pptGtDraft') || 'null');
+    if (dr) { if (dr.title) document.getElementById('gt_title').value = dr.title; if (Array.isArray(dr.boxes)) gtFill(dr.boxes); }
+  } catch (e) {}
+  document.getElementById('gt_title').addEventListener('input', gtSaveDraft);
+  document.getElementById('gt_check').addEventListener('click', () => { const r = gtCheck(true); showToast(r.ok ? '\u2714 All ' + GT_TOTAL + ' questions are in the right format. You can publish.' : r.errors.length + (r.errors.length === 1 ? ' problem found.' : ' problems found.') + ' See the red box below.', !r.ok); });
+  document.getElementById('gt_clear').addEventListener('click', () => {
+    if (GT.groups.some((g, i) => gtBox(i).value.trim()) && !confirm('Clear all 5 boxes?')) return;
+    gtFill([]); GT.files = []; paintImgChips(GT, document.getElementById('gt_imgList')); document.getElementById('gt_preview').innerHTML = '';
+  });
+  document.getElementById('gt_publish').addEventListener('click', gtPublish);
+  document.getElementById('gt_imgs').addEventListener('change', (e) => { pickImages(GT, e.target.files, document.getElementById('gt_imgList'), true); e.target.value = ''; });
+  document.getElementById('gt_xl').addEventListener('change', (e) => { const f = e.target.files[0]; e.target.value = ''; gtFromExcel(f); });
+  document.getElementById('gt_tpl').addEventListener('click', (e) => { e.preventDefault(); gtTemplate(); });
+}
+
+// Excel / CSV: the first 180 questions in order are cut into 5 groups of 36 and put into the boxes.
+async function gtFromExcel(file) {
+  if (!file) return;
+  try {
+    const sheets = await readSheetFile(file);
+    let qs = [], errs = [];
+    sheets.forEach(aoa => {
+      if (!aoa.length) return;
+      const r = rowsToQuestions(aoa, '__none__');
+      r.questions.forEach(q => { if (q.s === '__none__') delete q.s; });
+      qs = qs.concat(r.questions); errs = errs.concat(r.errors);
+    });
+    if (!qs.length) { showToast(errs[0] || 'No questions found in that file.', true); return; }
+    if (GT.groups.some((g, i) => gtBox(i).value.trim()) && !confirm('The boxes already have questions. Replace them with the Excel file (' + qs.length + ' questions)?')) return;
+    const texts = GT.groups.map((g, i) => questionsToText(qs.slice(i * GT.per, (i + 1) * GT.per)));
+    gtFill(texts);
+    gtCheck(true);
+    showToast(qs.length === GT_TOTAL && !errs.length ? '\u2714 180 questions read and split into 5 groups of 36.' : qs.length + ' questions read. Check the red box below.', qs.length !== GT_TOTAL || errs.length > 0);
+    if (errs.length || qs.length > GT_TOTAL) {
+      const box = document.getElementById('gt_preview');
+      const er = mk('div', 'pv bad'); er.appendChild(mk('b', null, 'Excel file notes:'));
+      const ul = document.createElement('ul');
+      (qs.length > GT_TOTAL ? ['The file has ' + qs.length + ' questions. Only the first ' + GT_TOTAL + ' were used.'] : []).concat(errs).slice(0, 12).forEach(x => ul.appendChild(mk('li', null, x)));
+      er.appendChild(ul); box.insertBefore(er, box.firstChild);
+    }
+  } catch (e) { showToast(e.message || 'Could not read that file.', true); }
+}
+async function gtTemplate() {
+  const aoa = [['Subject', 'Question', 'A', 'B', 'C', 'D', 'Answer', 'Explanation'],
+    ['Pharmacology', 'Which drug is the antidote for paracetamol poisoning?', 'N-acetylcysteine', 'Naloxone', 'Flumazenil', 'Atropine', 'A', 'NAC replenishes glutathione.'],
+    ['Pharmacology', 'Which drug is a loop diuretic?', 'Spironolactone', 'Furosemide', 'Mannitol', 'Amiloride', 'B', 'Furosemide acts on the thick ascending limb.']];
+  try { const X = await loadXlsxLib(); const wb = X.utils.book_new(); X.utils.book_append_sheet(wb, X.utils.aoa_to_sheet(aoa), 'Questions'); X.writeFile(wb, 'real-test-template.xlsx'); }
+  catch (e) { bkDownload('real-test-template.csv', aoa.map(r => r.map(csvCell).join(',')).join('\n'), 'text/csv'); showToast('Excel reader not available. Downloaded a CSV template instead.'); }
+}
+
+// The final check: every group must have exactly 36 questions, each with 4 options and a valid answer.
+function gtCheck(show) {
+  const out = { ok: false, questions: [], errors: [], groups: [], noSubject: 0 };
+  const seen = new Map();
+  GT.groups.forEach((g, gi) => {
+    const raw = gtBox(gi).value, name = 'Group ' + g;
+    const r = parseQuestions(raw);
+    const errs = [];
+    if (!raw.trim()) errs.push(name + ': the box is empty');
+    else {
+      validateImages(r, GT.files, null);
+      r.errors.forEach(e => errs.push(name + ': ' + e));
+      r.questions.forEach((q, k) => {
+        const label = name + ' question ' + (k + 1);
+        if (q.o.length !== 4) errs.push(label + ': needs exactly 4 options (A, B, C, D). It has ' + q.o.length + '.');
+        const h = qHash(q);
+        if (seen.has(h)) errs.push(label + ' is the same as ' + seen.get(h)); else seen.set(h, label);
+        if (!q.s) out.noSubject++;
+      });
+      if (!r.errors.length && r.questions.length !== GT.per) errs.push(name + ': ' + r.questions.length + ' questions found, but ' + GT.per + ' are needed');
+    }
+    const good = !errs.length && r.questions.length === GT.per;
+    out.groups.push({ name, n: r.questions.length, ok: good });
+    out.errors = out.errors.concat(errs);
+    if (good) out.questions = out.questions.concat(r.questions);
+  });
+  out.ok = !out.errors.length && out.questions.length === GT_TOTAL;
+  if (!out.ok) out.questions = [];
+  GT.groups.forEach((g, i) => gtPaint(i));
+  if (show) gtRenderCheck(out);
+  return out;
+}
+function gtRenderCheck(out) {
+  const box = document.getElementById('gt_preview'); box.innerHTML = '';
+  const total = out.groups.reduce((x, g) => x + g.n, 0);
+  box.appendChild(mk('div', out.ok ? 'pv ok' : 'pv bad', (out.ok ? '\u2714 All ' + GT_TOTAL + ' questions are ready' : 'Not ready yet') + ' \u00B7 ' + total + ' / ' + GT_TOTAL + ' questions found'));
+  const sum = mk('div', 'gt-sum');
+  out.groups.forEach(g => sum.appendChild(mk('span', g.ok ? 'g-ok' : 'g-bad', (g.ok ? '\u2714 ' : '\u2718 ') + g.name + ': ' + g.n + ' / ' + GT.per)));
+  box.appendChild(sum);
+  if (out.ok) {
+    box.appendChild(mk('div', 'hint', 'Format check passed: every question has 4 options and an answer, and no question is repeated. 42 minutes per group, +4 / \u22121, maximum 720.' + (out.noSubject ? ' ' + out.noSubject + ' questions have no Subject line, so they show as Untagged in subject-wise progress.' : '')));
+  } else {
+    const er = mk('div', 'pv bad');
+    er.appendChild(mk('b', null, out.errors.length + (out.errors.length === 1 ? ' problem to fix:' : ' problems to fix:')));
+    const ul = document.createElement('ul');
+    out.errors.slice(0, 20).forEach(e => ul.appendChild(mk('li', null, e)));
+    if (out.errors.length > 20) ul.appendChild(mk('li', null, '\u2026and ' + (out.errors.length - 20) + ' more'));
+    er.appendChild(ul); box.appendChild(er);
+  }
+  box.classList.remove('flash'); void box.offsetWidth; box.classList.add('flash');
+  box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function gtPublish() {
+  const { db, collection, addDoc, deleteDoc, doc, serverTimestamp } = window.__fb;
+  const title = document.getElementById('gt_title').value.trim();
+  if (!title) { showToast('Write the test title first.', true); return; }
+  const res = gtCheck(true);
+  if (!res.ok) { showToast('Publish stopped. Fix the problems in the red box first.', true); return; }
+  if (JSON.stringify(res.questions).length > 900000) { showToast('This test is too large. Remove some long explanations.', true); return; }
+  if (!confirm('Publish "' + title + '"?\n\n180 questions, 5 groups of 36, 42 minutes each, +4 / \u22121.')) return;
+  const btn = document.getElementById('gt_publish');
+  btn.disabled = true;
+  let testRef = null, newKeys = [];
+  try {
+    canonQuestionSubjects(res.questions);
+    if (res.questions.some(q => q.img || q.eimg)) {
+      const up = await attachImages(res.questions, GT.files, null, (d, t) => { btn.textContent = 'Uploading pictures ' + d + '/' + t + '\u2026'; });
+      newKeys = up.keys;
+    }
+    testRef = await addDoc(collection(db, 'tests'), {
+      title, subject: 'Mixed', mode: 'exam', durationMin: GT.groups.length * GT.minutes, plus: GT.plus, minus: GT.minus, count: GT_TOTAL,
+      blockSize: GT.per, blockMinutes: GT.minutes, gt: true, qs: res.questions, createdAt: serverTimestamp()
+    });
+    await addDoc(collection(db, 'resources'), {
+      subject: 'Mixed', exam: document.getElementById('gt_exam').value, tab: 'Real Test', title, meta: GT_META, type: 'test', testId: testRef.id, fileUrl: null,
+      releaseAt: relMs('gt_release') ? window.__fb.Timestamp.fromMillis(relMs('gt_release')) : null,
+      createdAt: serverTimestamp()
+    });
+    showToast('Real Test published: ' + title + (relMs('gt_release') ? ', live ' + relText(relMs('gt_release')) : ''));
+    if (document.getElementById('gt_announce').checked) queueAnnouncement([{ title, subject: 'Mixed', tab: 'Real Test' }], relMs('gt_release') || Date.now());
+    document.getElementById('gt_release').value = ''; document.getElementById('gt_announce').checked = false;
+    document.getElementById('gt_title').value = ''; gtFill([]);
+    GT.files = []; paintImgChips(GT, document.getElementById('gt_imgList'));
+    document.getElementById('gt_preview').innerHTML = '';
+    loadResourcesList();
+  } catch (e) {
+    if (testRef) { try { await deleteDoc(doc(db, 'tests', testRef.id)); } catch (x) {} }
+    await deleteStoredFiles(newKeys.concat(e && e.keys ? e.keys : []));
+    showToast('Failed: ' + e.message, true);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Publish Real Test';
+  }
+}
 
 
 // ---------- News and counselling ----------
@@ -2047,7 +2274,9 @@ async function openEditTest(row) {
     const snap = await getDoc(doc(db, 'tests', row.testId));
     if (!snap.exists()) { body.innerHTML = ''; body.appendChild(mk('div', 'empty', 'The test data was not found. You can delete this item and publish the test again.')); return; }
     const d = snap.data();
+    ED.gt = !!d.gt;
     body.innerHTML = '';
+    if (ED.gt) body.appendChild(mk('p', 'hint', 'Real Test (GT): the structure is fixed. 180 questions in 5 groups of 36, 42 minutes per group, +4 / −1. You can change the title and the questions (keep exactly 180).'));
     body.appendChild(edField('Title', edInput('e_title', d.title || row.title)));
     body.appendChild(edField('Subject', edSelect('e_subject', subjectOptions(d.subject || row.subject), d.subject || row.subject)));
     body.appendChild(edField('Exam', edSelect('e_examType', ['NEET PG', 'INICET'], row.exam === 'INICET' ? 'INICET' : 'NEET PG')));
@@ -2069,6 +2298,7 @@ async function openEditTest(row) {
     body.appendChild(box);
     const toggle = () => { box.style.display = document.getElementById('e_mode').value === 'exam' ? 'block' : 'none'; };
     document.getElementById('e_mode').addEventListener('change', toggle); toggle();
+    if (ED.gt) { const em = document.getElementById('e_mode'); if (em.previousSibling) em.previousSibling.style.display = 'none'; em.style.display = 'none'; box.style.display = 'none'; }
 
     let smp = null; try { const ss = await getDoc(doc(db, 'sample', 'main')); smp = ss.exists() ? ss.data() : null; } catch (e) {}
     const lab = document.createElement('label'); lab.className = 'bk-chk';
@@ -2186,11 +2416,11 @@ async function saveTestEdit() {
   const row = ED.row;
   const title = document.getElementById('e_title').value.trim();
   const subject = document.getElementById('e_subject').value;
-  const mode = document.getElementById('e_mode').value;
+  const mode = ED.gt ? 'exam' : document.getElementById('e_mode').value;
   const exam = mode === 'exam';
-  const duration = exam ? Number(document.getElementById('e_duration').value) : 0;
-  const plus = exam ? Number(document.getElementById('e_plus').value) : 1;
-  const minus = exam ? Number(document.getElementById('e_minus').value) : 0;
+  const duration = ED.gt ? GT.groups.length * GT.minutes : exam ? Number(document.getElementById('e_duration').value) : 0;
+  const plus = ED.gt ? GT.plus : exam ? Number(document.getElementById('e_plus').value) : 1;
+  const minus = ED.gt ? GT.minus : exam ? Number(document.getElementById('e_minus').value) : 0;
   if (!title) throw soft('The title cannot be empty.');
   if (exam && !(duration >= 1)) throw soft('Enter the test time in minutes.');
   if (exam && !(plus > 0 && minus >= 0)) throw soft('Check the marks per correct and minus per wrong.');
@@ -2202,7 +2432,13 @@ async function saveTestEdit() {
   if (JSON.stringify(res.questions).length > 900000) throw soft('This test is too large. Split it into two tests.');
   canonQuestionSubjects(res.questions);
   const n = res.questions.length;
-  const bi = exam ? blockInfo(n, document.getElementById('e_blockSize').value, document.getElementById('e_blockMinutes').value) : { on: false, blockSize: 0, blockMinutes: 0 };
+  if (ED.gt) {
+    if (n !== GT_TOTAL) throw soft('A Real Test needs exactly ' + GT_TOTAL + ' questions (5 groups of 36). You have ' + n + '.');
+    const bad = res.questions.findIndex(q => q.o.length !== 4);
+    if (bad > -1) throw soft('Question ' + (bad + 1) + ' needs exactly 4 options.');
+  }
+  const bi = ED.gt ? { on: true, blockSize: GT.per, blockMinutes: GT.minutes, blocks: GT.groups.length, total: GT.groups.length * GT.minutes }
+    : exam ? blockInfo(n, document.getElementById('e_blockSize').value, document.getElementById('e_blockMinutes').value) : { on: false, blockSize: 0, blockMinutes: 0 };
   if (bi.error) throw soft(bi.error);
   let newKeys = [];
   try {
@@ -2213,7 +2449,7 @@ async function saveTestEdit() {
     await deleteStoredFiles(newKeys.concat(e && e.keys ? e.keys : []));
     throw e;
   }
-  await updateDoc(doc(db, 'resources', row.id), { title, subject, exam: document.getElementById('e_examType').value, meta: examMeta(n, exam, duration, bi) });
+  await updateDoc(doc(db, 'resources', row.id), { title, subject, exam: document.getElementById('e_examType').value, meta: ED.gt ? GT_META : examMeta(n, exam, duration, bi) });
   const wantSample = !!(document.getElementById('e_sample') && document.getElementById('e_sample').checked);
   let sampleMsg = '';
   try { await syncFreeSample(ED.testId, title, res.questions, wantSample); }

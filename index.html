@@ -2028,7 +2028,7 @@ const SUBJECT_GROUPS = [
 const SUBJECTS = SUBJECT_GROUPS[0].list.concat(SUBJECT_GROUPS[1].list);
 const OTHER_SUBJECTS = SUBJECT_GROUPS[2].list.concat(SUBJECT_GROUPS[3].list);
 
-const CATEGORIES = ["PYTs", "PYQs", "High Yield", "Tests", "Flashcards"];
+const CATEGORIES = ["PYTs", "PYQs", "High Yield", "Tests", "Real Test", "Flashcards"];
 
 let currentUser = null;
 let isPaidMember = false;
@@ -3346,7 +3346,7 @@ function trRestore() { if (trSynthetic()) return null; try { return JSON.parse(l
 function trHasBlocks() { return !!(TR.t && TR.t.mode === "exam" && TR.t.blockSize > 0 && TR.blocks && TR.blocks.length); }
 function trMakeBlocks(t) {
   const out = [];
-  for (let st = 0, b = 0; st < t.qs.length; st += t.blockSize, b++) out.push({ name: "Block " + String.fromCharCode(65 + b), from: st, to: Math.min(t.qs.length - 1, st + t.blockSize - 1), startAt: 0, endAt: 0, done: false, spent: 0, last: st });
+  for (let st = 0, b = 0; st < t.qs.length; st += t.blockSize, b++) out.push({ name: (t.gt ? "Group " : "Block ") + String.fromCharCode(65 + b), from: st, to: Math.min(t.qs.length - 1, st + t.blockSize - 1), startAt: 0, endAt: 0, done: false, spent: 0, last: st });
   return out;
 }
 function trBlockOf() { return trHasBlocks() && TR.blk >= 0 ? TR.blocks[TR.blk] : null; }
@@ -3380,7 +3380,40 @@ function trSubmitBlock(auto) {
   showToast(B.name + " submitted.");
   trRender();
 }
+// Real Test (GT): groups open strictly in order. A finished group is locked. Later groups show no questions at all.
+function trRenderGT() {
+  const t = TR.t, nb = TR.blocks.length;
+  const next = TR.blocks.findIndex(b => !b.done);
+  const rows = TR.blocks.map((B, bi) => {
+    const qn = B.to - B.from + 1;
+    let info, act;
+    if (B.done) {
+      let ans = 0; for (let k = B.from; k <= B.to; k++) if (TR.ans[k] >= 0) ans++;
+      info = '<span>' + t.blockMinutes + ' min</span><span class="st">Submitted \u00B7 answered ' + ans + ' of ' + qn + '</span>';
+      act = '<div class="lock">Locked</div>';
+    } else if (bi === next) {
+      info = '<span>' + qn + ' questions \u00B7 ' + t.blockMinutes + ' min</span>' + (B.startAt
+        ? '<span class="st run" id="trBlk' + bi + '">In progress \u00B7 ' + trClock(Math.round((B.endAt - Date.now()) / 1000)) + ' left</span>'
+        : '<span>Ready to start</span>');
+      act = '<button data-act="blockstart" data-b="' + bi + '">' + (B.startAt ? "Resume" : "Start") + '</button>';
+    } else {
+      info = '<span>' + t.blockMinutes + ' min</span><span>Opens after ' + esc(TR.blocks[bi - 1].name) + ' ends</span>';
+      act = '<div class="lock">Locked</div>';
+    }
+    return '<div class="blk-card' + (B.done ? " done" : "") + '"><div class="info"><b>' + esc(B.name) + '</b>' + info + '</div>' + act + '</div>';
+  }).join("");
+  const done = TR.blocks.filter(b => b.done).length, all = done === nb;
+  const tot = nb * t.blockMinutes, totTxt = Math.floor(tot / 60) + " h " + (tot % 60) + " m";
+  trOverlay().innerHTML = trTopHTML("") +
+    '<div class="tr-body"><div class="tr-inner">' +
+      '<div class="blk-intro"><b>Real Test \u00B7 ' + t.qs.length + ' questions</b><p>' + nb + ' groups, one after the other. ' + t.blockMinutes + ' minutes for each group (' + totTxt + ' in all). Marking: +' + t.plus + ' for each correct answer, \u2212' + t.minus + ' for each wrong one, 0 if skipped. Once you submit a group, or its time ends, it locks. You cannot go back to it, and the next group stays hidden until you start it. Leaving the app does not stop the clock. Answers and explanations come after the whole test.</p></div>' +
+      rows +
+    '</div></div>' +
+    '<div class="tr-foot"><button class="tr-btn ' + (all ? "pri" : "sec") + '" data-act="finish" style="flex:1">' + (all ? "See result" : "End test now") + '</button></div>';
+}
+
 function trRenderBlocks() {
+  if (TR.t && TR.t.gt) return trRenderGT();
   const t = TR.t, active = TR.blocks.findIndex(b => b.startAt && !b.done);
   const rows = TR.blocks.map((B, bi) => {
     let ans = 0; for (let k = B.from; k <= B.to; k++) if (TR.ans[k] >= 0) ans++;
@@ -3453,6 +3486,7 @@ async function openTest(item) {
       plus: Number(d.plus) || 1, minus: Number(d.minus) || 0, qs: Array.isArray(d.qs) ? d.qs : [],
       blockSize: d.mode === "exam" ? (Number(d.blockSize) || 0) : 0, blockMinutes: Number(d.blockMinutes) || 0
     };
+    t.gt = !!d.gt && t.mode === "exam" && t.blockSize > 0 && t.blockMinutes > 0;   // Real Test (GT): groups open one after the other
     if (!t.qs.length) throw new Error("empty");
     TR.t = t;
     const n = t.qs.length;
@@ -3592,7 +3626,7 @@ function trRenderRun() {
 
   trOverlay().innerHTML =
     trTopHTML(chip) +
-    '<div class="tr-bar"><span>Question ' + (i - lo + 1) + ' of ' + (hi - lo + 1) + (B ? ' · ' + esc(B.name) : '') + '</span><span>' + (B ? '<button class="tr-pbtn" data-act="toblocks" style="margin-right:6px">Blocks</button>' : '') + '<button class="tr-pbtn" data-act="pal">All questions</button></span></div>' +
+    '<div class="tr-bar"><span>Question ' + (i - lo + 1) + ' of ' + (hi - lo + 1) + (B ? ' · ' + esc(B.name) : '') + '</span><span>' + (B && !t.gt ? '<button class="tr-pbtn" data-act="toblocks" style="margin-right:6px">Blocks</button>' : '') + '<button class="tr-pbtn" data-act="pal">All questions</button></span></div>' +
     '<div class="tr-prog"><i style="width:' + Math.round((i - lo + 1) / (hi - lo + 1) * 100) + '%"></i></div>' +
     '<div class="tr-body" id="trBody"><div class="tr-inner">' +
       (q.t ? '<span class="tr-tag">' + esc(q.t) + '</span>' : '') +
@@ -3646,7 +3680,7 @@ async function trFinish(auto) {
   const t = TR.t;
   if (trHasBlocks()) {
     const open = TR.blocks.filter(b => !b.done).length;
-    if (!auto && open && !confirm("Finish the test now? " + open + (open === 1 ? " block is" : " blocks are") + " not finished. Its questions count as skipped.")) return;
+    if (!auto && open && !confirm("Finish the test now? " + open + (t.gt ? (open === 1 ? " group is" : " groups are") : (open === 1 ? " block is" : " blocks are")) + (t.gt ? " not finished. Their questions count as skipped and cannot be taken later." : " not finished. Its questions count as skipped."))) return;
     TR.blocks.forEach((b, bi) => trCloseBlock(bi));
   } else {
     const pre = trCompute();
@@ -3772,6 +3806,7 @@ document.getElementById("trOverlay").addEventListener("click", (e) => {
   if (act === "blockstart") {
     const bi = Number(b.dataset.b), B = TR.blocks[bi];
     if (!B || B.done) return;
+    if (t.gt && bi !== TR.blocks.findIndex(x => !x.done)) { showToast("Groups open one after the other.", true); return; }
     const active = TR.blocks.findIndex(x => x.startAt && !x.done);
     if (active >= 0 && active !== bi) { showToast("Finish or resume " + TR.blocks[active].name + " first.", true); return; }
     if (!B.startAt) {
@@ -4362,7 +4397,7 @@ function canonSubject(s) {
 }
 function canonTab(t) {
   const x = String(t || "").trim().toLowerCase();
-  const alias = { pyq: "PYQs", pyt: "PYTs", test: "Tests", flashcard: "Flashcards", "flash cards": "Flashcards" };
+  const alias = { pyq: "PYQs", pyt: "PYTs", test: "Tests", flashcard: "Flashcards", "flash cards": "Flashcards", "real test": "Real Test", gt: "Real Test", "grand test": "Real Test" };
   return CATEGORIES.find(c => c.toLowerCase() === x) || alias[x] || String(t || "").trim();
 }
 
