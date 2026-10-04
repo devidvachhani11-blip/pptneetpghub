@@ -19,7 +19,7 @@
 <meta property="og:title" content="PPTNEETPGHUB · NEET PG 2027 Premium"><meta property="og:description" content="Three phases, one payment. NEET PG resources, flash cards and timed tests released step by step, with INICET bonus resources.">
 <meta property="og:url" content="https://pptneetpghub.com/"><meta name="twitter:card" content="summary"><meta property="og:image" content="https://pptneetpghub.com/icon-512.png"><meta name="twitter:image" content="https://pptneetpghub.com/icon-512.png">
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "PPTNEETPGHUB", "url": "https://pptneetpghub.com/", "sameAs": ["https://t.me/D_V11111"]}</script>
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "How do I pay?", "acceptedAnswer": {"@type": "Answer", "text": "Scan the QR code or pay to the UPI ID from any UPI app (GPay, PhonePe, Paytm and others). Then enter your 12-digit UTR in the steps above."}}, {"@type": "Question", "name": "Where do I find my UTR?", "acceptedAnswer": {"@type": "Answer", "text": "Open the payment in your UPI app and look for the UTR or UPI transaction ID. It is a 12-digit number."}}, {"@type": "Question", "name": "When does my access start?", "acceptedAnswer": {"@type": "Answer", "text": "We check every payment by hand against our UPI account, so it can take a little while at busy times. Once approved, sign in with the same Google account and your library opens."}}, {"@type": "Question", "name": "How do I get the Telegram channels?", "acceptedAnswer": {"@type": "Answer", "text": "Telegram Premium is optional and included: the Premium channel, the INICET Bonus channel and the discussion group. After you pay, drop us a message on Telegram or WhatsApp and we will send your invite links."}}, {"@type": "Question", "name": "I entered the wrong UTR. What now?", "acceptedAnswer": {"@type": "Answer", "text": "If we can't match it, you will see a message here and can submit again. You can also message us on Telegram or WhatsApp."}}, {"@type": "Question", "name": "Which email gets access?", "acceptedAnswer": {"@type": "Answer", "text": "The Google account you sign in with. Use the one you will study with."}}, {"@type": "Question", "name": "Can I download the PDFs?", "acceptedAnswer": {"@type": "Answer", "text": "Notes and tests are view-only. Flash cards are downloadable."}}]}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "How do I pay?", "acceptedAnswer": {"@type": "Answer", "text": "Scan the QR code or pay to the UPI ID from any UPI app (GPay, PhonePe, Paytm and others). Then enter your 12-digit UTR in the steps above."}}, {"@type": "Question", "name": "Where do I find my UTR?", "acceptedAnswer": {"@type": "Answer", "text": "Open the payment in your UPI app and look for the UTR or UPI transaction ID. It is a 12-digit number."}}, {"@type": "Question", "name": "When does my access start?", "acceptedAnswer": {"@type": "Answer", "text": "We check every payment by hand against our UPI account, so it can take a little while at busy times. Once approved, sign in with the same Google account and your library opens."}}, {"@type": "Question", "name": "How do I get the Telegram channels?", "acceptedAnswer": {"@type": "Answer", "text": "Telegram Premium is optional and included: the Premium channel, the INICET Bonus channel and the discussion group. Once you are a member, get your invite links from your dashboard."}}, {"@type": "Question", "name": "I entered the wrong UTR. What now?", "acceptedAnswer": {"@type": "Answer", "text": "If we can't match it, you will see a message here and can submit again. You can also message us on Telegram or WhatsApp."}}, {"@type": "Question", "name": "Which email gets access?", "acceptedAnswer": {"@type": "Answer", "text": "The Google account you sign in with. Use the one you will study with."}}, {"@type": "Question", "name": "Can I download the PDFs?", "acceptedAnswer": {"@type": "Answer", "text": "Notes and tests are view-only. Flash cards are downloadable."}}]}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -1146,7 +1146,8 @@
   .help-msg:focus { outline: 2px solid var(--teal); outline-offset: 1px; background: #fff; }
   .help-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
   .help-acts a { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 13px; border-radius: 12px; font-weight: 700; font-size: 14px; color: #fff; }
-  .help-acts a.wa { background: #25A55B; } .help-acts a.tg { background: #229ED9; }
+  .help-acts a.wa { background: #25A55B; } .help-acts a.tg { background: #229ED9; } .help-acts a.mail { background: var(--navy); }
+  .help-acts[hidden], .help-note[hidden] { display: none; }
   .help-note { margin: 10px 0 0; font-size: 12px; color: var(--gray); text-align: center; line-height: 1.5; }
   .tr-report { display: inline-block; margin-top: 8px; font-size: 12.5px; font-weight: 600; color: #27508F; text-decoration: underline; background: transparent; font-family: inherit; padding: 0; text-align: left; }
 
@@ -1721,7 +1722,7 @@
     <div class="grp">Tests</div>
     <div class="fgrid" style="--c:var(--teal)">
       <div class="fcard"><span class="em">&#9201;&#65039;</span><div><h4>Instant Answer Tests</h4><p>Answer and explanation right away</p></div></div>
-      <div class="fcard"><span class="em">&#127919;</span><div><h4>Mock Tests</h4><p>Regular practice as you move through the syllabus</p></div></div>
+      <div class="fcard"><span class="em">&#127919;</span><div><h4>Mock Tests</h4><p>Practice tests that show where you stand before the exam.</p></div></div>
       <div class="fcard"><span class="em">&#127942;</span><div><h4>Grand Tests</h4><p>Full-length tests with a built-in timer</p></div></div>
     </div>
 
@@ -1745,8 +1746,8 @@
       <div class="cmp-row"><div class="l"><span class="mk x">&times;</span>10,000 PYQs dropped at once</div><div class="r"><span class="mk ok">&#10003;</span>Step-by-step, fresh drops</div></div>
       <div class="cmp-row"><div class="l"><span class="mk x">&times;</span>1,000 image questions in one go</div><div class="r"><span class="mk ok">&#10003;</span>Released as you progress</div></div>
       <div class="cmp-row"><div class="l"><span class="mk x">&times;</span>1,000 flash cards dumped together</div><div class="r"><span class="mk ok">&#10003;</span>A new flash card series every week</div></div>
-      <div class="cmp-row"><div class="l"><span class="mk x">&times;</span>1,000-question tests, dropped one time</div><div class="r"><span class="mk ok">&#10003;</span>Regular tests matched to your stage</div></div>
-      <div class="cmp-row"><div class="l"><span class="mk x">&times;</span>Final-month files cost extra</div><div class="r"><span class="mk ok">&#10003;</span>Final files included, dropped after student review</div></div>
+      <div class="cmp-row"><div class="l"><span class="mk x">&times;</span>1,000-question tests, dropped one time</div><div class="r"><span class="mk ok">&#10003;</span>New fresh tests for your preparation</div></div>
+      <div class="cmp-row"><div class="l"><span class="mk x">&times;</span>Final-month files cost extra</div><div class="r"><span class="mk ok">&#10003;</span>Final-month resources included, no extra price for early joiners</div></div>
       <div class="cmp-row"><div class="l"><span class="mk x">&times;</span>Mistakes in resources stay there</div><div class="r"><span class="mk ok">&#10003;</span>Report it in the group and it gets fixed</div></div>
     </div>
     <div class="promise">
@@ -1815,11 +1816,6 @@
       <div class="acard" style="--c:#5AA0F0"><div class="ae">&#127873;</div><h4>INICET Bonus Channel</h4><p>Extra channel, included</p></div>
       <div class="acard" style="--c:#2BB5A6"><div class="ae">&#128172;</div><h4>Discussion Group</h4><p>Doubts, help, mistake reports</p></div>
     </div>
-    <p class="opt-note">Want the Telegram channels too? After you pay, drop us a message and we will send your invite links.</p>
-    <div class="contact-row">
-      <a class="contact-btn telegram" href="https://t.me/D_V11111" target="_blank" rel="noopener">Telegram</a>
-      <a class="contact-btn whatsapp" href="https://wa.me/916355895222?text=Hi%2C%20I%20want%20the%20Telegram%20Premium%20channel%20links%20for%20PPTNEETPGHUB." target="_blank" rel="noopener">WhatsApp</a>
-    </div>
   </div>
 </section>
 
@@ -1861,7 +1857,7 @@
       <details><summary>How do I pay?</summary><p>Scan the QR code or pay to the UPI ID from any UPI app (GPay, PhonePe, Paytm and others). Then enter your 12-digit UTR in the steps above.</p></details>
       <details><summary>Where do I find my UTR?</summary><p>Open the payment in your UPI app and look for the UTR or UPI transaction ID. It is a 12-digit number.</p></details>
       <details><summary>When does my access start?</summary><p>We check every payment by hand against our UPI account, so it can take a little while at busy times. Once approved, sign in with the same Google account and your library opens.</p></details>
-      <details><summary>How do I get the Telegram channels?</summary><p>Telegram Premium is optional and included: the Premium channel, the INICET Bonus channel and the discussion group. After you pay, drop us a message on Telegram or WhatsApp and we will send your invite links.</p></details>
+      <details><summary>How do I get the Telegram channels?</summary><p>Telegram Premium is optional and included: the Premium channel, the INICET Bonus channel and the discussion group. Once you are a member, get your invite links from your dashboard.</p></details>
       <details><summary>I entered the wrong UTR. What now?</summary><p>If we can't match it, you will see a message here and can submit again. You can also message us on Telegram or WhatsApp.</p></details>
       <details><summary>Which email gets access?</summary><p>The Google account you sign in with. Use the one you will study with.</p></details>
       <details><summary>Can I download the PDFs?</summary><p>Notes and tests are view-only. Flash cards are downloadable.</p></details>
@@ -1874,11 +1870,6 @@
     <img class="foot-logo" src="/logo-96.webp" width="64" height="64" alt="" loading="lazy"><div class="fb">PPTNEETPGHUB</div>
     <p><a href="/news" style="color:#D4AF55;margin:0 8px;text-decoration:none">News</a><a href="/study-tips" style="color:#D4AF55;margin:0 8px;text-decoration:none">Study tips</a><a href="/counselling" style="color:#D4AF55;margin:0 8px;text-decoration:none">Counselling</a></p>
     <p class="legal-links"><a href="/terms">Terms of Use</a><a href="/privacy">Privacy Policy</a><a href="/refund">Refund Policy</a></p>
-    <p>Free samples and updates on Telegram: PPTNEETPGINICETHUB</p>
-    <div class="contact-row">
-      <a class="contact-btn telegram" href="https://t.me/D_V11111" target="_blank" rel="noopener">Telegram</a>
-      <a class="contact-btn whatsapp" href="https://wa.me/916355895222" target="_blank" rel="noopener">WhatsApp</a>
-    </div>
   </div>
 </footer>
 
@@ -1962,14 +1953,18 @@
 <div class="help-scrim" id="helpScrim"></div>
 <div class="help-sheet" id="helpSheet" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
   <div class="help-h"><b id="helpTitle">How can we help?</b><button id="helpClose" aria-label="Close">&times;</button></div>
-  <p class="help-sub">Pick a topic, add details if you like, then send it on WhatsApp or Telegram.</p>
+  <p class="help-sub" id="helpSub">Pick a topic, add details if you like, then send it on WhatsApp or Telegram.</p>
   <div class="help-chips" id="helpChips"></div>
   <textarea class="help-msg" id="helpMsg" aria-label="Your message"></textarea>
-  <div class="help-acts">
+  <div class="help-acts" id="helpActs">
     <a class="wa" id="helpWa" href="#" target="_blank" rel="noopener">WhatsApp</a>
     <a class="tg" id="helpTg" href="https://t.me/D_V11111" target="_blank" rel="noopener">Telegram</a>
   </div>
-  <p class="help-note">For Telegram your message is copied first, so just paste it.</p>
+  <p class="help-note" id="helpNote">For Telegram your message is copied first, so just paste it.</p>
+  <div class="help-acts" id="helpMailActs" hidden style="grid-template-columns:1fr">
+    <a class="mail" id="helpMail" href="#">Send email</a>
+  </div>
+  <p class="help-note" id="helpMailNote" hidden>Or write to us at <b>neetpghub111@gmail.com</b></p>
 </div>
 
 <div class="dev-ov" id="devOverlay" hidden></div>
@@ -3147,7 +3142,8 @@ document.addEventListener("keydown", (e) => {
 });
 
 // ---------- Help button (WhatsApp / Telegram) ----------
-const HELP_WA = "916355895222", HELP_TG = "https://t.me/D_V11111";
+const HELP_WA = "916355895222", HELP_TG = "https://t.me/D_V11111", HELP_MAIL = "neetpghub111@gmail.com";
+const HELP_VISITOR_TOPICS = ["pay", "other"];   // people who are not signed in get email-only help
 const HELP_TOPICS = [
   { k: "pay", label: "Payment", text: "I have a question about my payment." },
   { k: "file", label: "Can't open a file", text: "I can't open a file. It is: " },
@@ -3164,12 +3160,16 @@ function helpHead(t) { return "Hi, I need help with PPTNEETPGHUB. " + t.text; }
 function helpMsgFor(t) { const w = helpWho(); return helpHead(t) + (w ? "\n\n" + w : ""); }
 function waLink(text) { return "https://wa.me/" + HELP_WA + "?text=" + encodeURIComponent(text); }
 
+function helpIsVisitor() { return !currentUser; }
+function mailLink(text) { return "mailto:" + HELP_MAIL + "?subject=" + encodeURIComponent("PPTNEETPGHUB help") + "&body=" + encodeURIComponent(text); }
 function helpSync() {
   const msg = document.getElementById("helpMsg").value;
   document.getElementById("helpWa").href = waLink(msg);
+  document.getElementById("helpMail").href = mailLink(msg);
 }
 function helpPick(k) {
   HELP.topic = k;
+  if (helpIsVisitor() && HELP_VISITOR_TOPICS.indexOf(k) === -1) k = "other";
   const t = HELP_TOPICS.find(x => x.k === k) || HELP_TOPICS[4];
   document.getElementById("helpMsg").value = helpMsgFor(t);
   document.querySelectorAll(".help-chip").forEach(c => c.classList.toggle("on", c.dataset.k === k));
@@ -3178,7 +3178,13 @@ function helpPick(k) {
 function openHelp(topic) {
   const chips = document.getElementById("helpChips");
   chips.innerHTML = "";
-  HELP_TOPICS.forEach(t => {
+  const visitor = helpIsVisitor();
+  document.getElementById("helpActs").hidden = visitor;
+  document.getElementById("helpNote").hidden = visitor;
+  document.getElementById("helpMailActs").hidden = !visitor;
+  document.getElementById("helpMailNote").hidden = !visitor;
+  document.getElementById("helpSub").textContent = visitor ? "Pick a topic, add details if you like, then send us an email." : "Pick a topic, add details if you like, then send it on WhatsApp or Telegram.";
+  HELP_TOPICS.filter(t => !visitor || HELP_VISITOR_TOPICS.indexOf(t.k) > -1).forEach(t => {
     const b = document.createElement("button");
     b.className = "help-chip"; b.dataset.k = t.k; b.textContent = t.label;
     b.onclick = () => { helpPick(t.k); const m = document.getElementById("helpMsg"); m.focus(); const pos = helpHead(t).length; m.setSelectionRange(pos, pos); };
