@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>(function(){try{var p=localStorage.getItem("pptTheme");var d=p==="dark"||(p==="auto"&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-eff",d?"dark":"light");}catch(e){}})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>PPTNEETPGHUB &middot; NEET PG 2027 Premium</title>
@@ -1387,6 +1388,173 @@
   .legal-links a { color: #D4AF55; margin: 0 8px; text-decoration: none; font-size: 13px; white-space: nowrap; display: inline-block; }
   .lib-legal { margin: 26px 0 8px; text-align: center; font-size: 12.5px; }
   .lib-legal a { color: var(--gray); margin: 0 8px; text-decoration: none; white-space: nowrap; display: inline-block; }
+
+  /* ---------- Dark mode (member library only) ---------- */
+  html[data-eff="dark"] :is(#libraryView, #trOverlay, #fcOverlay, #viewerOverlay, #helpSheet, #toast, .ios-scrim) {
+    --paper: #0B111C; --paper-alt: #141D2E; --white: #182235; --ink: #E6EBF3; --gray: #9AA7BB; --border: #2A384F;
+    --teal-tint: #11322F; --gold-tint: #342B14; --gold: #E0B94F; --navy: #34508A; --teal-deep: #0A1830; --red: #D2564E;
+    color: var(--ink); color-scheme: dark;
+  }
+  html[data-eff="dark"].in-lib body { background: #0B111C; }
+  html[data-eff="dark"] .help-fab { box-shadow: 0 6px 20px rgba(0,0,0,.5); }
+:where(html[data-eff="dark"]) .disabled-btn { background: #292D35; }
+:where(html[data-eff="dark"]) .tg-note { color: #C5DDDA; }
+:where(html[data-eff="dark"]) .tg-note b { color: var(--ink); }
+:where(html[data-eff="dark"]) .lib-hbtn.gold { color: #0A1830; }
+:where(html[data-eff="dark"]) .lib-title h1 { color: var(--ink); }
+:where(html[data-eff="dark"]) .lib-q { background: var(--white); }
+:where(html[data-eff="dark"]) .lib-chip { background: var(--white); }
+:where(html[data-eff="dark"]) .lib-chip b { background: #433A1D; color: #C8C5BD; }
+:where(html[data-eff="dark"]) .lib-chip.on b { color: #0A1830; }
+:where(html[data-eff="dark"]) .lib-x { border: 1px solid #605534; color: #EBDAAF; }
+:where(html[data-eff="dark"]) .lib-group { color: var(--ink); }
+:where(html[data-eff="dark"]) .lib-group::after { background: #574928; }
+:where(html[data-eff="dark"]) .lib-item { background: var(--white); }
+:where(html[data-eff="dark"]) .lib-ico { color: var(--ink); }
+:where(html[data-eff="dark"]) .lib-name { color: var(--ink); }
+:where(html[data-eff="dark"]) .lib-pill.sub { background: #172236; color: #A5BFE6; }
+:where(html[data-eff="dark"]) .lib-pill.cat { color: #B5EDE7; }
+:where(html[data-eff="dark"]) .lib-pill.new { color: #0A1830; }
+:where(html[data-eff="dark"]) .lib-empty { background: var(--white); }
+:where(html[data-eff="dark"]) .lib-side { background: var(--white); }
+:where(html[data-eff="dark"]) .lib-side h3 { color: var(--ink); }
+:where(html[data-eff="dark"]) .lib-lab.g-core { color: #E9D7A8; }
+:where(html[data-eff="dark"]) .lib-lab.g-high { color: #B4ECE7; }
+:where(html[data-eff="dark"]) .lib-lab.g-mid { color: #A5BFE6; }
+:where(html[data-eff="dark"]) .lib-lab.g-low { color: #BAC0C9; }
+:where(html[data-eff="dark"]) .lib-lab.g-ini { color: #BA98E4; }
+:where(html[data-eff="dark"]) .lib-sub.g-low { border-left: 3px solid #3E4652; }
+:where(html[data-eff="dark"]) .lib-sub.g-oth { border-left: 3px solid #3E4652; }
+:where(html[data-eff="dark"]) .lib-sub.g-ini { background: #211530; color: #C6A9EA; }
+:where(html[data-eff="dark"]) .lib-sub.g-ini .n { color: #BA98E4; }
+:where(html[data-eff="dark"]) .lib-sub.g-ini:hover { background: #291A3C; }
+:where(html[data-eff="dark"]) .lib-pill.ini { background: #251735; color: #BA98E4; }
+:where(html[data-eff="dark"]) .lib-drawer-top b { color: var(--ink); }
+:where(html[data-eff="dark"]) .tr-bar { background: var(--white); }
+:where(html[data-eff="dark"]) .tr-pbtn { color: var(--ink); }
+:where(html[data-eff="dark"]) .tr-prog { background: #473C1F; }
+:where(html[data-eff="dark"]) .tr-tag { background: #172236; color: #A5BFE6; }
+:where(html[data-eff="dark"]) .tr-q { color: var(--ink); }
+:where(html[data-eff="dark"]) .tr-opt { background: var(--white); }
+:where(html[data-eff="dark"]) .tr-opt .l { color: var(--ink); }
+:where(html[data-eff="dark"]) .tr-opt.sel { background: #151F32; }
+:where(html[data-eff="dark"]) .tr-opt.ok { background: #183730; }
+:where(html[data-eff="dark"]) .tr-opt.bad { background: #321715; }
+:where(html[data-eff="dark"]) .tr-exp { background: var(--paper-alt); }
+:where(html[data-eff="dark"]) .tr-exp b { color: #B5EDE7; }
+:where(html[data-eff="dark"]) .tr-foot { background: var(--white); }
+:where(html[data-eff="dark"]) .tr-btn.mark.on { color: #EBDAAF; }
+:where(html[data-eff="dark"]) .tr-sheet { background: var(--white); }
+:where(html[data-eff="dark"]) .tr-sheet-h b { color: var(--ink); }
+:where(html[data-eff="dark"]) .tr-n { background: var(--white); color: var(--ink); }
+:where(html[data-eff="dark"]) .tr-score { color: var(--ink); }
+:where(html[data-eff="dark"]) .tr-st { background: var(--white); }
+:where(html[data-eff="dark"]) .tr-st.c b { color: #B5EDE7; }
+:where(html[data-eff="dark"]) .tr-st.t b { color: var(--ink); }
+:where(html[data-eff="dark"]) .tr-rq { background: var(--white); }
+:where(html[data-eff="dark"]) .tr-rq .h .ok { color: #B5EDE7; }
+:where(html[data-eff="dark"]) .lib-ico.tst { background: #172236; color: #A5BFE6; }
+:where(html[data-eff="dark"]) .lib-pill.best { background: #183730; color: #B5EDE7; }
+:where(html[data-eff="dark"]) .lib-switch { background: var(--white); }
+:where(html[data-eff="dark"]) .pg-card { background: var(--white); }
+:where(html[data-eff="dark"]) .pg-card h3 { color: var(--ink); }
+:where(html[data-eff="dark"]) .pg-h { color: var(--ink); }
+:where(html[data-eff="dark"]) .pg-h::after { background: #574928; }
+:where(html[data-eff="dark"]) .pg-name { color: var(--ink); }
+:where(html[data-eff="dark"]) .pg-big { color: var(--ink); }
+:where(html[data-eff="dark"]) .pg-bar span { color: var(--ink); }
+:where(html[data-eff="dark"]) .pg-up { color: #B5EDE7; }
+:where(html[data-eff="dark"]) .pg-sub { border-bottom: 1px solid #53492D; }
+:where(html[data-eff="dark"]) .pg-sub .t { color: var(--ink); }
+:where(html[data-eff="dark"]) .pg-track { background: #473C1F; }
+:where(html[data-eff="dark"]) .fc-study { background: var(--white); }
+:where(html[data-eff="dark"]) .fc-study .t b { color: var(--ink); }
+:where(html[data-eff="dark"]) .fc-img { background: var(--white); }
+:where(html[data-eff="dark"]) .fc-msg button { color: #0A1830; }
+:where(html[data-eff="dark"]) .fc-tool.on { color: #0A1830; }
+:where(html[data-eff="dark"]) .fc-nav.pri { color: #0A1830; }
+:where(html[data-eff="dark"]) .help-sheet { background: var(--white); }
+:where(html[data-eff="dark"]) .help-h b { color: var(--ink); }
+:where(html[data-eff="dark"]) .help-msg:focus { background: var(--white); }
+:where(html[data-eff="dark"]) .tr-report { color: #A5BFE6; }
+:where(html[data-eff="dark"]) .tr-img { background: var(--white); }
+:where(html[data-eff="dark"]) .tr-imgph { background: #473C1F; }
+:where(html[data-eff="dark"]) .lib-news { background: var(--white); }
+:where(html[data-eff="dark"]) .lib-news h4 { color: var(--ink); }
+:where(html[data-eff="dark"]) .exp-bar { background: #3E341A; border: 1px solid #645836; color: #EDDEB8; }
+:where(html[data-eff="dark"]) .exp-bar.soon { background: #341816; border-color: #5C3531; color: #E6B1AD; }
+:where(html[data-eff="dark"]) .tg-card { background: var(--white); }
+:where(html[data-eff="dark"]) .tg-card h4 { color: var(--ink); }
+:where(html[data-eff="dark"]) .fc-done button { color: #0A1830; }
+:where(html[data-eff="dark"]) .fc-study .btns button.alt { background: var(--white); }
+:where(html[data-eff="dark"]) .blk-card { background: var(--white); }
+:where(html[data-eff="dark"]) .blk-card.done { background: var(--paper-alt); }
+:where(html[data-eff="dark"]) .blk-card b { color: var(--ink); }
+:where(html[data-eff="dark"]) .blk-card .st { color: #B5EDE7; }
+:where(html[data-eff="dark"]) .blk-res .row { background: var(--white); }
+:where(html[data-eff="dark"]) .blk-res .row b { color: var(--ink); }
+:where(html[data-eff="dark"]) .nb-go { color: #0A1830; }
+:where(html[data-eff="dark"]) .nb-card { background: var(--white); }
+:where(html[data-eff="dark"]) .nb-q { color: var(--ink); }
+:where(html[data-eff="dark"]) .nb-ans { background: #183730; }
+:where(html[data-eff="dark"]) .nb-ans b { color: #B5EDE7; }
+:where(html[data-eff="dark"]) .nb-acts button.on { color: #EBDAAF; }
+:where(html[data-eff="dark"]) .tr-save { color: #EBDAAF; border: 1.5px solid #605534; }
+:where(html[data-eff="dark"]) .tr-save.on { color: #0A1830; }
+:where(html[data-eff="dark"]) .rs-card { background: var(--white); }
+:where(html[data-eff="dark"]) .rs-card h4 { color: var(--ink); }
+:where(html[data-eff="dark"]) .ios-sheet { background: var(--white); }
+:where(html[data-eff="dark"]) .ios-sheet h4 { color: var(--ink); }
+:where(html[data-eff="dark"]) .inst-bar { color: #0A1830; }
+:where(html[data-eff="dark"]) .pr-card { background: var(--white); }
+:where(html[data-eff="dark"]) .pr-card h4 { color: var(--ink); }
+:where(html[data-eff="dark"]) .pr-sel { background-color: var(--white); }
+:where(html[data-eff="dark"]) .pr-sel option, :where(html[data-eff="dark"]) .pr-sel optgroup { color: #D3DBE5; }
+:where(html[data-eff="dark"]) .pr-n { background: var(--white); }
+:where(html[data-eff="dark"]) .pg-weak { background: var(--white); }
+:where(html[data-eff="dark"]) .pg-weak .tag.weak { background: #3C271A; color: #E7B6A0; }
+:where(html[data-eff="dark"]) .pg-weak .tag.mid { background: #41381C; color: #EBDAAF; }
+:where(html[data-eff="dark"]) .pg-weak .tag.good { background: #1C413A; color: #B4ECE7; }
+:where(html[data-eff="dark"]) .pg-weak .acts button { background: var(--white); color: var(--ink); }
+  html[data-eff="dark"] .lib-head, html[data-eff="dark"] .tr-top, html[data-eff="dark"] .viewer-bar { background: #0A1830; color: #fff; }
+  html[data-eff="dark"] .viewer-bar .close-btn { color: #AEB6C0; }
+  html[data-eff="dark"] .viewer-footer { background: #101828; }
+  html[data-eff="dark"] .tr-prog { background: #243148; }
+  html[data-eff="dark"] .lib-q::placeholder { color: #7F8CA1; }
+  html[data-eff="dark"] .pr-sel { color: var(--ink); background-color: var(--paper-alt); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1.5l6 6 6-6' fill='none' stroke='%23E6EBF3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+  html[data-eff="dark"] .pr-n.on, html[data-eff="dark"] .theme-seg button.on { color: #fff; }
+  html[data-eff="dark"] .rs-card h4, html[data-eff="dark"] .pr-card h4, html[data-eff="dark"] .pg-card h3, html[data-eff="dark"] .tg-card h4 { color: var(--ink); }
+  html[data-eff="dark"] .toast { border: 1px solid #2A384F; }
+  html[data-eff="dark"] .viewer-body { background: #0B111C; }
+  html[data-eff="dark"] .exp-bar { background: #3A2F12; border-color: #6B5A25; color: #F0DDA6; }
+  html[data-eff="dark"] .exp-bar.soon { background: #3B1B1A; border-color: #7A3A36; color: #F4C2BE; }
+
+  /* ---------- Appearance controls ---------- */
+  .lib-prefs { margin: 0 0 16px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+  .lib-prefs h3 { margin: 0 0 8px; }
+  .theme-seg { display: flex; gap: 6px; }
+  .theme-seg button { flex: 1; min-height: 40px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--white); color: var(--gray); font-family: inherit; font-size: 13.5px; font-weight: 700; }
+  .theme-seg button.on { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .tour-again { margin-top: 10px; width: 100%; min-height: 40px; border-radius: 10px; background: transparent; border: 1.5px dashed var(--border); color: var(--gray); font-family: inherit; font-size: 13px; font-weight: 600; }
+  .lib-tbtn { display: none; width: 36px; height: 36px; padding: 0 !important; align-items: center; justify-content: center; }
+  .lib-tbtn svg { display: block; }
+  .lib-tbtn .sun { display: none; }
+  html[data-eff="dark"] .lib-tbtn .sun { display: block; } html[data-eff="dark"] .lib-tbtn .moon { display: none; }
+  @media (min-width: 410px) { .lib-tbtn { display: inline-flex; } }
+
+  /* ---------- First-time tour ---------- */
+  .tour { position: fixed; inset: 0; z-index: 600; }
+  .tour-hole { position: fixed; border-radius: 14px; box-shadow: 0 0 0 100vmax rgba(5, 10, 20, 0.74); pointer-events: none; transition: all .2s ease; }
+  .tour-card { position: fixed; width: min(340px, calc(100vw - 24px)); background: #fff; color: #141A22; border-radius: 16px; padding: 16px 16px 14px; box-shadow: 0 16px 50px rgba(0,0,0,.45); border-top: 4px solid #D4AF55; }
+  .tour-card .n { font-size: 11.5px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: #0F8F83; }
+  .tour-card b { display: block; margin: 4px 0 4px; font-size: 17px; line-height: 1.3; color: #0A1830; }
+  .tour-card p { margin: 0 0 14px; font-size: 14px; line-height: 1.55; color: #3C4757; }
+  .tour-row { display: flex; gap: 8px; align-items: center; }
+  .tour-row .skip { background: transparent; color: #6E7A8A; font-size: 13.5px; font-weight: 600; padding: 10px 6px; font-family: inherit; }
+  .tour-row .next { margin-left: auto; background: #0A1830; color: #fff; border-radius: 12px; padding: 11px 22px; font-size: 14.5px; font-weight: 700; font-family: inherit; min-height: 44px; }
+  .tour-dots { display: flex; gap: 5px; margin-left: 4px; }
+  .tour-dots i { width: 7px; height: 7px; border-radius: 50%; background: #D8DEE6; }
+  .tour-dots i.on { background: #0F8F83; }
 </style>
 </head>
 <body class="booting">
@@ -1697,6 +1865,7 @@
 <header class="lib-head">
   <div class="lib-brand"><img class="lg" src="/logo-96.webp" width="32" height="32" alt="">PPTNEETPGHUB<span class="lib-pr"><i>&middot;</i>Premium</span></div>
   <div class="lib-head-r">
+    <button class="lib-hbtn lib-tbtn" id="themeBtn" aria-label="Switch between light and dark mode" title="Light / dark"><svg class="moon" width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><svg class="sun" width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
     <button class="lib-hbtn lib-fbtn" id="libFilterBtn" aria-controls="libSide">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M7 12h10M10 18h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
       Filter <span class="lib-dot"></span>
@@ -1747,6 +1916,11 @@
   <aside class="lib-side" id="libSide" aria-label="Filter by subject">
     <div class="lib-drawer-top"><b>Filter by subject</b><button id="libFilterClose" aria-label="Close filter">&times;</button></div>
     <div class="lib-scroll">
+      <div class="lib-prefs">
+        <h3>Appearance</h3>
+        <div class="theme-seg" role="group" aria-label="Appearance"><button type="button" data-theme="auto">Auto</button><button type="button" data-theme="light">Light</button><button type="button" data-theme="dark">Dark</button></div>
+        <button type="button" class="tour-again" id="tourAgain">Take the quick tour again</button>
+      </div>
       <h3>Subject</h3>
       <div id="libSubjects"></div>
     </div>
@@ -2223,6 +2397,7 @@ function updateView() {
   const showLib = !!(authResolved && currentUser && membershipChecked && isPaidMember && deviceState.status === 'ok' && !forceJoin);
   document.getElementById('landingView').style.display = showLib ? 'none' : 'block';
   document.getElementById('libraryView').style.display = showLib ? 'block' : 'none';
+  document.documentElement.classList.toggle('in-lib', showLib);
   if (authResolved && (!currentUser || membershipChecked)) document.body.classList.remove('booting');
   document.getElementById('lhSignIn').textContent = currentUser ? 'Sign out' : 'Sign in';
   document.getElementById('menuSignIn').textContent = currentUser ? 'Sign out' : 'Member sign in';
@@ -4221,6 +4396,7 @@ async function loadResourcesFromFirestore() {
     ALL = list;
     libLoaded = true;
     libError = false;
+    setTimeout(maybeTour, 1100);
   } catch (e) {
     console.error("Could not load resources from Firestore", e);
     libError = true;
@@ -5082,6 +5258,106 @@ function startSample() {
 }
 document.getElementById("sampleStart").onclick = startSample;
 
+
+// ---------- Light / dark mode ----------
+function themePref() { try { const v = localStorage.getItem("pptTheme"); return v === "dark" || v === "auto" ? v : "light"; } catch (e) { return "light"; } }
+function themeIsDark(p) { return p === "dark" || (p === "auto" && !!(window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches)); }
+function applyTheme() {
+  const p = themePref();
+  document.documentElement.setAttribute("data-eff", themeIsDark(p) ? "dark" : "light");
+  document.querySelectorAll(".theme-seg button").forEach(b => b.classList.toggle("on", b.dataset.theme === p));
+}
+function setTheme(p) { try { localStorage.setItem("pptTheme", p); } catch (e) {} applyTheme(); }
+document.querySelectorAll(".theme-seg button").forEach(b => { b.onclick = () => setTheme(b.dataset.theme); });
+document.getElementById("themeBtn").onclick = () => setTheme(document.documentElement.getAttribute("data-eff") === "dark" ? "light" : "dark");
+if (window.matchMedia) { const mq = matchMedia("(prefers-color-scheme: dark)"); const fn = () => { if (themePref() === "auto") applyTheme(); }; if (mq.addEventListener) mq.addEventListener("change", fn); else if (mq.addListener) mq.addListener(fn); }
+applyTheme();
+
+// ---------- Quick tour the first time a member opens the library ----------
+const TOUR = { i: 0, steps: [], on: false };
+function tourKey() { return "pptTour:" + String((currentUser && currentUser.email) || "").toLowerCase(); }
+function tourVisible(el) { if (!el) return false; const r = el.getBoundingClientRect(); const cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.display !== "none" && cs.visibility !== "hidden"; }
+function tourSteps() {
+  const first = (...sels) => { for (const q of sels) { const e = document.querySelector(q); if (tourVisible(e)) return e; } return null; };
+  const list = [
+    { t: "Welcome to PPTNEETPGHUB Premium", b: "Here is a quick tour of where everything is. It takes less than a minute." },
+    { el: first("#libFilterBtn", "#libSide"), t: "Pick a subject", b: "Use Filter to see one subject at a time. Core subjects come first, and INICET is at the end." },
+    { el: first("#libPractice"), t: "Practice by subject", b: "Choose a subject and practise random questions with instant answers. Your wrong answers go to the Mistake notebook." },
+    { el: first(".lib-switch"), t: "Library, progress and notebook", b: "Library has all your files. My progress shows your scores and weak areas. Notebook keeps the questions you got wrong." },
+    { el: first("#libInstall2.on", "#libInstall"), t: "Install the app", b: "Add this website to your home screen so it opens like an app." },
+    { el: first("#helpFab"), t: "Need help?", b: "Tap here any time to message us on Telegram or WhatsApp." },
+    { t: "You are ready", b: "Tip: open Filter to switch between Light and Dark mode, or to see this tour again." }
+  ];
+  return list.filter(x => x.el !== null || (!("el" in x)));
+}
+function maybeTour() {
+  try {
+    if (TOUR.on || !currentUser || !document.documentElement.classList.contains("in-lib")) return;
+    if (localStorage.getItem(tourKey())) return;
+    if (document.querySelector("#trOverlay.on, #fcOverlay.on, #viewerOverlay.open, #libSide.open")) return;
+    startTour();
+  } catch (e) {}
+}
+function startTour() {
+  closeTour(false);
+  TOUR.steps = tourSteps(); TOUR.i = 0; TOUR.on = true;
+  const wrap = document.createElement("div"); wrap.className = "tour"; wrap.id = "tour"; wrap.setAttribute("role", "dialog"); wrap.setAttribute("aria-modal", "true");
+  wrap.innerHTML = '<div class="tour-hole" id="tourHole"></div><div class="tour-card" id="tourCard"><div class="n" id="tourN"></div><b id="tourT"></b><p id="tourB"></p><div class="tour-row"><button type="button" class="skip" id="tourSkip">Skip</button><div class="tour-dots" id="tourDots"></div><button type="button" class="next" id="tourNext">Next</button></div></div>';
+  document.body.appendChild(wrap);
+  document.getElementById("tourSkip").onclick = () => closeTour(true);
+  document.getElementById("tourNext").onclick = () => { if (TOUR.i >= TOUR.steps.length - 1) closeTour(true); else { TOUR.i++; showTourStep(); } };
+  document.addEventListener("keydown", tourKeys);
+  window.addEventListener("resize", tourReflow);
+  showTourStep();
+}
+function tourKeys(e) { if (e.key === "Escape") closeTour(true); else if (e.key === "Enter") { const n = document.getElementById("tourNext"); if (n && document.activeElement !== n) n.click(); } }
+function tourReflow() { if (TOUR.on) showTourStep(true); }
+function showTourStep(noScroll) {
+  const st = TOUR.steps[TOUR.i]; if (!st) return;
+  const hole = document.getElementById("tourHole"), card = document.getElementById("tourCard"), vw = window.innerWidth, vh = window.innerHeight;
+  document.getElementById("tourN").textContent = "Step " + (TOUR.i + 1) + " of " + TOUR.steps.length;
+  document.getElementById("tourT").textContent = st.t; document.getElementById("tourB").textContent = st.b;
+  document.getElementById("tourNext").textContent = TOUR.i >= TOUR.steps.length - 1 ? "Done" : (TOUR.i === 0 ? "Start" : "Next");
+  document.getElementById("tourSkip").style.visibility = TOUR.i >= TOUR.steps.length - 1 ? "hidden" : "visible";
+  const dots = document.getElementById("tourDots"); dots.innerHTML = ""; TOUR.steps.forEach((x, k) => { const d = document.createElement("i"); if (k === TOUR.i) d.className = "on"; dots.appendChild(d); });
+  if (st.el && !noScroll) {
+    try {
+      const tall = st.el.getBoundingClientRect().height > vh * 0.45;
+      st.el.scrollIntoView({ block: tall ? "start" : "center", behavior: "instant" });
+      if (tall) window.scrollBy(0, -84);
+    } catch (e) { st.el.scrollIntoView(); }
+  }
+  const cw = Math.min(340, vw - 24), ch = card.offsetHeight, gap = 12, M = 12;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  if (st.el) {
+    const r = st.el.getBoundingClientRect(), pad = 6;
+    let H = { l: Math.max(2, r.left - pad), t: Math.max(2, r.top - pad), r: Math.min(vw - 2, r.right + pad), b: Math.min(vh - 2, r.bottom + pad) };
+    const cx = clamp(r.left + r.width / 2 - cw / 2, M, vw - cw - M), cy = clamp(r.top + r.height / 2 - ch / 2, M, vh - ch - M);
+    const tries = [{ x: cx, y: H.b + gap }, { x: cx, y: H.t - gap - ch }, { x: H.r + gap, y: cy }, { x: H.l - gap - cw, y: cy }];
+    let pos = tries.find(c => c.x >= M && c.x + cw <= vw - M && c.y >= M && c.y + ch <= vh - M);
+    if (!pos) {                                   // the target is too big to sit beside the card: show the top part of it
+      const roomBelow = vh - M - ch - gap - H.t, roomAbove = H.b - gap - (M + ch + gap);
+      if (roomBelow >= 56 || roomBelow >= roomAbove) { pos = { x: cx, y: vh - M - ch }; H.b = Math.min(H.b, pos.y - gap); }
+      else { pos = { x: cx, y: M }; H.t = Math.max(H.t, pos.y + ch + gap); }
+    }
+    hole.style.display = "block";
+    hole.style.left = H.l + "px"; hole.style.top = H.t + "px"; hole.style.width = Math.max(24, H.r - H.l) + "px"; hole.style.height = Math.max(24, H.b - H.t) + "px";
+    card.style.left = pos.x + "px"; card.style.top = pos.y + "px";
+    document.getElementById("tour").style.background = "transparent";
+  } else {
+    hole.style.display = "none";
+    card.style.left = Math.max(M, (vw - cw) / 2) + "px"; card.style.top = Math.max(M, (vh - ch) / 2) + "px";
+    document.getElementById("tour").style.background = "rgba(5,10,20,0.74)";
+  }
+  const n = document.getElementById("tourNext"); if (n) n.focus({ preventScroll: true });
+}
+function closeTour(markDone) {
+  const w = document.getElementById("tour"); if (w) w.remove();
+  document.removeEventListener("keydown", tourKeys); window.removeEventListener("resize", tourReflow);
+  if (TOUR.on && markDone) { try { localStorage.setItem(tourKey(), String(Date.now())); } catch (e) {} }
+  TOUR.on = false;
+}
+document.getElementById("tourAgain").onclick = () => { closeFilter(); setTimeout(() => startTour(), 250); };
 
 render();
 initLanding();
