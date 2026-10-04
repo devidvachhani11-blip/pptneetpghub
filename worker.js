@@ -299,6 +299,9 @@ async function hasPreview(request, env) {
   const m = new RegExp('(?:^|;\\s*)' + PREVIEW_COOKIE + '=([a-f0-9]{64})').exec(request.headers.get('Cookie') || '');
   return !!m && sameText(m[1], await previewHash(env.PREVIEW_KEY));
 }
+// Cloudflare Web Analytics (free, no cookies). Counts page views on the public pages.
+const CF_BEACON = '<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon=\'{"token": "362cf34ae1ca4d419ca60743b0ca099f"}\'></script>';
+
 function soonPage(env, url) {
   const site = String(siteOf(env, url));
   const css = '*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Poppins,system-ui,sans-serif;color:#fff;background:radial-gradient(800px 460px at 88% -5%,rgba(212,175,85,.22),transparent 62%),radial-gradient(700px 520px at -5% 105%,rgba(15,143,131,.30),transparent 60%),#0A1830;display:flex;align-items:center;justify-content:center;padding:28px 20px}' +
@@ -312,7 +315,7 @@ function soonPage(env, url) {
     '<meta name="robots" content="noindex,follow"><link rel="canonical" href="' + h(site) + '/"><meta name="theme-color" content="#0A1830">' +
     '<meta property="og:title" content="PPTNEETPGHUB Premium | Coming soon"><meta property="og:image" content="' + h(site) + '/icon-512.png">' +
     '<link rel="icon" href="/icon-192.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">' +
-    '<style>' + css + '</style></head><body><main class="box"><img class="lg" src="/logo-360.webp" width="150" height="150" alt="PPTNEETPGHUB Premium">' +
+    '<style>' + css + '</style>' + CF_BEACON + '</head><body><main class="box"><img class="lg" src="/logo-360.webp" width="150" height="150" alt="PPTNEETPGHUB Premium">' +
     '<div class="tag">NEET PG &middot; INICET</div><h1>Coming <span>soon</span></h1>' +
     '<p>Notes, tests and revision tools are getting ready. Until then, read the latest news and counselling updates.</p>' +
     '<div class="row"><a class="b g" href="/news">Latest news</a><a class="b o" href="/counselling">Counselling updates</a><a class="b o" href="https://t.me/D_V11111" target="_blank" rel="noopener">Message us on Telegram</a></div>' +
@@ -474,7 +477,7 @@ function shellFull(site, o) {
     '<meta property="og:type" content="' + (o.ogType || 'website') + '"><meta property="og:title" content="' + h(o.title) + '"><meta property="og:description" content="' + h(o.desc) + '"><meta property="og:url" content="' + h(canonical) + '"><meta property="og:site_name" content="PPTNEETPGHUB">' +
     '<meta name="twitter:card" content="summary"><meta name="theme-color" content="#0A1830">' +
     '<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">' +
-    '<style>' + NEWS_CSS + '</style>' + ld + '</head><body>' +
+    '<style>' + NEWS_CSS + '</style>' + ld + CF_BEACON + '</head><body>' +
     '<header class="top"><div class="in"><a class="brand" href="/"><img src="/logo-96.webp" width="30" height="30" alt="" style="border-radius:50%;vertical-align:middle;margin-right:8px">PPTNEETPGHUB<i>&middot;</i><span class="pr">Premium</span></a><nav class="m"><a class="hide" href="/news">News</a><a class="hide" href="/study-tips">Study tips</a><a class="hide" href="/counselling">Counselling</a><a class="btn" href="/#join">Go Premium</a>' +
       '<details class="menu"><summary aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></summary><div class="panel">' +
       '<a href="/">Home</a><a href="/#features">What you get</a><a href="/#pricing">Pricing</a><a href="/news">News</a><a href="/study-tips">Study tips</a><a href="/counselling">Counselling</a><a href="/#faq">FAQ</a><hr><a href="/" style="color:#D4AF55;font-weight:700">Member sign in</a></div></details></nav></div></header>' +
