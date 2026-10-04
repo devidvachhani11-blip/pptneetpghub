@@ -458,6 +458,7 @@
       <button class="tab-btn" data-panel="bulkPanel">Bulk Upload</button>
       <button class="tab-btn" data-panel="testsPanel">Add Test</button>
       <button class="tab-btn" data-panel="gtPanel">Real Test (GT)</button>
+      <button class="tab-btn" data-panel="dropsPanel">Recent Drops</button>
       <button class="tab-btn" data-panel="bankPanel">Question Bank</button>
       <button class="tab-btn" data-panel="newsPanel">News</button>
       <button class="tab-btn" data-panel="counsellingPanel">Counselling</button>
@@ -677,6 +678,20 @@
         </div>
         <div id="t_preview" class="t-preview"></div>
         <button class="btn" id="t_publish">Publish test</button>
+      </div>
+    </div>
+
+    <!-- Recent drops (home page card for visitors) -->
+    <div id="dropsPanel" style="display:none;">
+      <div class="card">
+        <h3>Recent drops (home page)</h3>
+        <p class="hint" style="margin-top:-6px">Up to 3 lines shown to visitors on the home page, under "Recent drops". You type them yourself. Nothing is read from your resources. Newest date shows first. Leave a row empty to hide it. If all 3 are empty, the card is hidden.</p>
+        <div id="rd_rows"></div>
+        <div class="t-actions">
+          <button class="btn" id="rd_save">Save</button>
+          <button class="btn outline" id="rd_reload">Undo changes</button>
+        </div>
+        <p class="hint" id="rd_status"></p>
       </div>
     </div>
 
@@ -1038,6 +1053,8 @@ window.addEventListener('fbReady', () => {
   document.getElementById('t_publish').addEventListener('click', publishTest);
   document.getElementById('t_imgs').addEventListener('change', (e) => { pickImages(TIMG, e.target.files, document.getElementById('t_imgList'), true); e.target.value = ''; });
   initGT();
+  document.getElementById('rd_save').addEventListener('click', saveDrops);
+  document.getElementById('rd_reload').addEventListener('click', loadDrops);
   document.getElementById('resTests').addEventListener('click', () => { RESULTS.view = 'tests'; renderResults(); });
   document.getElementById('resStudents').addEventListener('click', () => { RESULTS.view = 'students'; renderResults(); });
   document.getElementById('resRefresh').addEventListener('click', loadResults);
@@ -1056,10 +1073,11 @@ window.addEventListener('fbReady', () => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      ['homePanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'gtPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'launchPanel', 'membersPanel', 'listPanel'].forEach(id => {
+      ['homePanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'gtPanel', 'dropsPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'launchPanel', 'membersPanel', 'listPanel'].forEach(id => {
         document.getElementById(id).style.display = (id === btn.dataset.panel) ? 'block' : 'none';
       });
       if (btn.dataset.panel === 'homePanel') loadHome();
+      if (btn.dataset.panel === 'dropsPanel') loadDrops();
       if (btn.dataset.panel === 'bankPanel') { fillTestPicker(); loadBank(); }
       if (btn.dataset.panel === 'resultsPanel' && !RESULTS.loaded) loadResults();
       if (['newsPanel', 'counsellingPanel', 'tipsPanel'].indexOf(btn.dataset.panel) > -1 && !NEWS.loaded) loadNews();
@@ -1501,6 +1519,76 @@ async function publishTest() {
 }
 
 
+
+// ---------- Recent drops (home page card for visitors) ----------
+// Saved in "config/recent" as { items: [{ s: subject, t: title, d: "YYYY-MM-DD" }] }. The home page reads it with no sign-in.
+const RD = { n: 3, max: 90, loaded: false };
+function rdToday() { const n = new Date(); return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0'); }
+function rdBuild() {
+  const wrap = document.getElementById('rd_rows');
+  if (wrap.children.length) return;
+  for (let i = 0; i < RD.n; i++) {
+    const row = mk('div', 'gt-box');
+    const head = mk('div', 'gt-head'); head.appendChild(mk('b', null, 'Line ' + (i + 1)));
+    const cnt = mk('span', 'gt-cnt', '0 / ' + RD.max); cnt.id = 'rd_cnt' + i; head.appendChild(cnt);
+    const clr = mk('button', 'btn outline', 'Clear'); clr.type = 'button'; clr.style.cssText = 'padding:4px 10px;font-size:12px;margin:0';
+    clr.addEventListener('click', () => { document.getElementById('rd_t' + i).value = ''; document.getElementById('rd_d' + i).value = ''; document.getElementById('rd_s' + i).value = ''; rdCount(i); });
+    head.appendChild(clr);
+    row.appendChild(head);
+    const sel = document.createElement('select'); sel.id = 'rd_s' + i; row.appendChild(sel);
+    const t = document.createElement('input'); t.type = 'text'; t.id = 'rd_t' + i; t.maxLength = RD.max; t.placeholder = 'e.g. 100 drug choice traps, high yield for NEET PG 2027'; t.style.marginTop = '6px';
+    row.appendChild(t);
+    const d = document.createElement('input'); d.type = 'date'; d.id = 'rd_d' + i; d.max = rdToday(); d.style.marginTop = '6px'; d.dataset.touched = '';
+    d.addEventListener('change', () => { d.dataset.touched = '1'; });
+    row.appendChild(d);
+    // typing a new line sets today's date, unless you picked a date yourself
+    t.addEventListener('input', () => { rdCount(i); if (!d.dataset.touched) d.value = rdToday(); });
+    wrap.appendChild(row);
+    fillSubjectSelect('rd_s' + i, 'No subject', false);
+  }
+}
+function rdCount(i) {
+  const len = document.getElementById('rd_t' + i).value.length, el = document.getElementById('rd_cnt' + i);
+  el.textContent = len + ' / ' + RD.max; el.className = 'gt-cnt' + (len ? ' ok' : '');
+}
+async function loadDrops() {
+  rdBuild();
+  const st = document.getElementById('rd_status');
+  try {
+    const { db, doc, getDoc } = window.__fb;
+    const snap = await getDoc(doc(db, 'config', 'recent'));
+    const items = snap.exists() && Array.isArray(snap.data().items) ? snap.data().items : [];
+    for (let i = 0; i < RD.n; i++) {
+      const x = items[i] || {};
+      fillSubjectSelect('rd_s' + i, 'No subject', false);
+      document.getElementById('rd_s' + i).value = x.s || '';
+      document.getElementById('rd_t' + i).value = x.t || '';
+      const d = document.getElementById('rd_d' + i); d.value = x.d || ''; d.dataset.touched = x.d ? '1' : '';
+      rdCount(i);
+    }
+    RD.loaded = true;
+    st.textContent = items.length ? 'Loaded the ' + items.length + ' saved ' + (items.length === 1 ? 'line' : 'lines') + '.' : 'Nothing saved yet.';
+  } catch (e) { st.textContent = 'Could not load: ' + e.message; }
+}
+async function saveDrops() {
+  const items = [];
+  for (let i = 0; i < RD.n; i++) {
+    const t = document.getElementById('rd_t' + i).value.replace(/\s+/g, ' ').trim();
+    if (!t) continue;
+    if (t.length > RD.max) { showToast('Line ' + (i + 1) + ' is too long. Keep it under ' + RD.max + ' characters.', true); return; }
+    const d = document.getElementById('rd_d' + i).value || rdToday();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || d > rdToday()) { showToast('Line ' + (i + 1) + ': the date cannot be in the future.', true); return; }
+    items.push({ s: document.getElementById('rd_s' + i).value || '', t, d });
+  }
+  const btn = document.getElementById('rd_save'); btn.disabled = true;
+  try {
+    const { db, doc, setDoc, serverTimestamp } = window.__fb;
+    await setDoc(doc(db, 'config', 'recent'), { items, updatedAt: serverTimestamp() });
+    showToast(items.length ? '\u2714 Saved ' + items.length + (items.length === 1 ? ' line' : ' lines') + '. Visitors see it on the home page.' : '\u2714 Saved. The Recent drops card is now hidden.');
+    await loadDrops();
+  } catch (e) { showToast('Failed: ' + e.message, true); }
+  finally { btn.disabled = false; }
+}
 
 // ---------- Real Test (GT style) ----------
 // 180 MCQs = 5 groups (A to E) x 36. 42 minutes per group, +4 / -1 / 0, maximum 720.

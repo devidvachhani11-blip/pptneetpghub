@@ -1158,6 +1158,7 @@
   .upd .dt { font-size: 12px; color: var(--gray); margin-left: 6px; }
   .upd b { display: block; margin-top: 8px; font-size: 15px; line-height: 1.4; color: var(--navy); }
   #tips .upd .pill { background: #DDF3EF; color: #0B6F66; }
+  #drops .upd .pill { background: #FFF1CC; color: #7A5A00; }
   .upd-more { display: inline-block; margin-top: 16px; font-weight: 700; font-size: 14px; color: var(--teal); text-decoration: none; }
   .lib-news { background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--gold-b); border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; }
   .lib-news h4 { margin: 0 0 6px; font-size: 13px; font-weight: 800; color: var(--navy); }
@@ -1627,6 +1628,17 @@
     </div>
     <div class="offer" id="offerBand"></div>
     <div class="hero-end"></div>
+  </div>
+</section>
+
+<section class="sec white" id="drops" style="display:none;padding:40px 0 8px;">
+  <div class="container">
+    <div class="sec-head" style="--bar:var(--gold-b)">
+      <h2>Recent drops.</h2>
+      <p>What we added lately for NEET PG 2027.</p>
+    </div>
+    <div class="upd-grid" id="dropsList"></div>
+    <a class="upd-more" href="#pricing">See pricing &rarr;</a>
   </div>
 </section>
 
@@ -2325,6 +2337,7 @@ onFbReady(() => {
   const { auth, onAuthStateChanged } = window.__fb;
   loadPricing();
   loadSample();
+  loadRecentDrops();
 
   onAuthStateChanged(auth, async (user) => {
     currentUser = user;
@@ -2656,6 +2669,42 @@ async function refreshStatus() {
   paintRenewBar();
   if (isPaidMember && deviceState.status === 'ok') { loadResourcesFromFirestore(); loadAttempts(); window.scrollTo(0, 0); }
   else if (!isPaidMember) showToast('Still under review');
+}
+
+// ---------- Recent drops (typed by the admin in config/recent, shown to visitors) ----------
+function dropAgo(d) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || '');
+  if (!m) return '';
+  const now = new Date(), a = new Date(now.getFullYear(), now.getMonth(), now.getDate()), b = new Date(+m[1], +m[2] - 1, +m[3]);
+  const days = Math.round((a - b) / 86400000);
+  if (days <= 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return days + ' days ago';
+  return b.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+async function loadRecentDrops() {
+  if (!window.__fb) return;
+  let items = [];
+  try {
+    const { db, doc, getDoc } = window.__fb;
+    const snap = await getDoc(doc(db, 'config', 'recent'));
+    if (snap.exists() && Array.isArray(snap.data().items)) items = snap.data().items;
+  } catch (e) { return; }
+  items = items.filter(x => x && typeof x.t === 'string' && x.t.trim() && x.t.length <= 140 && /^\d{4}-\d{2}-\d{2}$/.test(String(x.d || '')))
+    .map((x, i) => ({ s: typeof x.s === 'string' ? x.s.slice(0, 40) : '', t: x.t.trim(), d: x.d, i }))
+    .sort((p, q) => (q.d < p.d ? -1 : q.d > p.d ? 1 : p.i - q.i)).slice(0, 3);
+  const sec = document.getElementById('drops'), list = document.getElementById('dropsList');
+  if (!sec || !list) return;
+  list.innerHTML = '';
+  if (!items.length) { sec.style.display = 'none'; return; }
+  items.forEach(n => {
+    const a = document.createElement('a'); a.className = 'upd'; a.href = '#pricing';
+    const p = document.createElement('span'); p.className = 'pill'; p.textContent = n.s || 'New';
+    const d = document.createElement('span'); d.className = 'dt'; d.textContent = dropAgo(n.d);
+    const b = document.createElement('b'); b.textContent = n.t;
+    a.appendChild(p); a.appendChild(d); a.appendChild(b); list.appendChild(a);
+  });
+  sec.style.display = '';
 }
 
 // ---------- Latest updates (from the public news pages) ----------
