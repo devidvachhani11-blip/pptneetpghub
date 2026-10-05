@@ -1670,7 +1670,7 @@ async function lbPublish() {
     const { db, doc, setDoc, serverTimestamp } = window.__fb;
     await setDoc(doc(db, 'leaderboards', res.testId), {
       testId: res.testId, title: res.title, max: res.max, total: res.rows.length,
-      all: res.rows.map(r => [r.id, r.score, r.w]), publishedAt: serverTimestamp()
+      all: res.rows.map(r => ({ i: r.id, s: r.score, w: r.w })), publishedAt: serverTimestamp()
     });
     showToast('\u2714 Top 10 published for "' + res.title + '".');
     lbStatus();

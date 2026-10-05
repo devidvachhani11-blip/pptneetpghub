@@ -4027,13 +4027,13 @@ function trRenderGtDone() {
 // ---------- Top 10 (anonymous: member ID and score only) ----------
 function lbHTML(d, myId) {
   const all = Array.isArray(d.all) ? d.all : [];
-  const mine = myId ? all.findIndex(x => String(x[0]) === String(myId)) : -1;
+  const mine = myId ? all.findIndex(x => String(x.i) === String(myId)) : -1;
   let h = '<div class="blk-res"><div class="row"><b>Top 10</b><span>' + all.length + (all.length === 1 ? ' student' : ' students') + '</span></div>';
   all.slice(0, 10).forEach((x, i) => {
-    h += '<div class="row' + (String(x[0]) === String(myId) ? ' me' : '') + '"><b>#' + (i + 1) + ' \u00B7 ID ' + esc(String(x[0])) + '</b><span>' + esc(String(x[1])) + ' / ' + esc(String(d.max)) + '</span></div>';
+    h += '<div class="row' + (String(x.i) === String(myId) ? ' me' : '') + '"><b>#' + (i + 1) + ' \u00B7 ID ' + esc(String(x.i)) + '</b><span>' + esc(String(x.s)) + ' / ' + esc(String(d.max)) + '</span></div>';
   });
   h += '</div>';
-  if (mine >= 0) h += '<div class="tr-cmp">Your rank: <b>#' + (mine + 1) + '</b> of ' + all.length + ' (first attempt, ' + esc(String(all[mine][1])) + ' / ' + esc(String(d.max)) + ')</div>';
+  if (mine >= 0) h += '<div class="tr-cmp">Your rank: <b>#' + (mine + 1) + '</b> of ' + all.length + ' (first attempt, ' + esc(String(all[mine].s)) + ' / ' + esc(String(d.max)) + ')</div>';
   else if (myId) h += '<div class="tr-cmp">Your first attempt is not in this list.</div>';
   return h;
 }
@@ -4137,7 +4137,7 @@ async function trShareCard() {
     });
     let y = by + 190;
     if (TR.lb && memberInfo.id) {
-      const all = Array.isArray(TR.lb.all) ? TR.lb.all : [], mine = all.findIndex(z => String(z[0]) === String(memberInfo.id));
+      const all = Array.isArray(TR.lb.all) ? TR.lb.all : [], mine = all.findIndex(z => String(z.i) === String(memberInfo.id));
       if (mine >= 0) { x.fillStyle = "#D4AF55"; x.font = "800 46px " + F; x.fillText("Rank #" + (mine + 1) + " of " + all.length, W / 2, y); y += 50; }
     }
     if (r.blocks) {
