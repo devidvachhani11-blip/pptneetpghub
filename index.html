@@ -1930,7 +1930,6 @@
 
     <div class="exp-bar" id="libExpiry" style="display:none;"></div>
     <div class="tg-card" id="libTg" style="display:none;"></div>
-    <div class="lib-news" id="libNews" style="display:none;"></div>
 
     <div id="libBrowse">
     <button class="inst-bar" id="libInstall2" type="button"><img src="/logo-96.webp" width="26" height="26" alt="" style="border-radius:50%;display:block">Install the app on your phone</button>
@@ -2761,7 +2760,6 @@ async function loadLatestUpdates() {
     });
     sec.style.display = '';
   }
-  paintLibNews();
 }
 async function loadStudyTips() {
   let items = [];
@@ -2781,22 +2779,6 @@ async function loadStudyTips() {
   });
   sec.style.display = '';
 }
-function paintLibNews() {
-  const box = document.getElementById('libNews');
-  if (!box) return;
-  if (!NEWS_LATEST.length || libView !== 'library') { box.style.display = 'none'; return; }
-  box.innerHTML = '';
-  const h = document.createElement('h4'); h.textContent = 'Latest updates'; box.appendChild(h);
-  NEWS_LATEST.slice(0, 2).forEach(n => {
-    const a = document.createElement('a'); a.href = '/news/' + encodeURIComponent(n.slug); a.target = '_blank'; a.rel = 'noopener';
-    const sp = document.createElement('span'); sp.textContent = newsDate(n.date);
-    a.appendChild(sp); a.appendChild(document.createTextNode(n.title)); box.appendChild(a);
-  });
-  const all = document.createElement('a'); all.className = 'all'; all.href = '/news'; all.target = '_blank'; all.rel = 'noopener'; all.textContent = 'See all updates →';
-  box.appendChild(all);
-  box.style.display = '';
-}
-
 // Drop-down menu in the top bar (phones and small tablets)
 function setMenu(open) {
   const btn = document.getElementById('lMenuBtn'), panel = document.getElementById('lMenuPanel');
@@ -4149,7 +4131,7 @@ function trSpeedHTML() {
   return h + '</div>';
 }
 
-// ---------- Share score card (a picture made on the phone, no name on it) ----------
+// ---------- Share score card (a picture made on the phone: your member ID, never your name) ----------
 async function trShareCard() {
   const t = TR.t, r = TR.res;
   if (!t || !r) return;
@@ -4157,44 +4139,101 @@ async function trShareCard() {
     const W = 1080, H = 1350, c = document.createElement("canvas");
     c.width = W; c.height = H;
     const x = c.getContext("2d"), F = "Poppins, 'Segoe UI', Arial, sans-serif";
-    const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#0A1A33"); g.addColorStop(1, "#16294A");
-    x.fillStyle = g; x.fillRect(0, 0, W, H);
-    x.strokeStyle = "#D4AF55"; x.lineWidth = 6; x.strokeRect(36, 36, W - 72, H - 72);
+    const GOLD = "#D4AF55", GOLD_L = "#F6E6A8", GOLD_D = "#A97E22";
+    const rr = (px, py, w, h, rad) => { x.beginPath(); if (x.roundRect) x.roundRect(px, py, w, h, rad); else x.rect(px, py, w, h); };
+    const spaced = (px) => { try { x.letterSpacing = px + "px"; } catch (e) {} };
     x.textAlign = "center";
+    // background and a soft gold glow behind the score
+    const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#07142B"); g.addColorStop(1, "#13264A");
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    const glow = x.createRadialGradient(W / 2, 640, 20, W / 2, 640, 520); glow.addColorStop(0, "rgba(212,175,85,0.30)"); glow.addColorStop(1, "rgba(212,175,85,0)");
+    x.fillStyle = glow; x.fillRect(0, 0, W, H);
+    // double gold border with corner diamonds
+    x.strokeStyle = GOLD; x.lineWidth = 5; x.strokeRect(30, 30, W - 60, H - 60);
+    x.strokeStyle = "rgba(212,175,85,0.55)"; x.lineWidth = 2; x.strokeRect(48, 48, W - 96, H - 96);
+    x.fillStyle = GOLD;
+    [[30, 30], [W - 30, 30], [30, H - 30], [W - 30, H - 30]].forEach(p => { x.save(); x.translate(p[0], p[1]); x.rotate(Math.PI / 4); x.fillRect(-11, -11, 22, 22); x.restore(); });
+    // logo
+    let y = 98;
     try {
       const img = await new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = "/logo-360.webp"; });
-      x.save(); x.beginPath(); x.arc(W / 2, 150, 75, 0, Math.PI * 2); x.clip(); x.drawImage(img, W / 2 - 75, 75, 150, 150); x.restore();
-      x.strokeStyle = "#D4AF55"; x.lineWidth = 5; x.beginPath(); x.arc(W / 2, 150, 75, 0, Math.PI * 2); x.stroke();
+      x.save(); x.beginPath(); x.arc(W / 2, y + 58, 58, 0, Math.PI * 2); x.clip(); x.drawImage(img, W / 2 - 58, y, 116, 116); x.restore();
+      x.strokeStyle = GOLD; x.lineWidth = 4; x.beginPath(); x.arc(W / 2, y + 58, 58, 0, Math.PI * 2); x.stroke();
+      x.strokeStyle = "rgba(212,175,85,0.4)"; x.lineWidth = 2; x.beginPath(); x.arc(W / 2, y + 58, 68, 0, Math.PI * 2); x.stroke();
     } catch (e) {}
-    x.fillStyle = "#FFFFFF"; x.font = "800 50px " + F; x.fillText("PPTNEETPGHUB Premium", W / 2, 300);
-    x.fillStyle = "#D4AF55"; x.font = "600 30px " + F; x.fillText("NEET PG 2027", W / 2, 344);
+    y = 262;
+    x.fillStyle = "#FFFFFF"; x.font = "800 48px " + F; spaced(1); x.fillText("PPTNEETPGHUB", W / 2, y);
+    y += 40; x.fillStyle = GOLD; x.font = "600 24px " + F; spaced(7); x.fillText("PREMIUM  \u00B7  NEET PG 2027", W / 2, y); spaced(0);
+    // member ID tag (always shown when the member has an ID)
+    y += 26;
+    if (memberInfo.id) {
+      const txt = "MEMBER ID  " + memberInfo.id;
+      x.font = "700 30px " + F; spaced(3);
+      const tw = x.measureText(txt).width + 60;
+      rr(W / 2 - tw / 2, y, tw, 56, 28); x.fillStyle = "rgba(212,175,85,0.14)"; x.fill(); x.strokeStyle = GOLD; x.lineWidth = 2.5; x.stroke();
+      x.fillStyle = GOLD_L; x.fillText(txt, W / 2, y + 38); spaced(0);
+      y += 56;
+    }
     // test title, up to two lines
-    x.fillStyle = "#DCE5F5"; x.font = "600 40px " + F;
-    const words = String(t.title || "").split(/\s+/); const lines = []; let cur = "";
-    words.forEach(w => { const tryLine = cur ? cur + " " + w : w; if (x.measureText(tryLine).width > W - 220 && cur) { lines.push(cur); cur = w; } else cur = tryLine; });
+    y += 48;
+    x.fillStyle = "#E4ECFA"; x.font = "600 38px " + F;
+    const words = String(t.title || "").split(/\s+/), lines = []; let cur = "";
+    words.forEach(w => { const tl = cur ? cur + " " + w : w; if (x.measureText(tl).width > W - 240 && cur) { lines.push(cur); cur = w; } else cur = tl; });
     if (cur) lines.push(cur);
-    lines.slice(0, 2).forEach((ln, k) => x.fillText(ln + (k === 1 && lines.length > 2 ? "\u2026" : ""), W / 2, 410 + k * 52));
-    const top = 410 + Math.min(lines.length, 2) * 52 + 10;
-    x.fillStyle = "#FFFFFF"; x.font = "800 190px " + F; x.fillText(String(r.score), W / 2, top + 150);
-    x.fillStyle = "#9FB0CC"; x.font = "600 44px " + F; x.fillText("out of " + r.max, W / 2, top + 205);
-    // right / wrong / skipped
-    const bx = [[r.c, "Correct", "#3FCB9B"], [r.w, "Wrong", "#F07C7C"], [r.s, "Skipped", "#B4C0D6"]], bw = 270, gap = 30, x0 = (W - (bw * 3 + gap * 2)) / 2, by = top + 250;
+    lines.slice(0, 2).forEach((ln, k) => x.fillText(ln + (k === 1 && lines.length > 2 ? "\u2026" : ""), W / 2, y + k * 48));
+    y += (Math.min(lines.length, 2) - 1) * 48;
+    // the big score in gold
+    y += 176;
+    const sg = x.createLinearGradient(0, y - 138, 0, y + 6); sg.addColorStop(0, GOLD_L); sg.addColorStop(0.55, GOLD); sg.addColorStop(1, GOLD_D);
+    x.fillStyle = sg; x.font = "800 174px " + F; x.fillText(String(r.score), W / 2, y);
+    y += 52; x.fillStyle = "#A9B8D4"; x.font = "600 38px " + F; x.fillText("out of " + r.max, W / 2, y);
+    // accuracy pill
+    y += 24;
+    const acc = "Accuracy " + r.acc + "%";
+    x.font = "700 28px " + F; const aw = x.measureText(acc).width + 56;
+    rr(W / 2 - aw / 2, y, aw, 46, 23); x.fillStyle = "rgba(255,255,255,0.09)"; x.fill();
+    x.fillStyle = "#FFFFFF"; x.fillText(acc, W / 2, y + 32);
+    // correct / wrong / skipped
+    y += 68;
+    const bx = [[r.c, "Correct", "#3FCB9B"], [r.w, "Wrong", "#F07C7C"], [r.s, "Skipped", "#B4C0D6"]], bw = 266, gap = 28, x0 = (W - (bw * 3 + gap * 2)) / 2;
     bx.forEach((b, k) => {
       const bl = x0 + k * (bw + gap);
-      x.fillStyle = "rgba(255,255,255,0.08)"; x.beginPath(); x.roundRect ? x.roundRect(bl, by, bw, 130, 22) : x.rect(bl, by, bw, 130); x.fill();
-      x.fillStyle = b[2]; x.font = "800 58px " + F; x.fillText(String(b[0]), bl + bw / 2, by + 68);
-      x.fillStyle = "#9FB0CC"; x.font = "600 28px " + F; x.fillText(b[1], bl + bw / 2, by + 108);
+      rr(bl, y, bw, 100, 20); x.fillStyle = "rgba(255,255,255,0.07)"; x.fill(); x.strokeStyle = "rgba(212,175,85,0.30)"; x.lineWidth = 1.5; x.stroke();
+      x.fillStyle = b[2]; x.font = "800 48px " + F; x.fillText(String(b[0]), bl + bw / 2, y + 54);
+      x.fillStyle = "#9FB0CC"; x.font = "600 24px " + F; x.fillText(b[1], bl + bw / 2, y + 86);
     });
-    let y = by + 190;
-    if (TR.lb && memberInfo.id) {
-      const all = Array.isArray(TR.lb.all) ? TR.lb.all : [], mine = all.findIndex(z => String(z.i) === String(memberInfo.id));
-      if (mine >= 0) { x.fillStyle = "#D4AF55"; x.font = "800 46px " + F; x.fillText("Rank #" + (mine + 1) + " of " + all.length, W / 2, y); y += 50; }
+    y += 100;
+    // rank badge (only when your Top 10 is published)
+    if (TR.lb) {
+      const all = Array.isArray(TR.lb.all) ? TR.lb.all : [], mine = memberInfo.id ? all.findIndex(z => String(z.i) === String(memberInfo.id)) : -1;
+      if (mine >= 0) {
+        y += 20;
+        const rt = "RANK  #" + (mine + 1) + "  OF  " + all.length;
+        x.font = "800 34px " + F; spaced(2); const rw = x.measureText(rt).width + 70;
+        rr(W / 2 - rw / 2, y, rw, 56, 28);
+        const bg = x.createLinearGradient(W / 2 - rw / 2, 0, W / 2 + rw / 2, 0); bg.addColorStop(0, GOLD_L); bg.addColorStop(1, GOLD);
+        x.fillStyle = bg; x.fill(); x.fillStyle = "#0A1A33"; x.fillText(rt, W / 2, y + 39); spaced(0);
+        y += 56;
+      }
     }
-    if (r.blocks) {
-      x.font = "600 32px " + F; x.fillStyle = "#DCE5F5";
-      r.blocks.slice(0, 5).forEach(b => { x.fillText(b.name + "  \u00B7  " + b.score, W / 2, y); y += 42; });
+    // group bars (Real Test and timed blocks)
+    if (r.blocks && r.blocks.length) {
+      y += 26;
+      const bl = 150, bwid = 560, bxL = (W - (bl + bwid + 130)) / 2;
+      r.blocks.slice(0, 5).forEach(b => {
+        const mx = Math.max(1, (b.c + b.w + b.s) * (t.plus || 1)), pct = Math.max(0, Math.min(1, b.score / mx));
+        x.textAlign = "left"; x.fillStyle = "#DCE5F5"; x.font = "600 27px " + F; x.fillText(b.name, bxL, y + 22);
+        rr(bxL + bl, y + 4, bwid, 20, 10); x.fillStyle = "rgba(255,255,255,0.10)"; x.fill();
+        if (pct > 0) { rr(bxL + bl, y + 4, Math.max(20, bwid * pct), 20, 10); const fg = x.createLinearGradient(bxL + bl, 0, bxL + bl + bwid, 0); fg.addColorStop(0, GOLD_D); fg.addColorStop(1, GOLD_L); x.fillStyle = fg; x.fill(); }
+        x.textAlign = "right"; x.fillStyle = "#FFFFFF"; x.font = "700 27px " + F; x.fillText(String(b.score), bxL + bl + bwid + 130, y + 22);
+        y += 40;
+      });
+      x.textAlign = "center";
     }
-    x.fillStyle = "#D4AF55"; x.font = "700 34px " + F; x.fillText("pptneetpghub.com", W / 2, H - 62);
+    // footer
+    x.fillStyle = "rgba(212,175,85,0.55)"; x.fillRect(W / 2 - 150, H - 132, 300, 2);
+    x.fillStyle = GOLD; x.font = "700 32px " + F; spaced(1); x.fillText("pptneetpghub.com", W / 2, H - 92); spaced(0);
+    x.fillStyle = "#8C9DBC"; x.font = "500 22px " + F; x.fillText(new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }), W / 2, H - 64);
     const blob = await new Promise(res => c.toBlob(res, "image/png"));
     if (!blob) throw new Error("no picture");
     const file = new File([blob], "my-score-card.png", { type: "image/png" });
@@ -5106,7 +5145,6 @@ function render() {
   document.getElementById("vwProg").classList.toggle("on", prog);
   document.getElementById("vwNb").classList.toggle("on", nbk);
   renderHeading();
-  paintLibNews();
   paintExpiry();
   paintTg();
   paintTop10();
