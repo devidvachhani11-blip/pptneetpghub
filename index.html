@@ -3345,7 +3345,7 @@ const TR = { blocks: [], blk: -1, nbNote: 0, prev: null, t: null, ans: [], marke
 // Pictures are private files, fetched with the student's sign-in and shown from memory.
 // They load when the question comes into view, and the next question's picture is fetched ahead.
 TR.imgs = new Map();   // reference -> blob URL
-TR.times = []; TR.qIdx = -1; TR.qSince = 0; TR.runId = ""; TR.lb = null;   // seconds per question, Real Test run, Top 10 list
+TR.times = []; TR.qIdx = -1; TR.qSince = 0; TR.runId = ""; TR.lb = null; TR.first = false; TR.firstInfo = null;   // seconds per question, Real Test run, Top 10 list
 let trObs = null;
 
 async function trImgLoad(ref) {
@@ -3802,9 +3802,38 @@ async function trFinish(auto) {
   trForget();
   TR.nbNote = t.practice ? practiceRecord(t, TR.ans) : t.sample ? 0 : trSynthetic() ? nbPracticeDone(t, TR.ans) : 0;
   if (!trSynthetic()) nbRecordResult(t, TR.ans);
+  TR.first = trSynthetic() ? false : null; TR.firstInfo = null;      // null = still checking
   trRenderResult();
-  if (!trSynthetic() || t.practice) trSaveAttempt(TR.res);
+  if (!trSynthetic()) await trCheckFirst();                            // look at the saved results BEFORE saving this one
+  if (!trSynthetic() || t.practice) await trSaveAttempt(TR.res);
 }
+
+// ---------- Score card: only for the FIRST attempt of a test (checked in Firebase, not on the phone) ----------
+async function trCheckFirst() {
+  const t = TR.t;
+  if (!t || !currentUser || !window.__fb) { TR.first = "unknown"; return; }
+  try {
+    const { db, collection, getDocs, query, where } = window.__fb;
+    const snap = await getDocs(query(collection(db, "attempts"), where("email", "==", (currentUser.email || "").toLowerCase()), where("testId", "==", t.id)));
+    let best = null;
+    snap.forEach(d => {
+      const a = d.data(), at = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
+      if (!best || at < best.at) best = { at, score: a.score, max: a.maxScore };
+    });
+    if (TR.t !== t) return;
+    TR.first = !best; TR.firstInfo = best;
+  } catch (e) { if (TR.t !== t) return; TR.first = "unknown"; }
+  if (TR.t === t && TR.phase === "result") trPaintShare();
+}
+function trShareHTML() {
+  if (trSynthetic()) return "";                                         // practice and the free sample get no score card
+  if (TR.first === true) return '<button class="tr-btn sec" data-act="share" style="margin:10px 0 0;width:100%">Share score card</button>';
+  if (TR.first === null) return '<div class="tr-cmp">Checking your first attempt\u2026</div>';
+  if (TR.first === "unknown") return '<div class="tr-cmp">We could not check your first attempt (no internet), so there is no score card for this attempt.</div>';
+  const f = TR.firstInfo;
+  return '<div class="tr-cmp">Score cards are only for your <b>first attempt</b>.' + (f && typeof f.score === "number" ? ' Your first attempt: <b>' + esc(String(f.score)) + ' / ' + esc(String(f.max)) + '</b>' : "") + '</div>';
+}
+function trPaintShare() { const el = document.getElementById("trShare"); if (el) el.innerHTML = trShareHTML(); }
 
 function trSubjectOf(q) {
   const t = TR.t;
@@ -3859,7 +3888,7 @@ function trRenderResult() {
       (r.blocks ? '<div class="blk-res">' + r.blocks.map(b => '<div class="row"><b>' + esc(b.name) + ' · ' + b.score + '</b><span>' + b.c + ' right, ' + b.w + ' wrong, ' + b.s + ' skipped</span></div>').join("") + '</div>' : "") +
       trSpeedHTML() +
       (!trSynthetic() && !t.sample ? '<div id="trLb"></div>' : '') +
-      '<button class="tr-btn sec" data-act="share" style="margin:10px 0 0;width:100%">Share score card</button>' +
+      '<div id="trShare">' + trShareHTML() + '</div>' +
       (TR.nbNote ? '<div class="tr-cmp">' + TR.nbNote + (TR.nbNote === 1 ? " question" : " questions") + ' mastered and removed from your notebook.</div>' : "") +
       ((!trSynthetic() || t.practice) && r.w > 0 ? '<div class="tr-cmp">Your ' + r.w + (r.w === 1 ? " wrong answer was" : " wrong answers were") + ' added to your Mistake notebook.</div>' : "") +
     (t.sample ? '<div class="tr-cta"><b>Want the full question bank?</b><span>Unlock every test, note and flashcard deck.</span><button class="tr-btn pri" data-act="join">Go Premium</button></div>' : '') +
@@ -3948,7 +3977,7 @@ document.getElementById("trOverlay").addEventListener("click", (e) => {
   if (act === "retake") {
     if (t && t.practice) return prStart(t.sel, t.nPick);
     if (t && t.gt) return gtNewAttempt();
-    if (!confirm(trSynthetic() ? "Practise these questions again?" : "Start this test again?")) return;
+    if (!confirm(trSynthetic() ? "Practise these questions again?" : "Start this test again?\n\nThis is practice. The score card and the Top 10 use only your first attempt.")) return;
     trFresh(); TR.phase = trHasBlocks() ? "blocks" : "run"; TR.res = null; TR.nbNote = 0; trStartTimer(); return trRender();
   }
 });
@@ -4006,7 +4035,7 @@ async function gtResync() {                               // every minute: fix t
 async function gtNewAttempt() {
   const t = TR.t;
   if (!t || !t.gt) return;
-  if (!confirm("Start this Real Test again? It is for practice. Only your first attempt counts in the Top 10.")) return;
+  if (!confirm("Start this Real Test again? It is for practice. The score card and the Top 10 use only your first attempt.")) return;
   try {
     await gtApi("reset");
     trFresh(); TR.phase = "blocks"; TR.res = null; TR.nbNote = 0; TR.lb = null; trStartTimer(); trRender();
@@ -4135,6 +4164,7 @@ function trSpeedHTML() {
 async function trShareCard() {
   const t = TR.t, r = TR.res;
   if (!t || !r) return;
+  if (TR.first !== true) { showToast("Score cards are only for your first attempt.", true); return; }
   try {
     const W = 1080, H = 1350, c = document.createElement("canvas");
     c.width = W; c.height = H;
@@ -4182,19 +4212,24 @@ async function trShareCard() {
     if (cur) lines.push(cur);
     lines.slice(0, 2).forEach((ln, k) => x.fillText(ln + (k === 1 && lines.length > 2 ? "\u2026" : ""), W / 2, y + k * 48));
     y += (Math.min(lines.length, 2) - 1) * 48;
-    // the big score in gold
-    y += 176;
+    // the big score in gold (a normal test has no group bars, so give it more room)
+    const roomy = !(r.blocks && r.blocks.length);
+    y += 176 + (roomy ? 90 : 0);
     const sg = x.createLinearGradient(0, y - 138, 0, y + 6); sg.addColorStop(0, GOLD_L); sg.addColorStop(0.55, GOLD); sg.addColorStop(1, GOLD_D);
     x.fillStyle = sg; x.font = "800 174px " + F; x.fillText(String(r.score), W / 2, y);
     y += 52; x.fillStyle = "#A9B8D4"; x.font = "600 38px " + F; x.fillText("out of " + r.max, W / 2, y);
     // accuracy pill
     y += 24;
-    const acc = "Accuracy " + r.acc + "%";
+    const acc = "Accuracy " + r.acc + "%", ft = "FIRST ATTEMPT";
     x.font = "700 28px " + F; const aw = x.measureText(acc).width + 56;
-    rr(W / 2 - aw / 2, y, aw, 46, 23); x.fillStyle = "rgba(255,255,255,0.09)"; x.fill();
-    x.fillStyle = "#FFFFFF"; x.fillText(acc, W / 2, y + 32);
+    x.font = "800 24px " + F; spaced(2); const fw = x.measureText(ft).width + 52; spaced(0);
+    const px0 = (W - (aw + 16 + fw)) / 2;
+    rr(px0, y, aw, 46, 23); x.fillStyle = "rgba(255,255,255,0.09)"; x.fill();
+    x.textAlign = "center"; x.fillStyle = "#FFFFFF"; x.font = "700 28px " + F; x.fillText(acc, px0 + aw / 2, y + 32);
+    rr(px0 + aw + 16, y, fw, 46, 23); const fg2 = x.createLinearGradient(px0 + aw + 16, 0, px0 + aw + 16 + fw, 0); fg2.addColorStop(0, GOLD_L); fg2.addColorStop(1, GOLD); x.fillStyle = fg2; x.fill();
+    x.fillStyle = "#0A1A33"; x.font = "800 24px " + F; spaced(2); x.fillText(ft, px0 + aw + 16 + fw / 2, y + 31); spaced(0);
     // correct / wrong / skipped
-    y += 68;
+    y += 68 + (roomy ? 50 : 0);
     const bx = [[r.c, "Correct", "#3FCB9B"], [r.w, "Wrong", "#F07C7C"], [r.s, "Skipped", "#B4C0D6"]], bw = 266, gap = 28, x0 = (W - (bw * 3 + gap * 2)) / 2;
     bx.forEach((b, k) => {
       const bl = x0 + k * (bw + gap);
