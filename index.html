@@ -4068,7 +4068,7 @@ function top10Fill(box) {
   const shown = LB_ALL ? LB_LIST : LB_LIST.slice(0, 3);
   shown.forEach(x => {
     const row = libEl("div", "lb-row"), t = libEl("div");
-    t.appendChild(libEl("b", null, x.n)); t.appendChild(libEl("span", null, (x.c || 0) + ((x.c || 0) === 1 ? " student" : " students") + (x.m ? " \u00B7 out of " + x.m : "")));
+    t.appendChild(libEl("b", null, x.n)); t.appendChild(libEl("span", null, x.m ? "Maximum score " + x.m : "Member ID and score"));
     const b = libEl("button", null, "View"); b.onclick = () => lbOpen(x.t, x.n);
     row.appendChild(t); row.appendChild(b); box.appendChild(row);
   });
@@ -4089,12 +4089,12 @@ function paintTop10() {
 function lbHTML(d, myId) {
   const all = Array.isArray(d.all) ? d.all : [];
   const mine = myId ? all.findIndex(x => String(x.i) === String(myId)) : -1;
-  let h = '<div class="blk-res"><div class="row"><b>Top 10</b><span>' + all.length + (all.length === 1 ? ' student' : ' students') + '</span></div>';
+  let h = '<div class="blk-res"><div class="row"><b>Top 10</b><span>Member ID \u00B7 Score</span></div>';
   all.slice(0, 10).forEach((x, i) => {
     h += '<div class="row' + (String(x.i) === String(myId) ? ' me' : '') + '"><b>#' + (i + 1) + ' \u00B7 ID ' + esc(String(x.i)) + '</b><span>' + esc(String(x.s)) + ' / ' + esc(String(d.max)) + '</span></div>';
   });
   h += '</div>';
-  if (mine >= 0) h += '<div class="tr-cmp">Your rank: <b>#' + (mine + 1) + '</b> of ' + all.length + ' (first attempt, ' + esc(String(all[mine].s)) + ' / ' + esc(String(d.max)) + ')</div>';
+  if (mine >= 0) h += '<div class="tr-cmp">Your rank: <b>#' + (mine + 1) + '</b> (first attempt, ' + esc(String(all[mine].s)) + ' / ' + esc(String(d.max)) + ')</div>';
   else if (myId) h += '<div class="tr-cmp">' + (MY_ATTEMPTS.some(a => a.testId === d.testId) ? "Your first attempt is not in this list." : "You have not taken this test yet.") + '</div>';
   return h;
 }
@@ -4243,7 +4243,7 @@ async function trShareCard() {
       const all = Array.isArray(TR.lb.all) ? TR.lb.all : [], mine = memberInfo.id ? all.findIndex(z => String(z.i) === String(memberInfo.id)) : -1;
       if (mine >= 0) {
         y += 20;
-        const rt = "RANK  #" + (mine + 1) + "  OF  " + all.length;
+        const rt = "RANK  #" + (mine + 1);
         x.font = "800 34px " + F; spaced(2); const rw = x.measureText(rt).width + 70;
         rr(W / 2 - rw / 2, y, rw, 56, 28);
         const bg = x.createLinearGradient(W / 2 - rw / 2, 0, W / 2 + rw / 2, 0); bg.addColorStop(0, GOLD_L); bg.addColorStop(1, GOLD);
