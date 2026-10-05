@@ -1119,6 +1119,7 @@
   .fc-tools { display: flex; gap: 6px; overflow-x: auto; padding: 0 14px 10px; scrollbar-width: none; flex-shrink: 0; }
   .fc-tools::-webkit-scrollbar { display: none; }
   .fc-tools.mid { justify-content: center; }
+  @media (max-width: 400px) { .fc-tools { flex-wrap: wrap; justify-content: center; overflow: visible; row-gap: 6px; } }   /* small phones: every button stays visible, no sideways scrolling */
   .fc-tool { flex-shrink: 0; background: rgba(255,255,255,0.1); color: #fff; border-radius: 18px; padding: 8px 11px; font-size: 12.5px; font-weight: 600; font-family: inherit; display: inline-flex; gap: 6px; align-items: center; white-space: nowrap; }
   .fc-tool.on { background: var(--gold-b); color: var(--navy); }
   .fc-tool:disabled { opacity: 0.4; }
@@ -2888,7 +2889,7 @@ function cardStateText(id) {
 
 // ---------- Flashcard study mode ----------
 // Image flashcards open full screen on the site. Swipe or tap Next, save cards to revisit,
-// shuffle, zoom, or download the card you are on. Cards load with the student's sign-in,
+// zoom, or download the card you are on. Cards load with the student's sign-in,
 // one or two ahead, so a big deck never loads all at once.
 const FC = { mode: "browse", session: { rated: 0, again: 0, seen: new Set() }, requeue: {}, list: [], order: [], pos: 0, title: "", cache: new Map(), pending: new Map(), saved: new Set(), onlySaved: false, shuffled: false, zoom: false, tok: 0, open: false, failed: false };
 
@@ -2957,7 +2958,7 @@ function closeDeck() {
   FC.open = false; FC.tok++;
   if (CARDS.timer) saveCards();
   FC.cache.forEach(u => { if (String(u).indexOf("blob:") === 0) URL.revokeObjectURL(u); });
-  FC.cache.clear(); FC.pending.clear();
+  FC.cache.clear(); FC.pending.clear(); FC.q = [];
   const ov = document.getElementById("fcOverlay");
   ov.classList.remove("on"); ov.innerHTML = "";
   document.body.style.overflow = "";
@@ -2973,6 +2974,7 @@ function fcEnsure(it) {
     const url = URL.createObjectURL(await res.blob());
     if (!FC.open) { URL.revokeObjectURL(url); throw new Error("closed"); }
     FC.cache.set(it.id, url);
+    try { const im = new Image(); im.src = url; if (im.decode) im.decode().catch(() => {}); } catch (e) {}   // get the picture ready, so it appears at once
     return url;
   })();
   FC.pending.set(it.id, p);
@@ -2983,18 +2985,32 @@ function fcEnsure(it) {
 
 function fcTrim() {
   const keep = new Set();
-  for (let k = FC.pos - 3; k <= FC.pos + 4; k++) { if (FC.order[k] !== undefined) keep.add(FC.list[FC.order[k]].id); }
+  for (let k = FC.pos - 2; k <= FC.pos + 6; k++) { if (FC.order[k] !== undefined) keep.add(FC.list[FC.order[k]].id); }
   FC.cache.forEach((u, id) => {
     if (!keep.has(id)) { if (String(u).indexOf("blob:") === 0) URL.revokeObjectURL(u); FC.cache.delete(id); }
   });
 }
 
+// The next four cards and the one before are loaded quietly, two at a time, nearest first.
+FC.q = []; FC.running = 0;
 function fcPreload() {
-  [1, 2, -1].forEach(off => {
+  FC.q = [];
+  [1, 2, 3, 4, -1].forEach(off => {
     const j = FC.pos + off;
-    if (j >= 0 && j < FC.order.length) fcEnsure(FC.list[FC.order[j]]).catch(() => {});
+    if (j < 0 || j >= FC.order.length) return;
+    const it = FC.list[FC.order[j]];
+    if (it && !FC.cache.has(it.id) && !FC.pending.has(it.id)) FC.q.push(it);
   });
+  fcPump();
   fcTrim();
+}
+function fcPump() {
+  while (FC.open && FC.running < 2 && FC.q.length) {
+    const it = FC.q.shift();
+    if (FC.cache.has(it.id) || FC.pending.has(it.id)) continue;
+    FC.running++;
+    fcEnsure(it).catch(() => {}).then(() => { FC.running = Math.max(0, FC.running - 1); fcPump(); });
+  }
 }
 
 async function fcShowCurrent() {
@@ -3061,7 +3077,6 @@ function fcRender() {
       '<button class="fc-tool' + (revise ? " on" : "") + '" data-fc="mode">' + (revise ? "Browse all" : "Revise" + (dueAll !== null ? " (" + dueAll + ")" : "")) + '</button>' +
       '<button class="fc-tool' + (isSaved ? " on" : "") + '" data-fc="save"' + (it ? "" : " disabled") + '>' + (isSaved ? "★ Saved" : "☆ Save") + '</button>' +
       '<button class="fc-tool' + (FC.onlySaved ? " on" : "") + '" data-fc="only"' + ((savedCount === 0 && !FC.onlySaved) || revise ? " disabled" : "") + ' title="Show only the cards you saved">Saved (' + savedCount + ')</button>' +
-      '<button class="fc-tool' + (FC.shuffled ? " on" : "") + '" data-fc="shuffle"' + (revise ? " disabled" : "") + '>Shuffle</button>' +
       '<button class="fc-tool' + (FC.zoom ? " on" : "") + '" data-fc="zoom"' + (it ? "" : " disabled") + '>' + (FC.zoom ? "Fit to screen" : "Zoom") + '</button>' +
       '<button class="fc-tool" data-fc="dl"' + (it ? "" : " disabled") + ' aria-label="Download this card">' + FC_ICON.dl + '</button>' +
     '</div>' +
@@ -3123,7 +3138,6 @@ document.getElementById("fcOverlay").addEventListener("click", (e) => {
     return fcRender();
   }
   if (act === "only") { FC.onlySaved = !FC.onlySaved; fcRebuildOrder(it ? it.id : null); return fcRender(); }
-  if (act === "shuffle") { FC.shuffled = !FC.shuffled; fcRebuildOrder(it ? it.id : null); if (FC.shuffled) { /* current card first */ const cur = FC.order.indexOf(FC.list.indexOf(it)); if (cur > 0) { const t = FC.order[0]; FC.order[0] = FC.order[cur]; FC.order[cur] = t; FC.pos = 0; } } return fcRender(); }
   if (act === "zoom") { FC.zoom = !FC.zoom; return fcRender(); }
   if (act === "dl" && it) return doDownload(it);
 });
@@ -5098,7 +5112,7 @@ function renderList() {
       const st = libEl("div", "fc-study");
       const t = libEl("div", "t");
       t.appendChild(libEl("b", null, "Study " + deck.length + (lib.subject !== "All" ? " " + lib.subject : "") + (deck.length === 1 ? " flashcard" : " flashcards") + " on screen"));
-      t.appendChild(libEl("span", null, "Swipe through, save the hard ones, shuffle"));
+      t.appendChild(libEl("span", null, "Swipe through, save the hard ones, zoom in"));
       const ttl = (lib.subject !== "All" ? lib.subject : "All subjects") + " · Flashcards";
       const go = libEl("button", null, "Start studying");
       go.onclick = () => openDeck(deck, deck[0].id, ttl);
