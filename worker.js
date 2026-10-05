@@ -22,7 +22,7 @@ const MIME = {
 };
 
 // Internal data kept in the same bucket. Only the admin can read these.
-const RESERVED_PREFIXES = ['backups/', 'system/', 'tg-invites/', 'announce-queue/'];
+const RESERVED_PREFIXES = ['backups/', 'system/', 'tg-invites/', 'announce-queue/', 'gt-sessions/'];
 
 class HttpError extends Error {
   constructor(status, message, code) { super(message); this.status = status; this.code = code; }
@@ -987,6 +987,65 @@ async function requireMember(request, env) {
   return user;
 }
 
+// ---------- Real Test (GT): the server keeps the clock of each group ----------
+// One small file per member and test in R2: when each group was started and ended, by the SERVER clock.
+// Clearing the browser or changing the phone clock cannot restart a group or give extra time.
+async function handleGtSession(request, env) {
+  const user = await requireMember(request, env);
+  let body = null;
+  try { body = await request.json(); } catch (e) { throw new HttpError(400, 'Bad request'); }
+  const testId = String((body && body.testId) || '');
+  const action = String((body && body.action) || 'get');
+  if (!/^[A-Za-z0-9_-]{4,64}$/.test(testId)) throw new HttpError(400, 'Bad test');
+  if (['get', 'start', 'end', 'finish', 'reset'].indexOf(action) < 0) throw new HttpError(400, 'Bad action');
+
+  // the test must really be a Real Test (read with the member's own sign-in, so the rules apply)
+  const res = await fsDoc(env, 'tests/' + encodeURIComponent(testId), user);
+  if (res.status !== 200) throw new HttpError(404, 'Test not found');
+  const f = ((await res.json()).fields) || {};
+  const num = (x) => Number(x && (x.integerValue || x.doubleValue)) || 0;
+  const size = num(f.blockSize), mins = num(f.blockMinutes), count = num(f.count);
+  if (!(f.gt && f.gt.booleanValue === true) || size < 1 || mins < 1 || count < 1) throw new HttpError(400, 'Not a Real Test');
+  const blocks = Math.ceil(count / size), dur = mins * 60000;
+
+  const key = 'gt-sessions/' + user.email + '/' + testId + '.json';
+  const now = Date.now();
+  let st = null;
+  const obj = await env.FILES.get(key);
+  if (obj) { try { st = JSON.parse(await obj.text()); } catch (e) { st = null; } }
+  const fresh = () => ({ runId: randomId(), blocks, starts: new Array(blocks).fill(0), ends: new Array(blocks).fill(0), finished: false });
+  let dirty = false;
+  if (!st || st.blocks !== blocks || !Array.isArray(st.starts) || st.starts.length !== blocks || !Array.isArray(st.ends)) { st = fresh(); dirty = true; }
+  const over = (j) => st.ends[j] > 0 || (st.starts[j] > 0 && now >= st.starts[j] + dur);
+  const closeAt = (j) => { if (st.starts[j] > 0 && !(st.ends[j] > 0)) { st.ends[j] = Math.min(now, st.starts[j] + dur); dirty = true; } };
+
+  if (action === 'start') {
+    const k = Number(body.block);
+    if (!Number.isInteger(k) || k < 0 || k >= blocks) throw new HttpError(400, 'Bad group');
+    if (st.finished) throw new HttpError(409, 'This Real Test is finished.', 'finished');
+    if (!(st.starts[k] > 0)) {
+      if (k > 0 && !(st.starts[k - 1] > 0)) throw new HttpError(409, 'Groups open one after the other.', 'order');
+      for (let j = 0; j < k; j++) closeAt(j);          // starting the next group ends the earlier ones
+      st.starts[k] = now; dirty = true;
+    }
+  } else if (action === 'end') {
+    const k = Number(body.block);
+    if (!Number.isInteger(k) || k < 0 || k >= blocks) throw new HttpError(400, 'Bad group');
+    closeAt(k);
+  } else if (action === 'finish') {
+    for (let j = 0; j < blocks; j++) closeAt(j);
+    if (!st.finished) { st.finished = true; dirty = true; }
+  } else if (action === 'reset') {
+    const idle = !st.starts.some(x => x > 0);
+    let all = true; for (let j = 0; j < blocks; j++) if (!over(j)) all = false;
+    if (!(st.finished || idle || all)) throw new HttpError(409, 'Your last group is still running. Try again when its time is over.', 'running');
+    st = fresh(); dirty = true;
+  }
+  if (!st.finished) { let all = true; for (let j = 0; j < blocks; j++) if (!over(j)) all = false; if (all && st.starts.some(x => x > 0)) { st.finished = true; dirty = true; } }
+  if (dirty) await env.FILES.put(key, JSON.stringify(st), { httpMetadata: { contentType: 'application/json' } });
+  return json({ ok: true, now, runId: st.runId, blocks, minutes: mins, starts: st.starts, ends: st.ends, ended: st.starts.map((x, j) => over(j)), finished: !!st.finished });
+}
+
 // ---------- New-content announcements (scheduled) ----------
 // The admin panel queues a post; a cron job sends it to the Telegram channel when its time comes.
 // Needs the secret TELEGRAM_ANNOUNCE_CHAT_ID (the bot must be an admin of that channel).
@@ -1135,6 +1194,7 @@ export default {
       if (url.pathname === '/api/notify-payment' && request.method === 'POST') return await handleNotify(request, env, url);
       if (url.pathname === '/api/notify-report' && request.method === 'POST') return await handleNotifyReport(request, env, url);
       if (url.pathname === '/api/announce' && request.method === 'POST') return await handleAnnounce(request, env);
+      if (url.pathname === '/api/gt-session' && request.method === 'POST') return await handleGtSession(request, env);
       if (url.pathname === '/api/report-problem' && request.method === 'POST') return await handleReportProblem(request, env);
       if (url.pathname === '/api/admin-health' && (request.method === 'GET' || request.method === 'POST')) return await handleAdminHealth(request, env, url);
       if (url.pathname === '/api/backup' && ['GET', 'POST', 'DELETE'].indexOf(request.method) > -1) return await handleBackup(request, env, url);

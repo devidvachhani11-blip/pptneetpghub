@@ -1568,6 +1568,20 @@
   .tour-dots { display: flex; gap: 5px; margin-left: 4px; }
   .tour-dots i { width: 7px; height: 7px; border-radius: 50%; background: #D8DEE6; }
   .tour-dots i.on { background: #0F8F83; }
+.blk-res .row.me { border-color: var(--gold-b); background: #FFF8E6; }
+:where(html[data-eff="dark"]) .blk-res .row.me { background: rgba(212,175,85,.16); }
+.lb-ov { position: fixed; inset: 0; z-index: 150; background: rgba(8,16,32,.62); display: none; align-items: flex-end; justify-content: center; }
+.lb-ov.on { display: flex; }
+.lb-card { background: var(--white, #fff); color: var(--ink); width: 100%; max-width: 520px; max-height: 86vh; overflow-y: auto; border-radius: 22px 22px 0 0; padding: 16px 16px calc(18px + env(safe-area-inset-bottom, 0px)); }
+@media (min-width: 700px) { .lb-ov { align-items: center; } .lb-card { border-radius: 22px; } }
+.lb-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 4px; }
+.lb-h b { font-size: 16px; }
+.lb-h button { border: 0; background: var(--paper-alt); width: 34px; height: 34px; border-radius: 50%; font-size: 20px; line-height: 1; color: var(--ink); }
+.lb-note { margin: 8px 0 0; font-size: 12px; color: var(--gray); text-align: center; }
+.sp-note { font-size: 12.5px; color: var(--gray); margin: -2px 2px 10px; line-height: 1.5; }
+.pg-id { font-size: 13.5px; color: var(--gray); margin: 0 0 10px; }
+.pg-id b { color: var(--navy); letter-spacing: .5px; }
+:where(html[data-eff="dark"]) .pg-id b { color: var(--ink); }
 </style>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "362cf34ae1ca4d419ca60743b0ca099f"}'></script>
 </head>
@@ -2111,7 +2125,7 @@ function updatePriceLabels() {
 const ADMIN_EMAIL = "devid.vachhani11@gmail.com";
 let DEVICE_LIMIT = 2;                       // can be changed from the admin panel (config/limits)
 const DEVICE_COOLDOWN_MS = 7 * 86400000;    // a device can be swapped once a week
-let memberInfo = { exists: false, endMs: 0 };
+let memberInfo = { exists: false, endMs: 0, id: "" };
 let memberExpired = false;
 let forceJoin = false;                      // a member who chose "Renew"
 let deviceState = { status: "ok", list: [], lastChange: 0 };   // "ok" until a check says otherwise
@@ -2122,7 +2136,7 @@ function dateTxt(ms) { return new Date(ms).toLocaleDateString("en-IN", { day: "n
 
 // ---- membership (with an optional end date) ----
 async function loadMembership(email) {
-  memberInfo = { exists: false, endMs: 0 };
+  memberInfo = { exists: false, endMs: 0, id: "" };
   memberExpired = false;
   if (!window.__fb) return false;
   const { db, doc, getDoc } = window.__fb;
@@ -2130,7 +2144,7 @@ async function loadMembership(email) {
     const snap = await getDoc(doc(db, "members", email.toLowerCase()));
     if (snap.exists()) {
       const e = (snap.data() || {}).expiresAt;
-      memberInfo = { exists: true, endMs: e && e.toMillis ? e.toMillis() : (typeof e === "number" ? e : 0) };
+      memberInfo = { exists: true, endMs: e && e.toMillis ? e.toMillis() : (typeof e === "number" ? e : 0), id: String((snap.data() || {}).memberId || "") };
     }
   } catch (err) { console.error("Membership check failed", err); }   // fail closed
   memberExpired = memberInfo.exists && !memberActive(memberInfo);
@@ -2352,7 +2366,7 @@ onFbReady(() => {
     membershipChecked = false;
     forceJoin = false;
     paymentInfo.latest = null;
-    memberInfo = { exists: false, endMs: 0 };
+    memberInfo = { exists: false, endMs: 0, id: "" };
     memberExpired = false;
     CARDS.loaded = false; CARDS.loading = null; CARDS.map = {}; NB.loaded = false; NB.loading = null; NB.items = []; NB.gone = []; NB.tests = {}; NB.open = new Set(); PR.index = null; PR.parts = {}; PR.loading = null;
     deviceState = { status: user ? "checking" : "ok", list: [], lastChange: 0 };
@@ -2422,7 +2436,7 @@ function updateView() {
   document.getElementById('lhSignIn').textContent = currentUser ? 'Sign out' : 'Sign in';
   document.getElementById('menuSignIn').textContent = currentUser ? 'Sign out' : 'Member sign in';
   if (showLib) {
-    document.getElementById('accessNoteText').textContent = 'Signed in as: ' + (currentUser.email || currentUser.displayName || '\u2014');
+    document.getElementById('accessNoteText').textContent = 'Signed in as: ' + (currentUser.email || currentUser.displayName || '\u2014') + (memberInfo.id ? ' \u00B7 Your ID: ' + memberInfo.id : '');
   }
 }
 
@@ -3336,6 +3350,7 @@ const TR = { blocks: [], blk: -1, nbNote: 0, prev: null, t: null, ans: [], marke
 // Pictures are private files, fetched with the student's sign-in and shown from memory.
 // They load when the question comes into view, and the next question's picture is fetched ahead.
 TR.imgs = new Map();   // reference -> blob URL
+TR.times = []; TR.qIdx = -1; TR.qSince = 0; TR.runId = ""; TR.lb = null;   // seconds per question, Real Test run, Top 10 list
 let trObs = null;
 
 async function trImgLoad(ref) {
@@ -3403,11 +3418,22 @@ function trKey() { return "pptTest:" + ((currentUser && currentUser.email) || ""
 function trSynthetic() { return !!(TR.t && String(TR.t.id).indexOf("__") === 0); }
 function trPersist() {
   if (trSynthetic()) return;
-  try { localStorage.setItem(trKey(), JSON.stringify({ ans: TR.ans, marked: TR.marked, shown: TR.shown, idx: TR.idx, startAt: TR.startAt, endAt: TR.endAt, blocks: TR.blocks, blk: TR.blk })); } catch (e) {}
+  try { localStorage.setItem(trKey(), JSON.stringify({ ans: TR.ans, marked: TR.marked, shown: TR.shown, idx: TR.idx, startAt: TR.startAt, endAt: TR.endAt, blocks: TR.blocks, blk: TR.blk, times: TR.times, runId: TR.runId })); } catch (e) {}
 }
 function trForget() { if (trSynthetic()) return; try { localStorage.removeItem(trKey()); } catch (e) {} }
 function trRestore() { if (trSynthetic()) return null; try { return JSON.parse(localStorage.getItem(trKey()) || "null"); } catch (e) { return null; } }
 
+
+// ---- seconds spent on each question (for the Speed check) ----
+function trLap(end) {
+  if (!TR.t) return;
+  const now = Date.now();
+  if (TR.qIdx >= 0 && TR.qSince && TR.phase === "run") {
+    const d = Math.min(Math.max((now - TR.qSince) / 1000, 0), 240);      // a long break counts as at most 4 minutes
+    TR.times[TR.qIdx] = (TR.times[TR.qIdx] || 0) + d;
+  }
+  TR.qIdx = end ? -1 : TR.idx; TR.qSince = now;
+}
 
 // ---- timed blocks (sections): each has its own clock and locks once submitted or out of time ----
 function trHasBlocks() { return !!(TR.t && TR.t.mode === "exam" && TR.t.blockSize > 0 && TR.blocks && TR.blocks.length); }
@@ -3419,12 +3445,14 @@ function trMakeBlocks(t) {
 function trBlockOf() { return trHasBlocks() && TR.blk >= 0 ? TR.blocks[TR.blk] : null; }
 function trBounds() { const B = trBlockOf(); return B ? [B.from, B.to] : [0, TR.t.qs.length - 1]; }
 function trEndAt() { const B = trBlockOf(); return B ? B.endAt : TR.endAt; }
-function trCloseBlock(bi) {
+function trCloseBlock(bi, fromServer) {
   const B = TR.blocks[bi];
   if (!B || B.done) return;
+  if (TR.phase === "run" && TR.blk === bi) trLap(true);
   const cap = TR.t.blockMinutes * 60;
   B.spent = B.startAt ? Math.max(0, Math.min(Math.round((Date.now() - B.startAt) / 1000), cap)) : 0;
   B.done = true;
+  if (TR.t.gt && !fromServer && B.startAt) gtApi("end", bi).catch(() => {});      // tell the server this group is submitted
   if (TR.blk === bi) { TR.blk = -1; if (TR.phase === "run") TR.phase = "blocks"; }
   TR.pal = false;
   trPersist();
@@ -3432,7 +3460,7 @@ function trCloseBlock(bi) {
 function trSweepBlocks() {                     // lock every block whose time has run out
   if (!trHasBlocks()) return false;
   let any = false;
-  TR.blocks.forEach((B, bi) => { if (B.startAt && !B.done && B.endAt <= Date.now()) { trCloseBlock(bi); any = true; } });
+  TR.blocks.forEach((B, bi) => { if (B.startAt && !B.done && B.endAt <= Date.now()) { trCloseBlock(bi, true); any = true; } });
   return any;
 }
 function trSubmitBlock(auto) {
@@ -3557,18 +3585,27 @@ async function openTest(item) {
     if (!t.qs.length) throw new Error("empty");
     TR.t = t;
     const n = t.qs.length;
-    const saved = trRestore();
+    let gst = null;
+    if (t.gt) {
+      try { gst = await gtApi("get"); }
+      catch (e) { console.error(e); trLoading("Could not reach the server. A Real Test needs an internet connection. Check it and try again."); return; }
+    }
+    let saved = trRestore();
+    if (t.gt && saved && saved.runId !== gst.runId) saved = null;       // left over from an earlier attempt
+    if (t.gt && gst.finished && !saved) { TR.phase = "gtdone"; trRenderGtDone(); return; }
     TR.phase = "run"; TR.pal = false; TR.filter = "All"; TR.res = null;
     if (saved && Array.isArray(saved.ans) && saved.ans.length === n) {
       TR.ans = saved.ans; TR.marked = saved.marked || new Array(n).fill(false);
       TR.shown = saved.shown || new Array(n).fill(false);
       TR.idx = Math.min(saved.idx || 0, n - 1); TR.startAt = saved.startAt || Date.now(); TR.endAt = saved.endAt || 0;
       TR.blocks = Array.isArray(saved.blocks) ? saved.blocks : []; TR.blk = typeof saved.blk === "number" ? saved.blk : -1;
+      TR.times = Array.isArray(saved.times) && saved.times.length === n ? saved.times : new Array(n).fill(0); TR.qIdx = -1;
       const blocksOk = t.blockSize > 0 ? (TR.blocks.length === Math.ceil(n / t.blockSize) && TR.blocks.every(B => B && B.from >= 0 && B.to < n)) : TR.blocks.length === 0;
       if (!blocksOk) trFresh(); else showToast("Resuming your test");
     } else {
       trFresh();
     }
+    if (t.gt) gtApply(gst);                                             // the server's clocks win
     TR.phase = trHasBlocks() && TR.blk < 0 ? "blocks" : "run";
     trStartTimer();
     if (trHasBlocks()) {
@@ -3588,6 +3625,7 @@ function trFresh() {
   TR.ans = new Array(n).fill(-1);
   TR.marked = new Array(n).fill(false);
   TR.shown = new Array(n).fill(false);
+  TR.times = new Array(n).fill(0); TR.qIdx = -1;
   TR.idx = 0;
   TR.startAt = Date.now();
   TR.blocks = t.blockSize > 0 && t.mode === "exam" ? trMakeBlocks(t) : [];
@@ -3601,6 +3639,7 @@ function trStartTimer() {
   if (TR.t.mode !== "exam") return;
   TR.timer = setInterval(() => {
     if (TR.phase !== "run" && TR.phase !== "blocks") return;
+    if (TR.t.gt && ++GTS.tick % 45 === 0) gtResync();
     if (trHasBlocks()) {
       const wasRun = TR.phase === "run", cur = TR.blk;
       if (trSweepBlocks()) {
@@ -3636,6 +3675,7 @@ function trTopHTML(extraChip) {
 
 function trRender() {
   if (!TR.t) return;
+  if (TR.phase === "gtdone") return trRenderGtDone();
   if (TR.phase === "result") return trRenderResult();
   if (TR.phase === "review") return trRenderReview();
   if (TR.phase === "blocks") return trRenderBlocks();
@@ -3672,6 +3712,7 @@ function trExpHTML(q, i) {
 }
 
 function trRenderRun() {
+  trLap();
   const t = TR.t, n = t.qs.length, i = TR.idx, q = t.qs[i], exam = t.mode === "exam";
   const bd = trBounds(), lo = bd[0], hi = bd[1], B = trBlockOf();
   const answered = TR.ans.filter(a => a >= 0).length;
@@ -3745,10 +3786,12 @@ function trAnswer(k) {
 async function trFinish(auto) {
   if (!TR.t || (TR.phase !== "run" && TR.phase !== "blocks")) return;
   const t = TR.t;
+  trLap(true);
   if (trHasBlocks()) {
     const open = TR.blocks.filter(b => !b.done).length;
     if (!auto && open && !confirm("Finish the test now? " + open + (t.gt ? (open === 1 ? " group is" : " groups are") : (open === 1 ? " block is" : " blocks are")) + (t.gt ? " not finished. Their questions count as skipped and cannot be taken later." : " not finished. Its questions count as skipped."))) return;
-    TR.blocks.forEach((b, bi) => trCloseBlock(bi));
+    if (t.gt) gtApi("finish").catch(() => {});
+    TR.blocks.forEach((b, bi) => trCloseBlock(bi, true));
   } else {
     const pre = trCompute();
     if (!auto && t.mode === "exam" && pre.s > 0) {
@@ -3799,6 +3842,7 @@ async function trSaveAttempt(r) {
       bySubject: by, answers: TR.ans.slice(), createdAt: serverTimestamp()
     };
     if (r.blocks) rec.blocks = r.blocks.map(b => ({ n: b.name, c: b.c, w: b.w, s: b.s, score: b.score }));
+    if (Array.isArray(TR.times) && TR.times.length === t.qs.length) rec.times = TR.times.map(v => Math.max(0, Math.min(3600, Math.round(v || 0))));   // seconds per question
     await addDoc(collection(db, "attempts"), rec);
   } catch (e) {
     console.error("Could not save attempt", e);
@@ -3818,11 +3862,15 @@ function trRenderResult() {
       (TR.prev ? '<div class="tr-cmp">Last time ' + pctTxt(pctOf(TR.prev)) + ' \u2192 now ' + pctTxt(r.max > 0 ? r.score / r.max * 100 : 0) + ' ' + deltaHTML((r.max > 0 ? r.score / r.max * 100 : 0) - pctOf(TR.prev)) + '</div>' : '') +
       '<div class="tr-stats"><div class="tr-st c"><b>' + r.c + '</b><span>Correct</span></div><div class="tr-st w"><b>' + r.w + '</b><span>Wrong</span></div><div class="tr-st s"><b>' + r.s + '</b><span>Skipped</span></div><div class="tr-st t"><b>' + trClock(r.seconds) + '</b><span>Time</span></div></div>' +
       (r.blocks ? '<div class="blk-res">' + r.blocks.map(b => '<div class="row"><b>' + esc(b.name) + ' · ' + b.score + '</b><span>' + b.c + ' right, ' + b.w + ' wrong, ' + b.s + ' skipped</span></div>').join("") + '</div>' : "") +
+      trSpeedHTML() +
+      (!trSynthetic() && !t.sample ? '<div id="trLb"></div>' : '') +
+      '<button class="tr-btn sec" data-act="share" style="margin:10px 0 0;width:100%">Share score card</button>' +
       (TR.nbNote ? '<div class="tr-cmp">' + TR.nbNote + (TR.nbNote === 1 ? " question" : " questions") + ' mastered and removed from your notebook.</div>' : "") +
       ((!trSynthetic() || t.practice) && r.w > 0 ? '<div class="tr-cmp">Your ' + r.w + (r.w === 1 ? " wrong answer was" : " wrong answers were") + ' added to your Mistake notebook.</div>' : "") +
     (t.sample ? '<div class="tr-cta"><b>Want the full question bank?</b><span>Unlock every test, note and flashcard deck.</span><button class="tr-btn pri" data-act="join">Go Premium</button></div>' : '') +
     '</div></div></div>' +
     '<div class="tr-foot"><button class="tr-btn sec" data-act="retake">' + (trSynthetic() ? "Practise again" : "Retake") + '</button><button class="tr-btn pri" data-act="review">Review answers</button></div>';
+  trLoadLb();
 }
 
 function trRenderReview() {
@@ -3863,6 +3911,7 @@ document.getElementById("trOverlay").addEventListener("click", (e) => {
   const act = b.dataset.act, t = TR.t;
   if (act === "close") {
     if (t && (TR.phase === "run" || TR.phase === "blocks") && t.mode === "exam" && !confirm("Leave the test? Your answers are saved and the timer keeps running.")) return;
+    if (t && TR.phase === "run") { trLap(true); trPersist(); }
     trCloseOverlay(); return;
   }
   if (act === "report") { const qi = Number(b.dataset.i), q = t.qs[qi], ref = trRefOf(qi); return openReport({ kind: "test", testId: ref.t, title: t.practice ? "Practice question" : t.refs ? "Mistake notebook question" : t.title, questionNo: ref.i + 1, questionText: q ? q.q : "" }); }
@@ -3878,12 +3927,13 @@ document.getElementById("trOverlay").addEventListener("click", (e) => {
     if (active >= 0 && active !== bi) { showToast("Finish or resume " + TR.blocks[active].name + " first.", true); return; }
     if (!B.startAt) {
       if (!confirm("Start " + B.name + "? You will have " + t.blockMinutes + " minutes. Once you submit it or the time runs out, it locks and cannot be reopened.")) return;
+      if (t.gt) { gtStartBlock(bi); return; }                          // the server starts the clock
       B.startAt = Date.now(); B.endAt = B.startAt + t.blockMinutes * 60000;
     }
     TR.blk = bi; TR.idx = Math.min(Math.max(B.last || B.from, B.from), B.to); TR.phase = "run"; TR.pal = false;
     trPersist(); return trRenderRun();
   }
-  if (act === "toblocks") { const B = trBlockOf(); if (B) B.last = TR.idx; TR.blk = -1; TR.phase = "blocks"; TR.pal = false; trPersist(); return trRender(); }
+  if (act === "toblocks") { trLap(true); const B = trBlockOf(); if (B) B.last = TR.idx; TR.blk = -1; TR.phase = "blocks"; TR.pal = false; trPersist(); return trRender(); }
   if (act === "opt") return trAnswer(Number(b.dataset.k));
   if (act === "next") { TR.idx = Math.min(TR.idx + 1, trBounds()[1]); trPersist(); return trRenderRun(); }
   if (act === "prev") { TR.idx = Math.max(TR.idx - 1, trBounds()[0]); trPersist(); return trRenderRun(); }
@@ -3898,12 +3948,216 @@ document.getElementById("trOverlay").addEventListener("click", (e) => {
   if (act === "result") { TR.phase = "result"; return trRenderResult(); }
   if (act === "filter") { TR.filter = b.dataset.f; return trRenderReview(); }
   if (act === "join") { trCloseOverlay(); const p = document.getElementById("pricing"); if (p) p.scrollIntoView({ behavior: "smooth" }); return; }
+  if (act === "share") return trShareCard();
+  if (act === "gtnew") return gtNewAttempt();
   if (act === "retake") {
     if (t && t.practice) return prStart(t.sel, t.nPick);
+    if (t && t.gt) return gtNewAttempt();
     if (!confirm(trSynthetic() ? "Practise these questions again?" : "Start this test again?")) return;
     trFresh(); TR.phase = trHasBlocks() ? "blocks" : "run"; TR.res = null; TR.nbNote = 0; trStartTimer(); return trRender();
   }
 });
+
+// ---------- Real Test (GT): the server keeps the clock ----------
+// The start time of each group is stored on the server. Clearing the browser or changing the phone clock does not help.
+const GTS = { off: 0, tick: 0, busy: false };
+async function gtApi(action, block) {
+  const u = window.__fb && window.__fb.auth.currentUser;
+  if (!u || !TR.t) throw new Error("Not signed in");
+  const testId = TR.t.id, t0 = Date.now();
+  const res = await fetch("/api/gt-session", { method: "POST", headers: deviceHeaders(await u.getIdToken()), body: JSON.stringify({ testId, action, block }) });
+  const t1 = Date.now();
+  let j = null; try { j = await res.json(); } catch (e) {}
+  if (!res.ok || !j || !j.ok) { const err = new Error((j && j.error) || ("HTTP " + res.status)); err.code = j && j.code; err.status = res.status; throw err; }
+  GTS.off = j.now - Math.round((t0 + t1) / 2);          // server clock minus this phone's clock
+  TR.runId = j.runId;
+  return j;
+}
+function gtApply(st) {                                    // copy the server's clocks onto the groups
+  const dur = TR.t.blockMinutes * 60000;
+  let changed = false;
+  TR.blocks.forEach((B, bi) => {
+    if (B.done) return;
+    if (st.starts[bi] > 0) { B.startAt = st.starts[bi] - GTS.off; B.endAt = B.startAt + dur; }
+    if (st.ended && st.ended[bi]) { trCloseBlock(bi, true); changed = true; }
+  });
+  return changed;
+}
+async function gtStartBlock(bi) {
+  const B = TR.blocks[bi];
+  try {
+    const st = await gtApi("start", bi);
+    if (!TR.t || !TR.t.gt) return;
+    gtApply(st);
+    if (B.done) { trPersist(); trRender(); return; }
+    TR.blk = bi; TR.idx = Math.min(Math.max(B.last || B.from, B.from), B.to); TR.phase = "run"; TR.pal = false;
+    trPersist(); trRenderRun();
+  } catch (e) {
+    showToast(e.code === "order" ? "Groups open one after the other." : e.code === "finished" ? "This Real Test is finished." : "Could not start. Check your internet and try again.", true);
+  }
+}
+async function gtResync() {                               // every minute: fix the phone clock against the server
+  if (!TR.t || !TR.t.gt || GTS.busy) return;
+  GTS.busy = true;
+  try {
+    const st = await gtApi("get");
+    if (!TR.t || !TR.t.gt || (TR.phase !== "run" && TR.phase !== "blocks")) return;
+    const before = TR.blocks.filter(b => b.done).length;
+    gtApply(st);
+    if (TR.blocks.every(b => b.done)) { showToast("Time is up. Your test was submitted."); trFinish(true); return; }
+    if (TR.blocks.filter(b => b.done).length !== before) { trPersist(); trRender(); }
+  } catch (e) {} finally { GTS.busy = false; }
+}
+async function gtNewAttempt() {
+  const t = TR.t;
+  if (!t || !t.gt) return;
+  if (!confirm("Start this Real Test again? It is for practice. Only your first attempt counts in the Top 10.")) return;
+  try {
+    await gtApi("reset");
+    trFresh(); TR.phase = "blocks"; TR.res = null; TR.nbNote = 0; TR.lb = null; trStartTimer(); trRender();
+  } catch (e) { showToast(e.code === "running" ? e.message : "Could not start a new attempt. Check your internet and try again.", true); }
+}
+function trRenderGtDone() {
+  trOverlay().innerHTML = trTopHTML("") +
+    '<div class="tr-body"><div class="tr-inner"><div class="blk-intro"><b>You have finished this Real Test</b><p>Your result is saved in My progress. You can start a new attempt for practice. Only your first attempt counts in the Top 10.</p></div><div id="trLb"></div></div></div>' +
+    '<div class="tr-foot"><button class="tr-btn sec" data-act="close">Close</button><button class="tr-btn pri" data-act="gtnew">Start a new attempt</button></div>';
+  trLoadLb();
+}
+
+// ---------- Top 10 (anonymous: member ID and score only) ----------
+function lbHTML(d, myId) {
+  const all = Array.isArray(d.all) ? d.all : [];
+  const mine = myId ? all.findIndex(x => String(x[0]) === String(myId)) : -1;
+  let h = '<div class="blk-res"><div class="row"><b>Top 10</b><span>' + all.length + (all.length === 1 ? ' student' : ' students') + '</span></div>';
+  all.slice(0, 10).forEach((x, i) => {
+    h += '<div class="row' + (String(x[0]) === String(myId) ? ' me' : '') + '"><b>#' + (i + 1) + ' \u00B7 ID ' + esc(String(x[0])) + '</b><span>' + esc(String(x[1])) + ' / ' + esc(String(d.max)) + '</span></div>';
+  });
+  h += '</div>';
+  if (mine >= 0) h += '<div class="tr-cmp">Your rank: <b>#' + (mine + 1) + '</b> of ' + all.length + ' (first attempt, ' + esc(String(all[mine][1])) + ' / ' + esc(String(d.max)) + ')</div>';
+  else if (myId) h += '<div class="tr-cmp">Your first attempt is not in this list.</div>';
+  return h;
+}
+async function trLoadLb() {
+  const t = TR.t;
+  if (!t || trSynthetic() || t.sample || !window.__fb) return;
+  const id = t.id;
+  try {
+    const { db, doc, getDoc } = window.__fb;
+    const snap = await getDoc(doc(db, "leaderboards", id));
+    const el = document.getElementById("trLb");
+    if (!snap.exists() || !el || !TR.t || TR.t.id !== id) return;
+    TR.lb = snap.data();
+    el.innerHTML = lbHTML(TR.lb, memberInfo.id);
+  } catch (e) {}
+}
+async function lbOpen(testId, title) {
+  if (!window.__fb) return;
+  try {
+    const { db, doc, getDoc } = window.__fb;
+    const snap = await getDoc(doc(db, "leaderboards", testId));
+    if (!snap.exists()) { showToast("The Top 10 for this test is not published yet."); return; }
+    const d = snap.data();
+    let ov = document.getElementById("lbOv");
+    if (!ov) {
+      ov = document.createElement("div"); ov.id = "lbOv"; ov.className = "lb-ov"; document.body.appendChild(ov);
+      ov.addEventListener("click", (e) => { if (e.target === ov || e.target.closest("[data-lb-close]")) ov.classList.remove("on"); });
+    }
+    ov.innerHTML = '<div class="lb-card"><div class="lb-h"><b>' + esc(title || d.title || "Top 10") + '</b><button data-lb-close aria-label="Close">&times;</button></div>' + lbHTML(d, memberInfo.id) + '<p class="lb-note">Only member IDs and scores are shown.</p></div>';
+    ov.classList.add("on");
+  } catch (e) { showToast("Could not load the Top 10. Try again.", true); }
+}
+
+// ---------- Speed check (where the time went) ----------
+function trSpeedHTML() {
+  const t = TR.t, tm = TR.times || [], n = t.qs.length;
+  if (tm.length !== n || tm.reduce((a, x) => a + (x || 0), 0) < 5) return "";
+  const target = t.mode === "exam" ? (t.blockSize > 0 && t.blockMinutes > 0 ? t.blockMinutes * 60 / t.blockSize : t.duration > 0 ? t.duration * 60 / n : 0) : 0;
+  const fast = target ? target * 0.4 : 15, slow = target ? target * 1.8 : 90;
+  const sec = (i) => Math.round(tm[i] || 0);
+  let cnt = 0, sum = 0; const rushed = [], slowRight = [], all = [];
+  t.qs.forEach((q, i) => {
+    const a = TR.ans[i], s = sec(i);
+    if (s > 0) { cnt++; sum += s; all.push({ i, s }); }
+    if (a >= 0 && a !== q.a && s > 0 && s < fast) rushed.push(i + 1);
+    if (a >= 0 && a === q.a && s > slow) slowRight.push(i + 1);
+  });
+  if (!cnt) return "";
+  const nums = (arr) => arr.slice(0, 10).join(", ") + (arr.length > 10 ? " and " + (arr.length - 10) + " more" : "");
+  const dur = (x) => x >= 60 ? Math.floor(x / 60) + "m " + String(x % 60).padStart(2, "0") + "s" : x + "s";
+  let h = '<div class="blk-res"><div class="row"><b>Speed check</b><span>' + (target ? 'target ' + Math.round(target) + 's per question' : 'average per question') + '</span></div>';
+  h += '<div class="row"><b>Your average</b><span>' + dur(Math.round(sum / cnt)) + '</span></div>';
+  if (trHasBlocks()) TR.blocks.forEach(B => {
+    let c = 0, sm = 0; for (let k = B.from; k <= B.to; k++) { const s = sec(k); if (s > 0) { c++; sm += s; } }
+    if (c) h += '<div class="row"><b>' + esc(B.name) + '</b><span>' + dur(Math.round(sm / c)) + ' average</span></div>';
+  });
+  h += '<div class="row"><b>Rushed wrong answers</b><span>' + rushed.length + '</span></div>';
+  if (rushed.length) h += '<div class="sp-note">Wrong answers given in under ' + dur(Math.round(fast)) + ': Q ' + nums(rushed) + '. Slow down and read the clue.</div>';
+  h += '<div class="row"><b>Slow right answers</b><span>' + slowRight.length + '</span></div>';
+  if (slowRight.length) h += '<div class="sp-note">Right answers that took over ' + dur(Math.round(slow)) + ': Q ' + nums(slowRight) + '. Revise these topics to answer faster.</div>';
+  const top = all.sort((a, b) => b.s - a.s).slice(0, 5);
+  h += '<div class="row"><b>Slowest questions</b><span>' + top.map(x => 'Q' + (x.i + 1) + ' ' + dur(x.s)).join(", ") + '</span></div>';
+  return h + '</div>';
+}
+
+// ---------- Share score card (a picture made on the phone, no name on it) ----------
+async function trShareCard() {
+  const t = TR.t, r = TR.res;
+  if (!t || !r) return;
+  try {
+    const W = 1080, H = 1350, c = document.createElement("canvas");
+    c.width = W; c.height = H;
+    const x = c.getContext("2d"), F = "Poppins, 'Segoe UI', Arial, sans-serif";
+    const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#0A1A33"); g.addColorStop(1, "#16294A");
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    x.strokeStyle = "#D4AF55"; x.lineWidth = 6; x.strokeRect(36, 36, W - 72, H - 72);
+    x.textAlign = "center";
+    try {
+      const img = await new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = "/logo-360.webp"; });
+      x.save(); x.beginPath(); x.arc(W / 2, 150, 75, 0, Math.PI * 2); x.clip(); x.drawImage(img, W / 2 - 75, 75, 150, 150); x.restore();
+      x.strokeStyle = "#D4AF55"; x.lineWidth = 5; x.beginPath(); x.arc(W / 2, 150, 75, 0, Math.PI * 2); x.stroke();
+    } catch (e) {}
+    x.fillStyle = "#FFFFFF"; x.font = "800 50px " + F; x.fillText("PPTNEETPGHUB Premium", W / 2, 300);
+    x.fillStyle = "#D4AF55"; x.font = "600 30px " + F; x.fillText("NEET PG 2027", W / 2, 344);
+    // test title, up to two lines
+    x.fillStyle = "#DCE5F5"; x.font = "600 40px " + F;
+    const words = String(t.title || "").split(/\s+/); const lines = []; let cur = "";
+    words.forEach(w => { const tryLine = cur ? cur + " " + w : w; if (x.measureText(tryLine).width > W - 220 && cur) { lines.push(cur); cur = w; } else cur = tryLine; });
+    if (cur) lines.push(cur);
+    lines.slice(0, 2).forEach((ln, k) => x.fillText(ln + (k === 1 && lines.length > 2 ? "\u2026" : ""), W / 2, 410 + k * 52));
+    const top = 410 + Math.min(lines.length, 2) * 52 + 10;
+    x.fillStyle = "#FFFFFF"; x.font = "800 190px " + F; x.fillText(String(r.score), W / 2, top + 150);
+    x.fillStyle = "#9FB0CC"; x.font = "600 44px " + F; x.fillText("out of " + r.max, W / 2, top + 205);
+    // right / wrong / skipped
+    const bx = [[r.c, "Correct", "#3FCB9B"], [r.w, "Wrong", "#F07C7C"], [r.s, "Skipped", "#B4C0D6"]], bw = 270, gap = 30, x0 = (W - (bw * 3 + gap * 2)) / 2, by = top + 250;
+    bx.forEach((b, k) => {
+      const bl = x0 + k * (bw + gap);
+      x.fillStyle = "rgba(255,255,255,0.08)"; x.beginPath(); x.roundRect ? x.roundRect(bl, by, bw, 130, 22) : x.rect(bl, by, bw, 130); x.fill();
+      x.fillStyle = b[2]; x.font = "800 58px " + F; x.fillText(String(b[0]), bl + bw / 2, by + 68);
+      x.fillStyle = "#9FB0CC"; x.font = "600 28px " + F; x.fillText(b[1], bl + bw / 2, by + 108);
+    });
+    let y = by + 190;
+    if (TR.lb && memberInfo.id) {
+      const all = Array.isArray(TR.lb.all) ? TR.lb.all : [], mine = all.findIndex(z => String(z[0]) === String(memberInfo.id));
+      if (mine >= 0) { x.fillStyle = "#D4AF55"; x.font = "800 46px " + F; x.fillText("Rank #" + (mine + 1) + " of " + all.length, W / 2, y); y += 50; }
+    }
+    if (r.blocks) {
+      x.font = "600 32px " + F; x.fillStyle = "#DCE5F5";
+      r.blocks.slice(0, 5).forEach(b => { x.fillText(b.name + "  \u00B7  " + b.score, W / 2, y); y += 42; });
+    }
+    x.fillStyle = "#D4AF55"; x.font = "700 34px " + F; x.fillText("pptneetpghub.com", W / 2, H - 62);
+    const blob = await new Promise(res => c.toBlob(res, "image/png"));
+    if (!blob) throw new Error("no picture");
+    const file = new File([blob], "my-score-card.png", { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: "My score", text: "I scored " + r.score + " / " + r.max + " in " + t.title + " on pptneetpghub.com" }); }
+      catch (e) { if (e && e.name !== "AbortError") throw e; }
+    } else {
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "my-score-card.png"; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      showToast("Score card saved to your downloads.");
+    }
+  } catch (e) { console.error(e); showToast("Could not make the score card.", true); }
+}
 
 // ---------- My progress (a student sees only their own results) ----------
 let MY_ATTEMPTS = [];        // this member's attempts, oldest to newest
@@ -3970,6 +4224,7 @@ function renderProgress() {
     return;
   }
 
+  if (memberInfo.id) { const idl = libEl("p", "pg-id"); idl.innerHTML = 'Your member ID: <b>' + esc(memberInfo.id) + '</b> \u00B7 shown instead of your name in Top 10 lists'; box.appendChild(idl); }
   const all = MY_ATTEMPTS;
   const byTest = {};
   all.forEach(a => { (byTest[a.testId] = byTest[a.testId] || []).push(a); });
@@ -3983,6 +4238,21 @@ function renderProgress() {
     const c = libEl("div", "pg-s"); c.appendChild(libEl("b", null, String(x[0]))); c.appendChild(libEl("span", null, x[1])); sum.appendChild(c);
   });
   box.appendChild(sum);
+
+  // Top 10 lists (only for tests where you published one)
+  const lbKeys = Object.keys(byTest).filter(k => k.indexOf("practice:") !== 0 && k.indexOf("__") !== 0).slice(-12).reverse();
+  if (lbKeys.length) {
+    const lc = libEl("div", "pg-card");
+    lc.appendChild(libEl("h3", null, "Top 10 lists"));
+    lc.appendChild(libEl("p", "cap", "Only member IDs and scores are shown. Open a test to see its list when one is published."));
+    lbKeys.forEach(k => {
+      const a = byTest[k][byTest[k].length - 1], row = libEl("div", "pg-weak");
+      const t = libEl("div", "t"); t.appendChild(libEl("span", null, a.title || "Test"));
+      const b = libEl("button", "pri", "Top 10"); b.onclick = () => lbOpen(k, a.title);
+      t.appendChild(b); row.appendChild(t); lc.appendChild(row);
+    });
+    box.appendChild(lc);
+  }
 
   // overall trend
   const recent = all.slice(-12);

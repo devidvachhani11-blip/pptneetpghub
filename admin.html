@@ -459,6 +459,7 @@
       <button class="tab-btn" data-panel="testsPanel">Add Test</button>
       <button class="tab-btn" data-panel="gtPanel">Real Test (GT)</button>
       <button class="tab-btn" data-panel="dropsPanel">Recent Drops</button>
+      <button class="tab-btn" data-panel="lbPanel">Top 10</button>
       <button class="tab-btn" data-panel="bankPanel">Question Bank</button>
       <button class="tab-btn" data-panel="newsPanel">News</button>
       <button class="tab-btn" data-panel="counsellingPanel">Counselling</button>
@@ -678,6 +679,23 @@
         </div>
         <div id="t_preview" class="t-preview"></div>
         <button class="btn" id="t_publish">Publish test</button>
+      </div>
+    </div>
+
+    <!-- Top 10 (anonymous) -->
+    <div id="lbPanel" style="display:none;">
+      <div class="card">
+        <h3>Top 10 (anonymous)</h3>
+        <p class="hint" style="margin-top:-6px">Students see only a member ID and a score. No names, no emails. Only each student's <b>first attempt</b> counts. Scores are worked out again from the saved answers. Ties go to the student with fewer wrong answers, then the earlier attempt.</p>
+        <label>Test</label>
+        <select id="lb_test"></select>
+        <div class="t-actions">
+          <button class="btn teal" id="lb_check">Check</button>
+          <button class="btn" id="lb_publish">Publish Top 10</button>
+          <button class="btn outline" id="lb_hide">Hide Top 10</button>
+        </div>
+        <p class="hint" id="lb_status"></p>
+        <div id="lb_out"></div>
       </div>
     </div>
 
@@ -922,7 +940,9 @@
 
       <div class="card">
         <h3>Current members</h3>
-        <input type="text" id="m_search" placeholder="Search by email or note">
+        <input type="text" id="m_search" placeholder="Search by email, ID or note">
+        <div class="t-actions" style="margin:8px 0 0"><button class="btn outline" id="m_giveIds">Give IDs to everyone who has none</button></div>
+        <p class="hint" id="m_idHint"></p>
         <div class="m-chips" id="m_chips"></div>
         <p class="hint" id="m_count"></p>
         <div id="membersList"><div class="empty">Loading…</div></div>
@@ -1054,6 +1074,11 @@ window.addEventListener('fbReady', () => {
   document.getElementById('t_imgs').addEventListener('change', (e) => { pickImages(TIMG, e.target.files, document.getElementById('t_imgList'), true); e.target.value = ''; });
   initGT();
   document.getElementById('rd_save').addEventListener('click', saveDrops);
+  document.getElementById('m_giveIds').addEventListener('click', giveIdsClick);
+  document.getElementById('lb_check').addEventListener('click', () => lbCheck(true));
+  document.getElementById('lb_publish').addEventListener('click', lbPublish);
+  document.getElementById('lb_hide').addEventListener('click', lbHide);
+  document.getElementById('lb_test').addEventListener('change', () => { document.getElementById('lb_out').innerHTML = ''; lbStatus(); });
   document.getElementById('rd_reload').addEventListener('click', loadDrops);
   document.getElementById('resTests').addEventListener('click', () => { RESULTS.view = 'tests'; renderResults(); });
   document.getElementById('resStudents').addEventListener('click', () => { RESULTS.view = 'students'; renderResults(); });
@@ -1073,11 +1098,12 @@ window.addEventListener('fbReady', () => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      ['homePanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'gtPanel', 'dropsPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'launchPanel', 'membersPanel', 'listPanel'].forEach(id => {
+      ['homePanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'gtPanel', 'dropsPanel', 'lbPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'launchPanel', 'membersPanel', 'listPanel'].forEach(id => {
         document.getElementById(id).style.display = (id === btn.dataset.panel) ? 'block' : 'none';
       });
       if (btn.dataset.panel === 'homePanel') loadHome();
       if (btn.dataset.panel === 'dropsPanel') loadDrops();
+      if (btn.dataset.panel === 'lbPanel') loadLbTests();
       if (btn.dataset.panel === 'bankPanel') { fillTestPicker(); loadBank(); }
       if (btn.dataset.panel === 'resultsPanel' && !RESULTS.loaded) loadResults();
       if (['newsPanel', 'counsellingPanel', 'tipsPanel'].indexOf(btn.dataset.panel) > -1 && !NEWS.loaded) loadNews();
@@ -1519,6 +1545,145 @@ async function publishTest() {
 }
 
 
+
+// ---------- Member IDs and the anonymous Top 10 ----------
+// Every member gets a random 5-digit ID (members/{email}.memberId). Only you can see who has which ID.
+async function usedMemberIds() {
+  const { db, collection, getDocs } = window.__fb;
+  const used = new Set();
+  (await getDocs(collection(db, 'members'))).forEach(d => { const id = d.data().memberId; if (id) used.add(String(id)); });
+  return used;
+}
+function newMemberId(used) {
+  for (let i = 0; i < 1000; i++) {
+    const n = 10000 + (crypto.getRandomValues(new Uint32Array(1))[0] % 90000), id = String(n);
+    if (!used.has(id)) { used.add(id); return id; }
+  }
+  throw new Error('No free member ID');
+}
+async function giveMemberIds(emails) {                 // emails: only these members, or empty = everyone who has none
+  const { db, collection, getDocs, doc, writeBatch } = window.__fb;
+  const snap = await getDocs(collection(db, 'members'));
+  const used = new Set(), todo = [];
+  snap.forEach(d => { const x = d.data(); if (x.memberId) used.add(String(x.memberId)); else if (!emails || emails.indexOf(d.id) > -1) todo.push(d.id); });
+  for (let i = 0; i < todo.length; i += 400) {
+    const b = writeBatch(db);
+    todo.slice(i, i + 400).forEach(em => b.update(doc(db, 'members', em), { memberId: newMemberId(used) }));
+    await b.commit();
+  }
+  return todo.length;
+}
+async function giveIdsClick() {
+  const btn = document.getElementById('m_giveIds');
+  const n = MEM.rows.filter(r => !r.memberId).length;
+  if (!n || !confirm('Give a random ID to ' + n + (n === 1 ? ' member' : ' members') + ' who have none?')) return;
+  btn.disabled = true;
+  try { const k = await giveMemberIds(); showToast('\u2714 ' + k + (k === 1 ? ' ID' : ' IDs') + ' given.'); await loadMembersList(); }
+  catch (e) { showToast('Failed: ' + e.message, true); btn.disabled = false; }
+}
+
+// Scores are worked out again here from each student's saved answers, so a wrong saved score cannot matter.
+async function lbCompute(testId) {
+  const { db, doc, getDoc, collection, getDocs, query, where } = window.__fb;
+  const ts = await getDoc(doc(db, 'tests', testId));
+  if (!ts.exists()) throw new Error('That test was not found.');
+  const t = ts.data(), qs = Array.isArray(t.qs) ? t.qs : [];
+  const plus = Number(t.plus) || 1, minus = Number(t.minus) || 0;
+  const mem = {};
+  (await getDocs(collection(db, 'members'))).forEach(d => { mem[d.id] = d.data(); });
+  const first = {};
+  (await getDocs(query(collection(db, 'attempts'), where('testId', '==', testId)))).forEach(d => {
+    const a = d.data(), em = String(a.email || '').toLowerCase();
+    const at = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
+    if (em && (!first[em] || at < first[em].at)) first[em] = { a, at };
+  });
+  const rows = []; let bad = 0, gone = 0;
+  Object.keys(first).forEach(em => {
+    const a = first[em].a, ans = a.answers;
+    if (!Array.isArray(ans) || ans.length !== qs.length) { bad++; return; }
+    if (!mem[em]) { gone++; return; }                       // no longer a member
+    let c = 0, w = 0, s = 0;
+    ans.forEach((x, i) => { if (typeof x !== 'number' || x < 0) s++; else if (x === qs[i].a) c++; else w++; });
+    rows.push({ email: em, id: mem[em].memberId ? String(mem[em].memberId) : '', c, w, s, score: c * plus - w * minus, at: first[em].at });
+  });
+  rows.sort((p, q) => q.score - p.score || p.w - q.w || p.at - q.at);
+  return { title: t.title || '', max: qs.length * plus, rows, bad, gone };
+}
+
+async function loadLbTests() {
+  const sel = document.getElementById('lb_test');
+  const { db, collection, getDocs } = window.__fb;
+  try {
+    const keep = sel.value, items = [];
+    (await getDocs(collection(db, 'resources'))).forEach(d => { const x = d.data(); if (x.type === 'test' && x.testId) items.push({ id: x.testId, title: x.title || x.testId, tab: x.tab || '' }); });
+    items.sort((p, q) => p.title.localeCompare(q.title));
+    sel.innerHTML = '';
+    if (!items.length) { const o = document.createElement('option'); o.value = ''; o.textContent = 'No tests yet'; sel.appendChild(o); }
+    items.forEach(x => { const o = document.createElement('option'); o.value = x.id; o.textContent = x.title + (x.tab ? ' (' + x.tab + ')' : ''); sel.appendChild(o); });
+    if (keep) sel.value = keep;
+    lbStatus();
+  } catch (e) { document.getElementById('lb_status').textContent = 'Could not load tests: ' + e.message; }
+}
+async function lbStatus() {
+  const st = document.getElementById('lb_status'), id = document.getElementById('lb_test').value;
+  if (!id) { st.textContent = ''; return; }
+  try {
+    const { db, doc, getDoc } = window.__fb;
+    const s = await getDoc(doc(db, 'leaderboards', id));
+    st.textContent = s.exists() ? '\u2714 Published now: ' + (s.data().total || 0) + ' students are in the list. Students can see it.' : 'Not published. Students see no Top 10 for this test.';
+  } catch (e) { st.textContent = ''; }
+}
+async function lbCheck(show) {
+  const id = document.getElementById('lb_test').value;
+  if (!id) { showToast('Choose a test first.', true); return null; }
+  const out = document.getElementById('lb_out');
+  out.innerHTML = '';
+  let res;
+  try { res = await lbCompute(id); } catch (e) { showToast('Failed: ' + e.message, true); return null; }
+  res.testId = id;
+  const noId = res.rows.filter(r => !r.id).length;
+  out.appendChild(mk('div', res.rows.length ? 'pv ok' : 'pv bad', res.rows.length + (res.rows.length === 1 ? ' student' : ' students') + ' counted (first attempts)' + (noId ? ' \u00B7 ' + noId + ' have no ID yet' : '')));
+  if (res.bad) out.appendChild(mk('div', 'hint', res.bad + ' attempt(s) skipped because their saved answers do not match the test.'));
+  if (res.gone) out.appendChild(mk('div', 'hint', res.gone + ' student(s) skipped because they are no longer members.'));
+  if (res.rows.length) {
+    const box = mk('div', 'gt-sum'); box.style.gridTemplateColumns = '1fr';
+    res.rows.slice(0, 10).forEach((r, i) => box.appendChild(mk('span', null, '#' + (i + 1) + ' \u00B7 ID ' + (r.id || 'none yet') + ' \u00B7 ' + r.score + ' / ' + res.max + ' \u00B7 ' + r.c + ' right, ' + r.w + ' wrong  (only you see: ' + r.email + ')')));
+    out.appendChild(box);
+  }
+  return res;
+}
+async function lbPublish() {
+  const res = await lbCheck(true);
+  if (!res) return;
+  if (!res.rows.length) { showToast('Nobody has taken this test yet.', true); return; }
+  const noId = res.rows.filter(r => !r.id);
+  if (!confirm('Publish the Top 10 for "' + res.title + '"?\n\n' + res.rows.length + ' students are counted. Students see only IDs and scores.' + (noId.length ? '\n\n' + noId.length + ' students have no ID. They will get one now.' : ''))) return;
+  const btn = document.getElementById('lb_publish'); btn.disabled = true;
+  try {
+    if (noId.length) {
+      const k = await giveMemberIds(noId.map(r => r.email));
+      const again = await lbCompute(res.testId);
+      res.rows = again.rows;
+      loadMembersList();
+    }
+    if (res.rows.some(r => !r.id)) throw new Error('Some students still have no ID.');
+    const { db, doc, setDoc, serverTimestamp } = window.__fb;
+    await setDoc(doc(db, 'leaderboards', res.testId), {
+      testId: res.testId, title: res.title, max: res.max, total: res.rows.length,
+      all: res.rows.map(r => [r.id, r.score, r.w]), publishedAt: serverTimestamp()
+    });
+    showToast('\u2714 Top 10 published for "' + res.title + '".');
+    lbStatus();
+  } catch (e) { showToast('Failed: ' + e.message, true); }
+  finally { btn.disabled = false; }
+}
+async function lbHide() {
+  const id = document.getElementById('lb_test').value;
+  if (!id) return;
+  if (!confirm('Hide the Top 10 for this test? Students will no longer see it. You can publish it again any time.')) return;
+  try { const { db, doc, deleteDoc } = window.__fb; await deleteDoc(doc(db, 'leaderboards', id)); showToast('\u2714 Top 10 hidden.'); lbStatus(); }
+  catch (e) { showToast('Failed: ' + e.message, true); }
+}
 
 // ---------- Recent drops (home page card for visitors) ----------
 // Saved in "config/recent" as { items: [{ s: subject, t: title, d: "YYYY-MM-DD" }] }. The home page reads it with no sign-in.
@@ -3003,7 +3168,13 @@ async function addMember() {
   const end = document.getElementById('m_end').value;
   if (!email || !email.includes('@')) { showToast('Enter a valid email.', true); return; }
   try {
-    await setDoc(doc(db, 'members', email), { note: note || '', expiresAt: end ? Timestamp.fromMillis(endOfDayMs(end)) : null, addedAt: serverTimestamp() });
+    const rec = { note: note || '', expiresAt: end ? Timestamp.fromMillis(endOfDayMs(end)) : null, addedAt: serverTimestamp() };
+    try {
+      const old = await window.__fb.getDoc(doc(db, 'members', email));
+      if (old.exists() && old.data().memberId) rec.memberId = old.data().memberId;      // keep their ID
+      else rec.memberId = newMemberId(await usedMemberIds());
+    } catch (e) {}
+    await setDoc(doc(db, 'members', email), rec);
     showToast('Access granted: ' + email + (end ? ' until ' + shortDate(endOfDayMs(end)) : ' (no end date)'));
     document.getElementById('m_email').value = ''; document.getElementById('m_note').value = '';
     loadMembersList();
@@ -3044,9 +3215,12 @@ function renderMembers() {
     if (MEM.filter === 'live' && s === 'ended') return false;
     if (MEM.filter === 'soon' && s !== 'soon') return false;
     if (MEM.filter === 'ended' && s !== 'ended') return false;
-    return !q || (r.id + ' ' + (r.note || '')).toLowerCase().indexOf(q) > -1;
+    return !q || (r.id + ' ' + (r.memberId || '') + ' ' + (r.note || '')).toLowerCase().indexOf(q) > -1;
   });
   document.getElementById('m_count').textContent = MEM.rows.length ? 'Showing ' + shown.length + ' of ' + MEM.rows.length + ' members.' : '';
+  const noId = MEM.rows.filter(r => !r.memberId).length;
+  document.getElementById('m_idHint').textContent = MEM.rows.length ? (noId ? noId + (noId === 1 ? ' member has' : ' members have') + ' no ID yet.' : 'Every member has an ID.') : '';
+  document.getElementById('m_giveIds').disabled = !noId;
   el.innerHTML = '';
   if (!MEM.rows.length) { el.appendChild(mk('div', 'empty', 'No members yet.')); return; }
   if (!shown.length) { el.appendChild(mk('div', 'empty', 'Nobody matches.')); return; }
@@ -3057,7 +3231,7 @@ function renderMembers() {
     info.appendChild(mk('div', 'title', r.id));
     const st = s === 'none' ? 'No end date' : s === 'ended' ? 'Expired ' + shortDate(end) : 'Until ' + shortDate(end);
     const dv = MEM.devices[r.id] !== undefined ? ' · ' + MEM.devices[r.id] + ' device' + (MEM.devices[r.id] === 1 ? '' : 's') : '';
-    info.appendChild(mk('div', 'meta', st + dv + (r.note ? ' · ' + r.note : '')));
+    info.appendChild(mk('div', 'meta', (r.memberId ? 'ID ' + r.memberId + ' · ' : 'No ID yet · ') + st + dv + (r.note ? ' · ' + r.note : '')));
     row.appendChild(info);
     const btns = mk('div', 'l-btns');
     if (s === 'soon' || s === 'ended') btns.appendChild(mk('span', 'badge ' + (s === 'ended' ? 'ended' : 'soon'), s === 'ended' ? 'Expired' : 'Ending'));
@@ -3073,6 +3247,7 @@ function openMemberEdit(r) {
   const body = document.getElementById('edBody'); body.innerHTML = '';
   const em = edInput('mb_email', r.id); em.disabled = true;
   body.appendChild(edField('Member', em));
+  body.appendChild(mk('p', 'hint', 'Member ID: ' + (r.memberId || 'none yet') + '. Only you can see which person has which ID.'));
   body.appendChild(edField('Note', edInput('mb_note', r.note || '')));
   const end = memEnd(r);
   const date = document.createElement('input'); date.type = 'date'; date.id = 'mb_end'; date.value = end ? ymd(end) : '';
@@ -4048,6 +4223,7 @@ async function approvePayment(utr, p) {
     const batch = writeBatch(db);
     batch.update(doc(db, 'payments', utr), { status: 'approved', reviewedAt: serverTimestamp() });
     const fields = { utr: utr, amount: p.amount, expiresAt: end ? Timestamp.fromMillis(end) : null };
+    if (!(existing && existing.memberId)) { try { fields.memberId = newMemberId(await usedMemberIds()); } catch (e) {} }   // every member gets an ID
     if (existing) { fields.renewedAt = serverTimestamp(); }                       // keep their note and history
     else { fields.addedAt = serverTimestamp(); fields.note = 'Paid ₹' + p.amount + ' · UTR ' + utr; }
     batch.set(doc(db, 'members', email), fields, { merge: true });
