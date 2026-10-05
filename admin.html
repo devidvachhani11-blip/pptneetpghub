@@ -422,6 +422,13 @@
 .gt-box{margin:12px 0 4px}.gt-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}.gt-head b{font-size:14px}
 .gt-cnt{font-size:12.5px;font-weight:700;color:#6E7A8A}.gt-cnt.ok{color:#0F8F83}.gt-cnt.bad{color:#C0392B}
 .gt-sum{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin:8px 0;font-size:13.5px}.gt-sum .g-ok{color:#0F8F83;font-weight:700}.gt-sum .g-bad{color:#C0392B;font-weight:700}
+.ct-row{display:flex;gap:10px;align-items:flex-start;margin:10px 0;padding:10px;border:1px solid var(--border,#E6DFC9);border-radius:12px;background:#fff}
+.ct-row img{width:78px;height:78px;object-fit:cover;border-radius:8px;flex:none;background:#eee}
+.ct-row .ct-in{flex:1;min-width:0}.ct-row .ct-in b{display:block;font-size:12.5px;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ct-row textarea{width:100%;min-height:58px}.ct-row button.x{flex:none;border:0;background:#eee;border-radius:50%;width:28px;height:28px;font-size:16px}
+.sr-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--border,#E6DFC9)}
+.sr-item:first-child{border-top:0}.sr-item b{display:block;font-size:14px}.sr-item span{font-size:12px;color:#6E7A8A}
+.sr-item button{flex:none;padding:8px 14px;border-radius:10px;border:1.5px solid #0A1A33;background:#fff;font-weight:700;font-size:12.5px}
 </style>
 
 </head>
@@ -458,6 +465,9 @@
       <button class="tab-btn" data-panel="bulkPanel">Bulk Upload</button>
       <button class="tab-btn" data-panel="testsPanel">Add Test</button>
       <button class="tab-btn" data-panel="gtPanel">Real Test (GT)</button>
+      <button class="tab-btn" data-panel="seriesPanel">Series</button>
+      <button class="tab-btn" data-panel="cardsPanel">Card Test</button>
+      <button class="tab-btn" data-panel="imgTestPanel">Image Tests</button>
       <button class="tab-btn" data-panel="dropsPanel">Recent Drops</button>
       <button class="tab-btn" data-panel="lbPanel">Top 10</button>
       <button class="tab-btn" data-panel="bankPanel">Question Bank</button>
@@ -586,7 +596,6 @@
 
         <label>Category</label>
         <select id="b_tab">
-          <option>Flashcards</option>
           <option>High Yield</option>
           <option>PYQs</option>
           <option>PYTs</option>
@@ -696,6 +705,100 @@
         </div>
         <p class="hint" id="lb_status"></p>
         <div id="lb_out"></div>
+      </div>
+    </div>
+
+    <!-- Series (image cards, grouped by a name you type) -->
+    <div id="seriesPanel" style="display:none;">
+      <div class="card">
+        <h3>Card series</h3>
+        <p class="hint" style="margin-top:-6px">A series is a name you type, like "Key Facts" or "Must Remember". Cards are pictures only, all the same size. They are added in file-name order (card 2 before card 10). Using an existing name adds more cards at the end.</p>
+        <label>Series name</label>
+        <input type="text" id="sr_name" maxlength="60" list="sr_names" placeholder="e.g. Key Facts" autocomplete="off">
+        <datalist id="sr_names"></datalist>
+        <label>Card pictures</label>
+        <input type="file" id="sr_files" class="file-inp" multiple accept=".png,.jpg,.jpeg,.webp">
+        <p class="hint" id="sr_hint">Up to 10 MB each. PNG, JPG or WebP.</p>
+        <div class="img-chips" id="sr_chips"></div>
+        <label>Release on (optional)</label>
+        <input type="datetime-local" id="sr_release">
+        <div class="t-actions">
+          <button class="btn" id="sr_upload">Upload cards</button>
+          <button class="btn outline" id="sr_clear">Clear</button>
+        </div>
+        <p class="hint" id="sr_status"></p>
+      </div>
+      <div class="card">
+        <h3>Your series</h3>
+        <div id="sr_list"><p class="hint">Loading\u2026</p></div>
+      </div>
+    </div>
+
+    <!-- Card Test (a picture and its answer) -->
+    <div id="cardsPanel" style="display:none;">
+      <div class="card">
+        <h3>Card Test</h3>
+        <p class="hint" style="margin-top:-6px">Each card is a picture and an answer you type. The student sees the picture, taps to show the answer, then chooses Again or Got it. No score and no Top 10.</p>
+        <label>Card test name</label>
+        <input type="text" id="ct_name" maxlength="60" list="ct_names" placeholder="e.g. Spotters Round 1" autocomplete="off">
+        <datalist id="ct_names"></datalist>
+        <label>Card pictures</label>
+        <input type="file" id="ct_files" class="file-inp" multiple accept=".png,.jpg,.jpeg,.webp">
+        <p class="hint" id="ct_hint">Pictures are added in file-name order. Type the answer under each picture.</p>
+        <div id="ct_rows"></div>
+        <label>Release on (optional)</label>
+        <input type="datetime-local" id="ct_release">
+        <div class="t-actions">
+          <button class="btn" id="ct_upload">Upload cards</button>
+          <button class="btn outline" id="ct_clear">Clear</button>
+        </div>
+        <p class="hint" id="ct_status"></p>
+      </div>
+      <div class="card">
+        <h3>Your card tests</h3>
+        <div id="ct_list"><p class="hint">Loading\u2026</p></div>
+      </div>
+    </div>
+
+    <!-- Image Tests (questions with a big picture) -->
+    <div id="imgTestPanel" style="display:none;">
+      <div class="card">
+        <h3>Image Test</h3>
+        <p class="hint" style="margin-top:-6px">Every question has a big picture (X-ray, slide, spotter) and options. Choose instant answer or a timed test.</p>
+        <label>Title</label>
+        <input type="text" id="it_title" placeholder="e.g. Radiology Spotters 1">
+        <label>Exam</label>
+        <select id="it_exam"><option value="NEET PG">NEET PG</option><option value="INICET">INICET</option></select>
+        <label>Subject</label>
+        <select id="it_subject"></select>
+        <label>How it works</label>
+        <select id="it_mode"><option value="instant">Instant answer (answer and explanation right away)</option><option value="exam">Timed (like the exam, score at the end)</option></select>
+        <div id="it_examFields" style="display:none">
+          <div class="t-row">
+            <div><label>Time (minutes)</label><input type="number" id="it_duration" value="30" min="1" step="1"></div>
+            <div><label>Marks per correct</label><input type="number" id="it_plus" value="4" min="0" step="0.25"></div>
+            <div><label>Minus per wrong</label><input type="number" id="it_minus" value="1" min="0" step="0.25"></div>
+          </div>
+        </div>
+        <label>Release on (optional)</label>
+        <input type="datetime-local" id="it_release">
+        <label class="l-all" style="margin-top:6px"><input type="checkbox" id="it_announce"> Post on Telegram when it goes live</label>
+
+        <label style="margin-top:14px">Way 1: Excel file</label>
+        <input type="file" id="it_xl" class="file-inp" accept=".xlsx,.xls,.csv">
+        <p class="hint">Headings in row 1: Subject (optional), Question, A, B, C, D, Answer, Explanation, <b>Image</b> (the picture file name), Explanation image (optional). <a href="#" id="it_tpl">Download the template</a></p>
+        <label>Way 2: Paste the questions</label>
+        <textarea id="it_text" class="t-area" rows="9" spellcheck="false" placeholder="Q1. Identify the sign\nA. ...\nB. ...\nC. ...\nD. ...\nAnswer: B\nImage: xray1.png\nExplanation: ..."></textarea>
+        <label>Question pictures</label>
+        <input type="file" id="it_imgs" class="file-inp" multiple accept=".png,.jpg,.jpeg,.webp">
+        <p class="hint">Choose all the picture files here. Each question must name its picture, in the Image column or an <b>Image:</b> line.</p>
+        <div class="img-chips" id="it_imgList"></div>
+        <div class="t-actions">
+          <button class="btn teal" id="it_check">Final check</button>
+          <button class="btn outline" id="it_clear">Clear all</button>
+        </div>
+        <div id="it_preview" class="t-preview"></div>
+        <button class="btn" id="it_publish">Publish Image Test</button>
       </div>
     </div>
 
@@ -956,7 +1059,7 @@
         <select id="l_subject"><option value="">All subjects</option></select>
         <select id="l_tab">
           <option value="">All categories</option>
-          <option>High Yield</option><option>PYQs</option><option>PYTs</option><option>Tests</option><option>Flashcards</option>
+          <option>High Yield</option><option>PYQs</option><option>PYTs</option><option>Tests</option><option>Image Tests</option><option>Real Test</option><option>Series</option><option>Card Test</option>
         </select>
       </div>
       <input type="text" id="l_q" placeholder="Search by title" style="margin-top:8px">
@@ -1073,6 +1176,7 @@ window.addEventListener('fbReady', () => {
   document.getElementById('t_publish').addEventListener('click', publishTest);
   document.getElementById('t_imgs').addEventListener('change', (e) => { pickImages(TIMG, e.target.files, document.getElementById('t_imgList'), true); e.target.value = ''; });
   initGT();
+  initCards();
   document.getElementById('rd_save').addEventListener('click', saveDrops);
   document.getElementById('m_giveIds').addEventListener('click', giveIdsClick);
   document.getElementById('lb_check').addEventListener('click', () => lbCheck(true));
@@ -1098,11 +1202,13 @@ window.addEventListener('fbReady', () => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      ['homePanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'gtPanel', 'dropsPanel', 'lbPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'launchPanel', 'membersPanel', 'listPanel'].forEach(id => {
+      ['homePanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'gtPanel', 'seriesPanel', 'cardsPanel', 'imgTestPanel', 'dropsPanel', 'lbPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'launchPanel', 'membersPanel', 'listPanel'].forEach(id => {
         document.getElementById(id).style.display = (id === btn.dataset.panel) ? 'block' : 'none';
       });
       if (btn.dataset.panel === 'homePanel') loadHome();
       if (btn.dataset.panel === 'dropsPanel') loadDrops();
+      if (btn.dataset.panel === 'seriesPanel') loadSeriesAdmin();
+      if (btn.dataset.panel === 'cardsPanel') loadCardDecks();
       if (btn.dataset.panel === 'lbPanel') loadLbTests();
       if (btn.dataset.panel === 'bankPanel') { fillTestPicker(); loadBank(); }
       if (btn.dataset.panel === 'resultsPanel' && !RESULTS.loaded) loadResults();
@@ -1545,6 +1651,389 @@ async function publishTest() {
 }
 
 
+
+// ---------- Card series, Card Test and Image Tests ----------
+// Series and Card Test cards are saved as resources: tab "Series" / "Card Test", series = the name you typed,
+// answer (Card Test only), seq = the order the cards were added. Old subject-wise Flashcards show as series named by their subject.
+function isCardRow(r) { return ['Flashcards', 'Series', 'Card Test'].indexOf(r.tab) > -1; }
+function seriesNameOf(x) { return String(x.series || (x.tab === 'Flashcards' || x.tab === 'Series' ? x.subject : '') || '').trim(); }
+function natCompare(p, q) { return String(p).localeCompare(String(q), undefined, { numeric: true, sensitivity: 'base' }); }
+function cleanCardTitle(name) { return String(name || '').replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim() || 'Card'; }
+
+// pictures must all be the same size: tell the admin when they are not (it never blocks the upload)
+async function imgSizes(files) {
+  const out = [];
+  for (const f of files) {
+    try { const b = await createImageBitmap(f); out.push({ f, w: b.width, h: b.height }); if (b.close) b.close(); }
+    catch (e) { out.push({ f, w: 0, h: 0 }); }
+  }
+  return out;
+}
+function sizeNote(list) {
+  if (!list.length) return '';
+  const groups = {};
+  list.forEach(x => { const k = x.w + ' \u00D7 ' + x.h; (groups[k] = groups[k] || []).push(x.f.name); });
+  const keys = Object.keys(groups).sort((p, q) => groups[q].length - groups[p].length);
+  if (keys.length === 1) return '\u2714 All ' + list.length + (list.length === 1 ? ' picture is ' : ' pictures are ') + keys[0] + ' pixels.';
+  const odd = keys.slice(1).map(k => k + ': ' + groups[k].slice(0, 3).join(', ') + (groups[k].length > 3 ? ' and ' + (groups[k].length - 3) + ' more' : '')).join(' \u00B7 ');
+  return '\u26A0 Not all the same size. Most are ' + keys[0] + ' (' + groups[keys[0]].length + '). Different: ' + odd + '.';
+}
+async function readCardDocs() {
+  const { db, collection, getDocs } = window.__fb;
+  const rows = [];
+  (await getDocs(collection(db, 'resources'))).forEach(d => { const x = d.data(); if (isCardRow(x)) { x.id = d.id; rows.push(x); } });
+  return rows;
+}
+function maxSeqOf(rows, tab, name) {
+  let m = 0;
+  rows.forEach(x => { if ((x.tab === 'Card Test' ? 'Card Test' : 'Series') === tab && seriesNameOf(x).toLowerCase() === name.toLowerCase()) { const s = Number(x.seq) || (x.createdAt && x.createdAt.toMillis ? x.createdAt.toMillis() : 0); if (s > m) m = s; } });
+  return m;
+}
+function groupCards(rows, tab) {
+  const g = {};
+  rows.forEach(x => { if ((x.tab === 'Card Test' ? 'Card Test' : 'Series') !== tab) return; const n = seriesNameOf(x); if (!n) return; const k = n.toLowerCase(); (g[k] = g[k] || { name: n, ids: [], n: 0 }); g[k].ids.push(x.id); g[k].n++; });
+  return Object.keys(g).map(k => g[k]).sort((p, q) => natCompare(p.name, q.name));
+}
+
+// ---- Series ----
+const SR = { files: [] };
+function srAddFiles(list) {
+  const before = SR.files.length;
+  pickImages(SR, list, document.getElementById('sr_chips'), document.getElementById('sr_hint'));
+  SR.files.sort((p, q) => natCompare(p.name, q.name));
+  paintImgChips(SR, document.getElementById('sr_chips'));
+  srSizes();
+  return SR.files.length - before;
+}
+async function srSizes() {
+  const el = document.getElementById('sr_hint'), list = await imgSizes(SR.files);
+  el.textContent = SR.files.length ? SR.files.length + (SR.files.length === 1 ? ' picture' : ' pictures') + ' chosen. ' + sizeNote(list) : 'Up to 10 MB each. PNG, JPG or WebP.';
+  el.style.color = /Not all the same/.test(el.textContent) ? '#B06A00' : '';
+}
+async function loadSeriesAdmin() {
+  const box = document.getElementById('sr_list');
+  try {
+    const rows = await readCardDocs(), groups = groupCards(rows, 'Series');
+    const dl = document.getElementById('sr_names'); dl.innerHTML = '';
+    groups.forEach(g => { const o = document.createElement('option'); o.value = g.name; dl.appendChild(o); });
+    box.innerHTML = '';
+    if (!groups.length) { box.appendChild(mk('p', 'hint', 'No series yet. Upload your first cards above.')); return; }
+    groups.forEach(g => {
+      const r = mk('div', 'sr-item'), t = mk('div');
+      t.appendChild(mk('b', null, g.name)); t.appendChild(mk('span', null, g.n + (g.n === 1 ? ' card' : ' cards')));
+      const b = mk('button', null, 'Rename'); b.addEventListener('click', () => renameSeriesTo(g, 'Series'));
+      r.appendChild(t); r.appendChild(b); box.appendChild(r);
+    });
+  } catch (e) { box.innerHTML = ''; box.appendChild(mk('p', 'hint', 'Could not load: ' + e.message)); }
+}
+async function renameSeriesTo(g, tab) {
+  const nn = (prompt('New name for "' + g.name + '":', g.name) || '').replace(/\s+/g, ' ').trim();
+  if (!nn || nn === g.name) return;
+  if (nn.length > 60) { showToast('Keep the name under 60 characters.', true); return; }
+  try {
+    const { db, doc, writeBatch } = window.__fb;
+    for (let i = 0; i < g.ids.length; i += 400) {
+      const b = writeBatch(db);
+      g.ids.slice(i, i + 400).forEach(id => b.update(doc(db, 'resources', id), { series: nn, tab }));
+      await b.commit();
+    }
+    showToast('\u2714 Renamed to "' + nn + '" (' + g.n + ' cards).');
+    if (tab === 'Series') loadSeriesAdmin(); else loadCardDecks();
+  } catch (e) { showToast('Failed: ' + e.message, true); }
+}
+async function srUpload() {
+  const name = document.getElementById('sr_name').value.replace(/\s+/g, ' ').trim();
+  if (!name) { showToast('Type the series name first.', true); document.getElementById('sr_name').focus(); return; }
+  if (!SR.files.length) { showToast('Choose the card pictures first.', true); return; }
+  if (!confirm('Add ' + SR.files.length + (SR.files.length === 1 ? ' card' : ' cards') + ' to the series "' + name + '"?')) return;
+  const btn = document.getElementById('sr_upload'), st = document.getElementById('sr_status');
+  btn.disabled = true;
+  try {
+    const { db, collection, addDoc, serverTimestamp, Timestamp } = window.__fb;
+    const rows = await readCardDocs();
+    const base = Math.max(Date.now(), maxSeqOf(rows, 'Series', name) + 1);
+    const rel = relMs('sr_release');
+    SR.files.forEach((f, i) => { if (f.__seq == null) f.__seq = base + i; });
+    const todo = SR.files.slice(), failed = []; let done = 0, next = 0;
+    const worker = async () => {
+      while (next < todo.length) {
+        const f = todo[next++];
+        try {
+          const key = await uploadToR2(f, name, () => {});
+          await addDoc(collection(db, 'resources'), {
+            subject: 'Series', exam: 'NEET PG', tab: 'Series', series: name, title: cleanCardTitle(f.name), meta: '',
+            type: 'download', fileUrl: 'r2:' + key, size: f.size, seq: f.__seq,
+            releaseAt: rel ? Timestamp.fromMillis(rel) : null, createdAt: serverTimestamp()
+          });
+          done++; f.__done = true;
+        } catch (e) { failed.push(f.name + ' (' + ((e && e.message) || 'failed') + ')'); }
+        st.textContent = 'Uploading ' + (done + failed.length) + ' / ' + todo.length + '\u2026';
+      }
+    };
+    await Promise.all([worker(), worker(), worker()]);
+    SR.files = SR.files.filter(f => !f.__done);
+    paintImgChips(SR, document.getElementById('sr_chips'));
+    if (!failed.length) { SR.files = []; document.getElementById('sr_release').value = ''; }
+    st.textContent = failed.length ? done + ' added, ' + failed.length + ' failed: ' + failed.slice(0, 3).join(', ') + '. Press Upload again to retry the failed ones.' : '';
+    showToast(failed.length ? done + ' added, ' + failed.length + ' failed.' : '\u2714 ' + done + (done === 1 ? ' card' : ' cards') + ' added to "' + name + '".', failed.length > 0);
+    srSizes(); loadSeriesAdmin(); loadResourcesList();
+  } catch (e) { showToast('Failed: ' + e.message, true); }
+  finally { btn.disabled = false; }
+}
+
+// ---- Card Test ----
+const CT = { rows: [] };      // { file, url, answer }
+function ctPaint() {
+  const box = document.getElementById('ct_rows'); box.innerHTML = '';
+  CT.rows.forEach((r, i) => {
+    const row = mk('div', 'ct-row'), im = document.createElement('img'); im.src = r.url; im.alt = r.file.name;
+    const inn = mk('div', 'ct-in'); inn.appendChild(mk('b', null, (i + 1) + '. ' + r.file.name));
+    const ta = document.createElement('textarea'); ta.maxLength = 300; ta.placeholder = 'Answer for this picture'; ta.value = r.answer;
+    ta.addEventListener('input', () => { r.answer = ta.value; });
+    inn.appendChild(ta);
+    const x = mk('button', 'x', '\u00D7'); x.type = 'button'; x.setAttribute('aria-label', 'Remove ' + r.file.name);
+    x.addEventListener('click', () => { URL.revokeObjectURL(r.url); CT.rows.splice(i, 1); ctPaint(); ctSizes(); });
+    row.appendChild(im); row.appendChild(inn); row.appendChild(x); box.appendChild(row);
+  });
+}
+async function ctSizes() {
+  const el = document.getElementById('ct_hint'), list = await imgSizes(CT.rows.map(r => r.file));
+  el.textContent = CT.rows.length ? CT.rows.length + (CT.rows.length === 1 ? ' picture' : ' pictures') + ' chosen. Type the answer under each one. ' + sizeNote(list) : 'Pictures are added in file-name order. Type the answer under each picture.';
+  el.style.color = /Not all the same/.test(el.textContent) ? '#B06A00' : '';
+}
+function ctAdd(list) {
+  const skipped = [];
+  Array.from(list).forEach(f => {
+    const ext = fileExtOf(f.name);
+    if (['png', 'jpg', 'jpeg', 'webp'].indexOf(ext) === -1) { skipped.push(f.name + ' (not an image)'); return; }
+    if (f.size > IMG_MAX_BYTES) { skipped.push(f.name + ' (over 10 MB)'); return; }
+    const i = CT.rows.findIndex(r => r.file.name.toLowerCase() === f.name.toLowerCase());
+    if (i > -1) { URL.revokeObjectURL(CT.rows[i].url); CT.rows[i].file = f; CT.rows[i].url = URL.createObjectURL(f); }
+    else CT.rows.push({ file: f, url: URL.createObjectURL(f), answer: '' });
+  });
+  CT.rows.sort((p, q) => natCompare(p.file.name, q.file.name));
+  if (skipped.length) showToast(skipped.length + ' skipped: ' + skipped.slice(0, 2).join(', '), true);
+  ctPaint(); ctSizes();
+}
+async function loadCardDecks() {
+  const box = document.getElementById('ct_list');
+  try {
+    const rows = await readCardDocs(), groups = groupCards(rows, 'Card Test');
+    const dl = document.getElementById('ct_names'); dl.innerHTML = '';
+    groups.forEach(g => { const o = document.createElement('option'); o.value = g.name; dl.appendChild(o); });
+    box.innerHTML = '';
+    if (!groups.length) { box.appendChild(mk('p', 'hint', 'No card tests yet. Upload your first cards above.')); return; }
+    groups.forEach(g => {
+      const r = mk('div', 'sr-item'), t = mk('div');
+      t.appendChild(mk('b', null, g.name)); t.appendChild(mk('span', null, g.n + (g.n === 1 ? ' card' : ' cards') + '. To change one answer, open that card in the Resources list.'));
+      const b = mk('button', null, 'Rename'); b.addEventListener('click', () => renameSeriesTo(g, 'Card Test'));
+      r.appendChild(t); r.appendChild(b); box.appendChild(r);
+    });
+  } catch (e) { box.innerHTML = ''; box.appendChild(mk('p', 'hint', 'Could not load: ' + e.message)); }
+}
+async function ctUpload() {
+  const name = document.getElementById('ct_name').value.replace(/\s+/g, ' ').trim();
+  if (!name) { showToast('Type the card test name first.', true); document.getElementById('ct_name').focus(); return; }
+  if (!CT.rows.length) { showToast('Choose the card pictures first.', true); return; }
+  const missing = CT.rows.findIndex(r => !r.answer.trim());
+  if (missing > -1) { showToast('Picture ' + (missing + 1) + ' (' + CT.rows[missing].file.name + ') has no answer yet.', true); return; }
+  if (!confirm('Add ' + CT.rows.length + (CT.rows.length === 1 ? ' card' : ' cards') + ' to "' + name + '"?')) return;
+  const btn = document.getElementById('ct_upload'), st = document.getElementById('ct_status');
+  btn.disabled = true;
+  try {
+    const { db, collection, addDoc, serverTimestamp, Timestamp } = window.__fb;
+    const rows = await readCardDocs();
+    const base = Math.max(Date.now(), maxSeqOf(rows, 'Card Test', name) + 1);
+    const have = groupCards(rows, 'Card Test').find(g => g.name.toLowerCase() === name.toLowerCase());
+    const startNo = have ? have.n : 0, rel = relMs('ct_release');
+    CT.rows.forEach((r, i) => { if (r.seq == null) r.seq = base + i; if (r.no == null) r.no = startNo + i + 1; });
+    const todo = CT.rows.slice(), failed = []; let done = 0, next = 0;
+    const worker = async () => {
+      while (next < todo.length) {
+        const r = todo[next++];
+        try {
+          const key = await uploadToR2(r.file, name, () => {});
+          await addDoc(collection(db, 'resources'), {
+            subject: 'Cards', exam: 'NEET PG', tab: 'Card Test', series: name, title: 'Card ' + r.no, answer: r.answer.trim().slice(0, 300), meta: '',
+            type: 'download', fileUrl: 'r2:' + key, size: r.file.size, seq: r.seq,
+            releaseAt: rel ? Timestamp.fromMillis(rel) : null, createdAt: serverTimestamp()
+          });
+          done++; r.done = true;
+        } catch (e) { failed.push(r.file.name + ' (' + ((e && e.message) || 'failed') + ')'); }
+        st.textContent = 'Uploading ' + (done + failed.length) + ' / ' + todo.length + '\u2026';
+      }
+    };
+    await Promise.all([worker(), worker(), worker()]);
+    CT.rows.filter(r => r.done).forEach(r => URL.revokeObjectURL(r.url));
+    CT.rows = CT.rows.filter(r => !r.done);
+    if (!failed.length) document.getElementById('ct_release').value = '';
+    ctPaint(); ctSizes();
+    st.textContent = failed.length ? done + ' added, ' + failed.length + ' failed: ' + failed.slice(0, 3).join(', ') + '. Press Upload again to retry the failed ones.' : '';
+    showToast(failed.length ? done + ' added, ' + failed.length + ' failed.' : '\u2714 ' + done + (done === 1 ? ' card' : ' cards') + ' added to "' + name + '".', failed.length > 0);
+    loadCardDecks(); loadResourcesList();
+  } catch (e) { showToast('Failed: ' + e.message, true); }
+  finally { btn.disabled = false; }
+}
+
+// ---- Edit one card (series card or card test card) from the Resources list ----
+function openEditCard(row) {
+  const body = document.getElementById('edBody');
+  ED.mode = 'card';
+  const isCt = row.tab === 'Card Test';
+  body.appendChild(edField(isCt ? 'Card test name' : 'Series name', edInput('e_series', seriesNameOf(row))));
+  if (isCt) {
+    const ta = document.createElement('textarea'); ta.id = 'e_answer'; ta.maxLength = 300; ta.value = row.answer || ''; ta.style.minHeight = '90px';
+    body.appendChild(edField('Answer', ta));
+  }
+  body.appendChild(edField('Card name (only you see it)', edInput('e_title', row.title)));
+  const cur = row.fileUrl ? 'Picture: ' + String(row.fileUrl).replace(/^r2:/, '').split('/').pop() + (row.size ? ' (' + fmtSize(row.size) + ')' : '') : 'No picture attached';
+  body.appendChild(edField('Picture', mk('div', 'ed-file', cur)));
+  const f = document.createElement('input'); f.type = 'file'; f.id = 'e_file'; f.className = 'file-inp'; f.accept = '.png,.jpg,.jpeg,.webp';
+  body.appendChild(edField('Replace the picture (optional)', f));
+  const p = mk('p', 'hint', 'Keep the same size as the other cards. The old picture is deleted after the new one is saved.'); p.id = 'e_status'; body.appendChild(p);
+  const rel = document.createElement('input'); rel.type = 'datetime-local'; rel.id = 'e_release'; rel.value = toLocalInput(itemRelease(row));
+  body.appendChild(edField('Release on (empty = live now)', rel));
+  openEditModal(isCt ? 'Edit card' : 'Edit series card');
+}
+async function saveCardEdit() {
+  const { db, doc, updateDoc } = window.__fb;
+  const row = ED.row, isCt = row.tab === 'Card Test';
+  const series = document.getElementById('e_series').value.replace(/\s+/g, ' ').trim();
+  const title = document.getElementById('e_title').value.trim() || row.title || 'Card';
+  const answer = isCt ? document.getElementById('e_answer').value.trim() : '';
+  if (!series) throw soft('The name cannot be empty.');
+  if (isCt && !answer) throw soft('The answer cannot be empty.');
+  const file = document.getElementById('e_file').files[0];
+  let fileUrl = row.fileUrl || null, size = row.size || null, oldKey = null;
+  if (file) {
+    if (['png', 'jpg', 'jpeg', 'webp'].indexOf(fileExtOf(file.name)) === -1) throw soft('The picture must be a PNG, JPG or WebP file.');
+    const status = document.getElementById('e_status'); status.textContent = 'Uploading 0%';
+    const key = await uploadToR2(file, series, p => { status.textContent = 'Uploading ' + p + '%'; });
+    if (fileUrl && String(fileUrl).startsWith('r2:')) oldKey = fileUrl.slice(3);
+    fileUrl = 'r2:' + key; size = file.size;
+  }
+  const relNew = relMs('e_release');
+  const upd = { series, title, tab: isCt ? 'Card Test' : 'Series', fileUrl, size, releaseAt: relNew ? window.__fb.Timestamp.fromMillis(relNew) : null };
+  if (isCt) upd.answer = answer;
+  if (!row.seq) upd.seq = (row.createdAt && row.createdAt.toMillis ? row.createdAt.toMillis() : Date.now());   // old cards keep their place
+  await updateDoc(doc(db, 'resources', row.id), upd);
+  if (oldKey) { try { const token = await window.__fb.auth.currentUser.getIdToken(); await fetch('/api/file?key=' + encodeURIComponent(oldKey), { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } }); } catch (e) { console.error('Old file cleanup failed', e); } }
+  showToast('\u2714 Saved');
+}
+
+// ---- Image Tests ----
+const IT = { files: [] };
+function itBlockedMode() { return document.getElementById('it_mode').value === 'exam'; }
+function itSaveDraft() { try { localStorage.setItem('pptItDraft', JSON.stringify({ title: document.getElementById('it_title').value, text: document.getElementById('it_text').value })); } catch (e) {} }
+function itCheck(show) {
+  const raw = document.getElementById('it_text').value, res = parseQuestions(raw);
+  const out = { ok: false, res, errors: [] };
+  if (!raw.trim()) out.errors.push('Paste the questions or choose an Excel file first.');
+  else {
+    validateImages(res, IT.files, null);
+    res.errors.forEach(e => out.errors.push(e));
+    res.questions.forEach((q, i) => { if (!q.img) out.errors.push('Question ' + (i + 1) + ': needs a picture. Add a line like Image: xray1.png'); });
+    if (!res.errors.length && !res.questions.length) out.errors.push('No questions found.');
+  }
+  out.ok = !out.errors.length && res.questions.length > 0;
+  if (show) {
+    const box = document.getElementById('it_preview'); box.innerHTML = '';
+    box.appendChild(mk('div', out.ok ? 'pv ok' : 'pv bad', out.ok ? '\u2714 Ready: ' + res.questions.length + (res.questions.length === 1 ? ' question' : ' questions') + ', each with a picture' : 'Not ready yet \u00B7 ' + res.questions.length + ' questions found'));
+    if (out.ok && res.unusedImages && res.unusedImages.length) box.appendChild(mk('div', 'hint', res.unusedImages.length + ' chosen picture(s) are not used by any question: ' + res.unusedImages.slice(0, 4).join(', ')));
+    if (!out.ok) {
+      const er = mk('div', 'pv bad'); er.appendChild(mk('b', null, out.errors.length + (out.errors.length === 1 ? ' problem to fix:' : ' problems to fix:')));
+      const ul = document.createElement('ul'); out.errors.slice(0, 20).forEach(e => ul.appendChild(mk('li', null, e)));
+      if (out.errors.length > 20) ul.appendChild(mk('li', null, '\u2026and ' + (out.errors.length - 20) + ' more'));
+      er.appendChild(ul); box.appendChild(er);
+    }
+  }
+  return out;
+}
+async function itFromExcel(file) {
+  if (!file) return;
+  try {
+    const sheets = await readSheetFile(file);
+    let qs = [], errs = [];
+    const def = document.getElementById('it_subject').value || '__none__';
+    sheets.forEach(aoa => { if (!aoa.length) return; const r = rowsToQuestions(aoa, def); r.questions.forEach(q => { if (q.s === '__none__') delete q.s; }); qs = qs.concat(r.questions); errs = errs.concat(r.errors); });
+    if (!qs.length) { showToast(errs[0] || 'No questions found in that file.', true); return; }
+    const ta = document.getElementById('it_text');
+    if (ta.value.trim() && !confirm('The box already has questions. Replace them with the Excel file (' + qs.length + ' questions)?')) return;
+    ta.value = questionsToText(qs); itSaveDraft();
+    const r = itCheck(true);
+    showToast(r.ok && !errs.length ? '\u2714 ' + qs.length + ' questions read from Excel.' : qs.length + ' questions read. Check the red box below.', !(r.ok && !errs.length));
+    if (errs.length) { const e = mk('div', 'pv bad'); e.appendChild(mk('b', null, 'Excel file notes:')); const ul = document.createElement('ul'); errs.slice(0, 10).forEach(x => ul.appendChild(mk('li', null, x))); e.appendChild(ul); document.getElementById('it_preview').insertBefore(e, document.getElementById('it_preview').firstChild); }
+  } catch (e) { showToast(e.message || 'Could not read that file.', true); }
+}
+async function itTemplate() {
+  const aoa = [['Subject', 'Question', 'A', 'B', 'C', 'D', 'Answer', 'Explanation', 'Image', 'Explanation image'],
+    ['Radiology', 'Identify the sign seen in the picture', 'Steeple sign', 'Thumbprint sign', 'Double bubble', 'String sign', 'A', 'Croup shows a narrowed subglottis.', 'xray1.png', ''],
+    ['Pathology', 'Name the cell marked in the slide', 'Reed-Sternberg cell', 'Hairy cell', 'Smudge cell', 'Sezary cell', 'A', 'Seen in Hodgkin lymphoma.', 'slide2.jpg', 'slide2-labelled.jpg']];
+  try { const X = await loadXlsxLib(); const wb = X.utils.book_new(); X.utils.book_append_sheet(wb, X.utils.aoa_to_sheet(aoa), 'Questions'); X.writeFile(wb, 'image-test-template.xlsx'); }
+  catch (e) { bkDownload('image-test-template.csv', aoa.map(r => r.map(csvCell).join(',')).join('\n'), 'text/csv'); showToast('Excel reader not available. Downloaded a CSV template instead.'); }
+}
+async function itPublish() {
+  const { db, collection, addDoc, deleteDoc, doc, serverTimestamp } = window.__fb;
+  const title = document.getElementById('it_title').value.trim(), subject = document.getElementById('it_subject').value;
+  const exam = itBlockedMode(), duration = exam ? Number(document.getElementById('it_duration').value) : 0;
+  const plus = exam ? Number(document.getElementById('it_plus').value) : 1, minus = exam ? Number(document.getElementById('it_minus').value) : 0;
+  if (!title) { showToast('Write the test title first.', true); return; }
+  if (!subject) { showToast('Choose the subject (or Mixed).', true); return; }
+  if (exam && !(duration >= 1)) { showToast('Enter the test time in minutes.', true); return; }
+  if (exam && !(plus > 0 && minus >= 0)) { showToast('Check the marks per correct and minus per wrong.', true); return; }
+  const chk = itCheck(true);
+  if (!chk.ok) { showToast('Publish stopped. Fix the problems in the red box first.', true); return; }
+  const res = chk.res;
+  if (JSON.stringify(res.questions).length > 900000) { showToast('This test is too large. Split it into two tests.', true); return; }
+  const rel = relMs('it_release');
+  if (!confirm('Publish "' + title + '"?\n\n' + res.questions.length + ' questions with pictures, ' + (exam ? 'timed (' + duration + ' min)' : 'instant answer') + '.')) return;
+  const btn = document.getElementById('it_publish'); btn.disabled = true;
+  let testRef = null, newKeys = [];
+  try {
+    canonQuestionSubjects(res.questions);
+    const up = await attachImages(res.questions, IT.files, null, (d, t) => { btn.textContent = 'Uploading pictures ' + d + '/' + t + '\u2026'; });
+    newKeys = up.keys;
+    const n = res.questions.length, mode = exam ? 'exam' : 'instant';
+    testRef = await addDoc(collection(db, 'tests'), { title, subject, mode, durationMin: duration, plus, minus, count: n, blockSize: 0, blockMinutes: 0, qs: res.questions, createdAt: serverTimestamp() });
+    await addDoc(collection(db, 'resources'), {
+      subject, exam: document.getElementById('it_exam').value, tab: 'Image Tests', title, meta: examMeta(n, exam, duration, { on: false }) , type: 'test', testId: testRef.id, fileUrl: null,
+      releaseAt: rel ? window.__fb.Timestamp.fromMillis(rel) : null, createdAt: serverTimestamp()
+    });
+    showToast('Image Test published: ' + title + ' (' + n + ' questions)' + (rel ? ', live ' + relText(rel) : ''));
+    if (document.getElementById('it_announce').checked) queueAnnouncement([{ title, subject, tab: 'Image Tests' }], rel || Date.now());
+    ['it_title', 'it_text', 'it_release'].forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('it_announce').checked = false;
+    IT.files = []; paintImgChips(IT, document.getElementById('it_imgList')); document.getElementById('it_preview').innerHTML = ''; itSaveDraft();
+    loadResourcesList();
+  } catch (e) {
+    if (testRef) { try { await deleteDoc(doc(db, 'tests', testRef.id)); } catch (x) {} }
+    await deleteStoredFiles(newKeys.concat(e && e.keys ? e.keys : []));
+    showToast('Failed: ' + e.message, true);
+  } finally { btn.disabled = false; btn.textContent = 'Publish Image Test'; }
+}
+
+function initCards() {
+  // Series
+  document.getElementById('sr_files').addEventListener('change', (e) => { srAddFiles(e.target.files); e.target.value = ''; });
+  document.getElementById('sr_upload').addEventListener('click', srUpload);
+  document.getElementById('sr_clear').addEventListener('click', () => { SR.files = []; paintImgChips(SR, document.getElementById('sr_chips')); document.getElementById('sr_status').textContent = ''; srSizes(); });
+  // Card Test
+  document.getElementById('ct_files').addEventListener('change', (e) => { ctAdd(e.target.files); e.target.value = ''; });
+  document.getElementById('ct_upload').addEventListener('click', ctUpload);
+  document.getElementById('ct_clear').addEventListener('click', () => { CT.rows.forEach(r => URL.revokeObjectURL(r.url)); CT.rows = []; ctPaint(); ctSizes(); document.getElementById('ct_status').textContent = ''; });
+  // Image Tests
+  fillSubjectSelect('it_subject', 'Choose subject\u2026', true);
+  document.getElementById('it_mode').addEventListener('change', () => { document.getElementById('it_examFields').style.display = itBlockedMode() ? 'block' : 'none'; });
+  document.getElementById('it_imgs').addEventListener('change', (e) => { pickImages(IT, e.target.files, document.getElementById('it_imgList'), true); e.target.value = ''; });
+  document.getElementById('it_check').addEventListener('click', () => { const r = itCheck(true); showToast(r.ok ? '\u2714 All ' + r.res.questions.length + ' questions are ready.' : r.errors.length + (r.errors.length === 1 ? ' problem found.' : ' problems found.') + ' See the red box below.', !r.ok); });
+  document.getElementById('it_clear').addEventListener('click', () => { if ((document.getElementById('it_text').value.trim() || IT.files.length) && !confirm('Clear the questions and pictures?')) return; document.getElementById('it_text').value = ''; IT.files = []; paintImgChips(IT, document.getElementById('it_imgList')); document.getElementById('it_preview').innerHTML = ''; itSaveDraft(); });
+  document.getElementById('it_publish').addEventListener('click', itPublish);
+  document.getElementById('it_xl').addEventListener('change', (e) => { const f = e.target.files[0]; e.target.value = ''; itFromExcel(f); });
+  document.getElementById('it_tpl').addEventListener('click', (e) => { e.preventDefault(); itTemplate(); });
+  document.getElementById('it_text').addEventListener('input', itSaveDraft);
+  document.getElementById('it_title').addEventListener('input', itSaveDraft);
+  try { const d = JSON.parse(localStorage.getItem('pptItDraft') || 'null'); if (d) { document.getElementById('it_title').value = d.title || ''; document.getElementById('it_text').value = d.text || ''; } } catch (e) {}
+}
 
 // ---------- Member IDs and the anonymous Top 10 ----------
 // Every member gets a random 5-digit ID (members/{email}.memberId). Only you can see who has which ID.
@@ -2507,13 +2996,14 @@ async function openEdit(row) {
   body.innerHTML = '';
   ED.row = row;
   if (row.type === 'test') return openEditTest(row);
+  if (isCardRow(row)) return openEditCard(row);
 
   ED.mode = 'resource';
   body.appendChild(edField('Title', edInput('e_title', row.title)));
   body.appendChild(edField('Note under the title', edInput('e_meta', row.meta, 'Optional')));
   const two = document.createElement('div'); two.className = 'ed-two';
   const a = document.createElement('div'); a.appendChild(edField('Subject', edSelect('e_subject', subjectOptions(row.subject), row.subject)));
-  const b = document.createElement('div'); b.appendChild(edField('Category', edSelect('e_tab', ['High Yield', 'PYQs', 'PYTs', 'Flashcards'].concat(row.tab === 'Tests' ? ['Tests'] : []), row.tab)));
+  const b = document.createElement('div'); b.appendChild(edField('Category', edSelect('e_tab', ['High Yield', 'PYQs', 'PYTs'].concat(row.tab === 'Tests' ? ['Tests'] : []), row.tab)));
   two.appendChild(a); two.appendChild(b); body.appendChild(two);
   body.appendChild(edField('Exam', edSelect('e_examType', ['NEET PG', 'INICET'], row.exam === 'INICET' ? 'INICET' : 'NEET PG')));
   body.appendChild(edField('Students can', edSelect('e_type', [['view', 'View only (PDF)'], ['download', 'Download']], row.type === 'download' ? 'download' : 'view')));
@@ -2604,7 +3094,7 @@ function openBulkEdit(rows) {
   body.appendChild(mk('p', 'hint', usable.length + (usable.length === 1 ? ' item' : ' items') + ' selected' + (skipped ? ' (' + skipped + ' tests skipped, edit tests one by one)' : '') + '. Leave a field as "Keep as is" to leave it unchanged.'));
   body.appendChild(edField('Move to subject', edSelect('e_subject', subjectOptions(), '', 'Keep as is')));
   body.appendChild(edField('Change exam', edSelect('e_examType', ['NEET PG', 'INICET'], '', 'Keep as is')));
-  body.appendChild(edField('Change category', edSelect('e_tab', ['High Yield', 'PYQs', 'PYTs', 'Flashcards'], '', 'Keep as is')));
+  body.appendChild(edField('Change category', edSelect('e_tab', ['High Yield', 'PYQs', 'PYTs'], '', 'Keep as is')));
   body.appendChild(edField('Students can', edSelect('e_type', [['download', 'Download'], ['view', 'View only (PDF files)']], '', 'Keep as is')));
   const brel = document.createElement('input'); brel.type = 'datetime-local'; brel.id = 'e_release';
   body.appendChild(edField('Release on (leave empty to keep as is)', brel));
@@ -2626,7 +3116,8 @@ async function saveEdit() {
   const btn = document.getElementById('edSave');
   ED.busy = true; btn.disabled = true; btn.textContent = 'Saving…';
   try {
-    if (ED.mode === 'resource') await saveResourceEdit();
+    if (ED.mode === 'card') await saveCardEdit();
+    else if (ED.mode === 'resource') await saveResourceEdit();
     else if (ED.mode === 'test') await saveTestEdit();
     else if (ED.mode === 'bulk') await saveBulkEdit();
     else if (ED.mode === 'news') await saveNewsEdit();
@@ -3597,7 +4088,7 @@ async function loadHome() {
         const cand = [];
         res.forEach(d => {
           const x = d.data(); x.id = d.id;
-          if (x.tab === 'Flashcards') return;
+          if (['Flashcards', 'Series', 'Card Test'].indexOf(x.tab) > -1) return;
           if (tsMs(x.releaseAt) > now) return;
           const born = tsMs(x.createdAt); if (born && now - born < 7 * 86400000) return;
           cand.push(x);
@@ -3649,6 +4140,8 @@ function rowsToQuestions(aoa, defSubject) {
     else if (/^(answer|ans|correct|correct answer|key)$/.test(h)) col.a = i;
     else if (/^(explanation|expl|exp|rationale|reason)$/.test(h)) col.e = i;
     else if (/^(subject)$/.test(h)) col.s = i;
+    else if (/^(image|picture|img|photo|image file|image name)$/.test(h)) col.img = i;
+    else if (/^(explanation image|explanation picture|expl image|answer image)$/.test(h)) col.eimg = i;
     else if (/^(tag|topic|chapter)$/.test(h)) col.t = i;
     else if ((m = /^(?:option|opt)?\s*\(?([a-f])\)?$/.exec(h))) col.opts[m[1].charCodeAt(0) - 97] = i;
     else if ((m = /^(?:option|opt)\s*([1-6])$/.exec(h))) col.opts[Number(m[1]) - 1] = i;
@@ -3676,6 +4169,8 @@ function rowsToQuestions(aoa, defSubject) {
     if (!s) { errors.push(label + ': no subject. Fill the Subject column or the subject box above.'); continue; }
     const item = { q: q, o: o, a: a, e: col.e !== undefined ? cell(row[col.e]) : '', s: s };
     if (col.t !== undefined && cell(row[col.t])) item.t = cell(row[col.t]);
+    if (col.img !== undefined && cell(row[col.img])) item.img = cell(row[col.img]);
+    if (col.eimg !== undefined && cell(row[col.eimg])) item.eimg = cell(row[col.eimg]);
     questions.push(item);
   }
   if (!questions.length && !errors.length) errors.push('No questions found under the headings.');

@@ -1594,6 +1594,23 @@
 .lb-more { border: 0; background: none; color: #0F8F83; font-weight: 700; font-size: 13px; font-family: inherit; padding: 6px 0 4px; cursor: pointer; }
 :where(html[data-eff="dark"]) .lb-top { background: var(--white); }
 :where(html[data-eff="dark"]) .lb-top h4, :where(html[data-eff="dark"]) .lb-row b { color: var(--ink); }
+.sr-tile { background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--gold-b); border-radius: 16px; padding: 14px; margin-bottom: 12px; display: grid; grid-template-columns: 46px 1fr; gap: 4px 12px; align-items: center; }
+.sr-ico { width: 46px; height: 46px; border-radius: 13px; background: var(--navy); color: var(--gold-b); display: grid; place-items: center; }
+.sr-txt { min-width: 0; }
+.sr-txt b { display: block; font-size: 16px; font-weight: 800; color: var(--navy); overflow-wrap: anywhere; }
+.sr-txt span { font-size: 12.5px; color: var(--gray); }
+.sr-btns { grid-column: 1 / -1; display: flex; gap: 8px; margin-top: 8px; }
+.sr-btns button { flex: 1; border-radius: 12px; padding: 11px 10px; font-size: 14px; font-weight: 800; font-family: inherit; cursor: pointer; border: 1.5px solid var(--navy); background: #fff; color: var(--navy); }
+.sr-btns button.pri { background: var(--navy); color: #fff; }
+.sr-btns button:disabled { opacity: .45; cursor: default; }
+:where(html[data-eff="dark"]) .sr-tile { background: var(--white); }
+:where(html[data-eff="dark"]) .sr-txt b { color: var(--ink); }
+:where(html[data-eff="dark"]) .sr-btns button { background: transparent; color: var(--ink); border-color: rgba(255,255,255,.35); }
+:where(html[data-eff="dark"]) .sr-btns button.pri { background: var(--gold-b); color: #0A1830; border-color: var(--gold-b); }
+.fc-reveal { margin: 0 14px 10px; padding: 15px; border-radius: 14px; background: var(--gold-b); color: var(--navy); font-weight: 800; font-size: 16px; font-family: inherit; flex-shrink: 0; }
+.fc-ans { margin: 0 14px 10px; padding: 12px 14px; border-radius: 14px; background: rgba(212,175,85,.14); border: 1px solid rgba(212,175,85,.55); color: #fff; max-height: 26vh; overflow: auto; flex-shrink: 0; }
+.fc-ans span { font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--gold-b); font-weight: 700; }
+.fc-ans p { margin: 4px 0 0; font-size: 17px; font-weight: 600; white-space: pre-wrap; overflow-wrap: anywhere; }
 </style>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "362cf34ae1ca4d419ca60743b0ca099f"}'></script>
 </head>
@@ -2073,7 +2090,9 @@ const SUBJECT_GROUPS = [
 const SUBJECTS = SUBJECT_GROUPS[0].list.concat(SUBJECT_GROUPS[1].list);
 const OTHER_SUBJECTS = SUBJECT_GROUPS[2].list.concat(SUBJECT_GROUPS[3].list);
 
-const CATEGORIES = ["PYTs", "PYQs", "High Yield", "Tests", "Real Test", "Flashcards"];
+const CATEGORIES = ["PYTs", "PYQs", "High Yield", "Tests", "Image Tests", "Real Test", "Series", "Card Test"];
+const CARD_TABS = ["Series", "Card Test"];      // shown as tiles: one tile per series, not one row per picture
+function isCardTab(t) { return CARD_TABS.indexOf(t) > -1; }
 
 let currentUser = null;
 let isPaidMember = false;
@@ -2891,7 +2910,7 @@ function cardStateText(id) {
 // Image flashcards open full screen on the site. Swipe or tap Next, save cards to revisit,
 // zoom, or download the card you are on. Cards load with the student's sign-in,
 // one or two ahead, so a big deck never loads all at once.
-const FC = { mode: "browse", session: { rated: 0, again: 0, seen: new Set() }, requeue: {}, list: [], order: [], pos: 0, title: "", cache: new Map(), pending: new Map(), saved: new Set(), onlySaved: false, shuffled: false, zoom: false, tok: 0, open: false, failed: false };
+const FC = { kind: "series", revealId: "", mode: "browse", session: { rated: 0, again: 0, seen: new Set() }, requeue: {}, list: [], order: [], pos: 0, title: "", cache: new Map(), pending: new Map(), saved: new Set(), onlySaved: false, shuffled: false, zoom: false, tok: 0, open: false, failed: false };
 
 function fileKind(it) {
   const u = String((it && it.fileUrl) || "").split("?")[0];
@@ -2905,13 +2924,10 @@ function fcSavedKey() { return "pptFcSaved:" + ((currentUser && currentUser.emai
 function fcLoadSaved() { try { FC.saved = new Set(JSON.parse(localStorage.getItem(fcSavedKey()) || "[]")); } catch (e) { FC.saved = new Set(); } }
 function fcPersistSaved() { try { localStorage.setItem(fcSavedKey(), JSON.stringify(Array.from(FC.saved))); } catch (e) {} }
 
-// The deck a card belongs to: what is on screen in the Flashcards tab, otherwise the same subject's cards
+// The deck a card belongs to: the cards of its series, in the order they were added
 function deckFor(it) {
-  const img = (x) => x.tab === "Flashcards" && x.fileUrl && fileKind(x) === "image";
-  let list = null;
-  if (lib.tab === "Flashcards") { list = ALL.filter(x => libMatch(x, lib) && img(x)); if (!list.some(x => x.id === it.id)) list = null; }
-  if (!list) { list = ALL.filter(x => x.subject === it.subject && img(x)); if (!list.some(x => x.id === it.id)) list = [it]; }
-  return list;
+  if (isCardTab(it.tab) && it.series) { const d = seriesDeck(it.tab, it.series); if (d.some(x => x.id === it.id)) return d; }
+  return [it];
 }
 
 function fcCurrent() { return FC.list[FC.order[FC.pos]] || null; }
@@ -2936,7 +2952,7 @@ function fcRebuildOrder(keepId) {
 async function openDeck(list, startId, title, mode) {
   if (!list || !list.length) return;
   fcLoadSaved();
-  FC.list = list; FC.title = title || "Flashcards";
+  FC.list = list; FC.title = title || (list[0] && list[0].series) || "Cards"; FC.kind = list[0] && list[0].tab === "Card Test" ? "cardtest" : "series"; FC.revealId = ""; FC.lastId = "";
   FC.onlySaved = false; FC.shuffled = false; FC.zoom = false; FC.failed = false; FC.open = true;
   FC.mode = mode === "revise" ? "revise" : "browse"; FC.session = { rated: 0, again: 0, seen: new Set() }; FC.requeue = {};
   FC.order = list.map((_, i) => i);
@@ -3045,12 +3061,15 @@ function fcRender() {
   const ov = document.getElementById("fcOverlay");
   if (!FC.open) return;
   const n = FC.order.length, it = fcCurrent();
+  if (it && FC.lastId !== it.id) FC.revealId = "";            // a card you come back to hides its answer again
+  FC.lastId = it ? it.id : "";
   if (FC.mode === "browse" && it) rsSet("deck", { id: it.id, title: FC.title, t: Date.now() });
   const savedCount = FC.list.filter(x => FC.saved.has(x.id)).length;
   const isSaved = it && FC.saved.has(it.id);
   const cached = it && FC.cache.has(it.id);
 
   const revise = FC.mode === "revise";
+  const ct = FC.kind === "cardtest", shown = !ct || (it && FC.revealId === it.id);
   const dueAll = CARDS.loaded ? cardCounts(FC.list).due : null;
   let stage;
   if (!it && revise) {
@@ -3070,9 +3089,9 @@ function fcRender() {
       '<button class="fc-x" data-fc="close" aria-label="Close">&times;</button></div>' +
     '<div class="fc-prog"><i style="width:' + (revise ? Math.round(FC.session.rated / Math.max(1, FC.session.rated + n) * 100) : (n ? Math.round((FC.pos + 1) / n * 100) : 0)) + '%"></i></div>' +
     '<div class="fc-stage' + (FC.zoom ? " zoom" : "") + '" id="fcStage">' + stage + '</div>' +
-    '<div class="fc-name">' + (it ? esc(it.title) : "") + '</div>' +
+    (ct && it ? (shown ? '<div class="fc-ans"><span>Answer</span><p>' + esc(it.answer || "") + '</p></div>' : '<button class="fc-reveal" data-fc="reveal">Show answer</button>') : "") +
     (it ? '<div class="fc-state">' + esc(cardStateText(it.id)) + '</div>' : "") +
-    (it ? '<div class="fc-rate"><button class="again" data-fc="again">↻ Again</button><button class="good" data-fc="good">✓ Got it</button></div>' : "") +
+    (it && shown ? '<div class="fc-rate"><button class="again" data-fc="again">↻ Again</button><button class="good" data-fc="good">✓ Got it</button></div>' : "") +
     '<div class="fc-tools' + (window.innerWidth > 560 ? " mid" : "") + '">' +
       '<button class="fc-tool' + (revise ? " on" : "") + '" data-fc="mode">' + (revise ? "Browse all" : "Revise" + (dueAll !== null ? " (" + dueAll + ")" : "")) + '</button>' +
       '<button class="fc-tool' + (isSaved ? " on" : "") + '" data-fc="save"' + (it ? "" : " disabled") + '>' + (isSaved ? "★ Saved" : "☆ Save") + '</button>' +
@@ -3109,6 +3128,7 @@ document.getElementById("fcOverlay").addEventListener("click", (e) => {
   if (act === "close") return closeDeck();
   if (act === "good" || act === "again") {
     if (!it) return;
+    if (FC.kind === "cardtest" && FC.revealId !== it.id) return;       // see the answer first
     rateCard(it.id, act === "good");
     FC.session.rated++; FC.session.seen.add(it.id); if (act === "again") FC.session.again++;
     if (FC.mode === "revise") {
@@ -3128,6 +3148,7 @@ document.getElementById("fcOverlay").addEventListener("click", (e) => {
     return loadCards().then(() => { fcRebuildOrder(null); fcRender(); });
   }
   if (act === "browse") { FC.mode = "browse"; fcRebuildOrder(null); return fcRender(); }
+  if (act === "reveal") { if (it) FC.revealId = it.id; return fcRender(); }
   if (act === "next") return fcGo(1);
   if (act === "prev") return fcGo(-1);
   if (act === "retry") { FC.failed = false; if (it) { FC.cache.delete(it.id); FC.pending.delete(it.id); } return fcRender(); }
@@ -4858,7 +4879,7 @@ function canonSubject(s) {
 }
 function canonTab(t) {
   const x = String(t || "").trim().toLowerCase();
-  const alias = { pyq: "PYQs", pyt: "PYTs", test: "Tests", flashcard: "Flashcards", "flash cards": "Flashcards", "real test": "Real Test", gt: "Real Test", "grand test": "Real Test" };
+  const alias = { pyq: "PYQs", pyt: "PYTs", test: "Tests", flashcard: "Series", flashcards: "Series", "flash cards": "Series", "real test": "Real Test", gt: "Real Test", "grand test": "Real Test", "image test": "Image Tests", "card test": "Card Test", cardtest: "Card Test" };
   return CATEGORIES.find(c => c.toLowerCase() === x) || alias[x] || String(t || "").trim();
 }
 
@@ -4870,14 +4891,18 @@ async function loadResourcesFromFirestore() {
     const list = [];
     snap.forEach(d => {
       const x = d.data();
-      if (!x.subject || !x.tab) return;
+      const tabNow = canonTab(x.tab), cardNow = isCardTab(tabNow);
+      if (!x.tab || (!x.subject && !cardNow)) return;
       const rel = x.releaseAt && x.releaseAt.toMillis ? x.releaseAt.toMillis() : 0;
       if (rel && rel > Date.now()) return;     // scheduled for later: members do not see it yet
       list.push({
         id: d.id,
         releaseAt: rel,
-        subject: canonSubject(x.subject),
-        tab: canonTab(x.tab),
+        subject: canonSubject(x.subject || ""),
+        tab: tabNow,
+        series: cardNow ? String(x.series || (tabNow === "Series" ? x.subject : "") || "").trim() : "",     // old subject-wise flashcards become a series named by their subject
+        answer: typeof x.answer === "string" ? x.answer : "",
+        seq: Number(x.seq) || 0,
         title: x.title || "Untitled",
         meta: x.meta || "",
         type: x.type === "download" ? "download" : x.type === "test" ? "test" : "view",
@@ -4887,6 +4912,7 @@ async function loadResourcesFromFirestore() {
         fileUrl: x.fileUrl || null,
         t: rel || (x.createdAt && x.createdAt.toMillis ? x.createdAt.toMillis() : 0)
       });
+      if (cardNow) { const it = list[list.length - 1]; it.seq = it.seq || it.t; }
     });
     list.sort((a, b) => (b.t - a.t) || a.title.localeCompare(b.title, undefined, { numeric: true }));
     ALL = list;
@@ -4954,6 +4980,10 @@ function isInicet(it) { return it.exam === "INICET" || (!it.exam && /\binicet\b/
 const INICET_PREFIX = "INICET \u00B7 ";
 function subjectKey(it) { return isInicet(it) ? INICET_PREFIX + it.subject : it.subject; }
 function libMatch(it, f) {
+  if (isCardTab(it.tab)) {                                     // series and card test pictures only show inside their own tab
+    if (f.tab !== it.tab) return false;
+    return !f.q || (it.series + " " + it.title).toLowerCase().indexOf(f.q) > -1;
+  }
   if (f.tab === "New") { if (!(it.t && daysOld(it.t) <= 7)) return false; }
   else if (f.tab !== "All" && it.tab !== f.tab) return false;
   if (f.subject === "INICET") { if (!isInicet(it)) return false; }
@@ -4968,7 +4998,7 @@ function renderChips() {
   const base = { tab: "All", subject: lib.subject, q: lib.q };
   const tabs = ["All", "New"].concat(CATEGORIES);
   tabs.forEach(t => {
-    const n = ALL.filter(it => libMatch(it, Object.assign({}, base, { tab: t }))).length;
+    const n = isCardTab(t) ? seriesGroups(t, lib.q).length : ALL.filter(it => libMatch(it, Object.assign({}, base, { tab: t }))).length;
     const b = libEl("button", "lib-chip" + (lib.tab === t ? " on" : ""));
     b.appendChild(document.createTextNode(t === "New" ? "New this week" : t));
     b.appendChild(libEl("b", null, String(n)));
@@ -4984,6 +5014,7 @@ function renderSubjects() {
   const count = (s) => ALL.filter(it => libMatch(it, Object.assign({}, base, { subject: s }))).length;
   const extra = [], iniSubs = [];
   ALL.forEach(it => {
+    if (isCardTab(it.tab)) return;
     if (isInicet(it)) { if (iniSubs.indexOf(it.subject) === -1) iniSubs.push(it.subject); }
     else if (KNOWN_SUBJECTS.indexOf(it.subject) === -1 && extra.indexOf(it.subject) === -1) extra.push(it.subject);
   });
@@ -5048,7 +5079,7 @@ function itemEl(it) {
   const kind = isDl ? fileKind(it) : "";
   if (isDl && (kind === "image" || kind === "pdf")) {
     const v = libEl("button", "lib-act view", "View");
-    v.onclick = () => (kind === "image" ? openDeck(deckFor(it), it.id, it.subject + " · Flashcards") : openViewer(it));
+    v.onclick = () => (kind === "image" ? openDeck(deckFor(it), it.id, it.series || it.subject) : openViewer(it));
     const d = libEl("button", "lib-act ic");
     d.innerHTML = FC_ICON.dl;
     d.setAttribute("aria-label", "Download " + it.title);
@@ -5095,6 +5126,7 @@ function renderList() {
     return;
   }
 
+  if (isCardTab(lib.tab)) return renderTiles(box);
   const items = ALL.filter(it => libMatch(it, lib));
   if (items.length === 0) {
     const e = libEl("div", "lib-empty", "No files match these filters.");
@@ -5104,38 +5136,6 @@ function renderList() {
     e.appendChild(b);
     box.appendChild(e);
     return;
-  }
-
-  if (lib.tab === "Flashcards") {
-    const deck = items.filter(it => it.fileUrl && fileKind(it) === "image");
-    if (deck.length) {
-      const st = libEl("div", "fc-study");
-      const t = libEl("div", "t");
-      t.appendChild(libEl("b", null, "Study " + deck.length + (lib.subject !== "All" ? " " + lib.subject : "") + (deck.length === 1 ? " flashcard" : " flashcards") + " on screen"));
-      t.appendChild(libEl("span", null, "Swipe through, save the hard ones, zoom in"));
-      const ttl = (lib.subject !== "All" ? lib.subject : "All subjects") + " · Flashcards";
-      const go = libEl("button", null, "Start studying");
-      go.onclick = () => openDeck(deck, deck[0].id, ttl);
-      const btns = libEl("div", "btns"); btns.appendChild(go);
-      const rv = libEl("button", "alt", "Revise");
-      if (CARDS.loaded) {
-        const c = cardCounts(deck);
-        rv.textContent = c.due ? "Revise (" + c.due + " due)" : "All caught up";
-        rv.disabled = !c.due;
-        t.lastChild.textContent = c.known + " known · " + c.again + " to revise · " + c.n + " new";
-      } else loadCards().then(() => { if (libView === "library" && lib.tab === "Flashcards") renderList(); });
-      rv.onclick = () => openDeck(deck, deck[0].id, ttl, "revise");
-      btns.appendChild(rv);
-      st.appendChild(t); st.appendChild(btns);
-      box.appendChild(st);
-    }
-    if (lib.subject !== "All" && zipCandidates().length >= 2) {
-      const zb = libEl("div", "zip-bar"); zb.id = "zipBar";
-      box.appendChild(zb);
-      paintZipBar();
-    } else if (lib.subject === "All" && items.some(it => it.type === "download")) {
-      box.appendChild(libEl("div", "zip-hint", "Want a whole subject at once? Choose a subject (tap Filter) and you can download all its flashcards as one ZIP."));
-    }
   }
 
   let current = null;
@@ -5152,6 +5152,53 @@ function renderList() {
   });
 }
 
+// ---------- Series and Card Test: one tile per set ----------
+function seriesDeck(tab, name) {
+  const key = String(name).toLowerCase();
+  return ALL.filter(x => x.tab === tab && String(x.series).toLowerCase() === key && x.fileUrl && fileKind(x) === "image")
+    .sort((p, q) => (p.seq - q.seq) || p.title.localeCompare(q.title, undefined, { numeric: true }));
+}
+function seriesGroups(tab, q) {
+  const g = {};
+  ALL.forEach(x => {
+    if (x.tab !== tab || !x.series || !x.fileUrl || fileKind(x) !== "image") return;
+    if (q && x.series.toLowerCase().indexOf(q) === -1) return;
+    const k = x.series.toLowerCase();
+    const o = g[k] || (g[k] = { name: x.series, n: 0, t: 0 });
+    o.n++; if (x.t > o.t) o.t = x.t;
+  });
+  return Object.keys(g).map(k => g[k]).sort((a, b) => (b.t - a.t) || a.name.localeCompare(b.name, undefined, { numeric: true }));
+}
+function renderTiles(box) {
+  const tab = lib.tab, ct = tab === "Card Test", groups = seriesGroups(tab, lib.q);
+  if (!groups.length) {
+    box.appendChild(libEl("div", "lib-empty", lib.q ? "Nothing matches your search." : ct ? "No card tests yet. New ones appear here as soon as they are added." : "No series yet. New series appear here as soon as they are added."));
+    return;
+  }
+  groups.forEach(g => {
+    const deck = seriesDeck(tab, g.name), tile = libEl("div", "sr-tile");
+    const ico = libEl("div", "sr-ico"); ico.innerHTML = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="14" height="14" rx="2.5" stroke="currentColor" stroke-width="2"/><path d="M7 3h12a2 2 0 012 2v12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    const txt = libEl("div", "sr-txt");
+    txt.appendChild(libEl("b", null, g.name));
+    const sub = libEl("span", null, deck.length + (deck.length === 1 ? " card" : " cards"));
+    txt.appendChild(sub);
+    const btns = libEl("div", "sr-btns");
+    const go = libEl("button", "pri", ct ? "Practise" : "Study");
+    go.onclick = () => openDeck(deck, deck[0].id, g.name);
+    const rv = libEl("button", "alt", "Revise");
+    if (CARDS.loaded) {
+      const c = cardCounts(deck);
+      rv.textContent = c.due ? "Revise (" + c.due + ")" : "All caught up";
+      rv.disabled = !c.due;
+      sub.textContent = deck.length + (deck.length === 1 ? " card" : " cards") + " \u00B7 " + c.known + " known \u00B7 " + c.again + " to revise";
+    } else loadCards().then(() => { if (libView === "library" && lib.tab === tab) renderList(); });
+    rv.onclick = () => openDeck(deck, deck[0].id, g.name, "revise");
+    btns.appendChild(go); btns.appendChild(rv);
+    tile.appendChild(ico); tile.appendChild(txt); tile.appendChild(btns);
+    box.appendChild(tile);
+  });
+}
+
 function renderHeading() {
   if (libView === "notebook") { document.getElementById("libTitle").textContent = "Mistake notebook"; return; }
   if (libView === "progress") {
@@ -5161,18 +5208,22 @@ function renderHeading() {
       : "Only you can see this";
     return;
   }
+  const cardTab = isCardTab(lib.tab);
   const parts = [];
-  parts.push(lib.subject === "All" ? "All resources" : lib.subject);
-  if (lib.tab !== "All") parts.push(lib.tab === "New" ? "New this week" : lib.tab);
+  if (cardTab) parts.push(lib.tab === "Series" ? "Card series" : "Card tests");
+  else {
+    parts.push(lib.subject === "All" ? "All resources" : lib.subject);
+    if (lib.tab !== "All") parts.push(lib.tab === "New" ? "New this week" : lib.tab);
+  }
   document.getElementById("libTitle").textContent = parts.join(" · ");
-  const n = ALL.filter(it => libMatch(it, lib)).length;
+  const n = cardTab ? seriesGroups(lib.tab, lib.q).length : ALL.filter(it => libMatch(it, lib)).length;
   document.getElementById("libSub").textContent = libLoaded
-    ? n + (n === 1 ? " file" : " files") + " · newest first"
+    ? (cardTab ? n + (n === 1 ? " set" : " sets") : n + (n === 1 ? " file" : " files")) + " · newest first"
     : "Newest first";
 
   const act = document.getElementById("libActive");
   act.innerHTML = "";
-  if (lib.subject !== "All") {
+  if (lib.subject !== "All" && !cardTab) {
     const x = libEl("button", "lib-x");
     x.appendChild(document.createTextNode(lib.subject));
     x.appendChild(libEl("span", null, "×"));
@@ -5180,7 +5231,8 @@ function renderHeading() {
     x.onclick = () => { lib.subject = "All"; render(); };
     act.appendChild(x);
   }
-  document.getElementById("libFilterBtn").classList.toggle("has", lib.subject !== "All");
+  document.getElementById("libFilterBtn").classList.toggle("has", lib.subject !== "All" && !cardTab);
+  document.getElementById("libFilterBtn").style.display = cardTab ? "none" : "";
 }
 
 function render() {
@@ -5508,7 +5560,7 @@ function paintResume() {
     const p = r.pdf && ALL.find(x => x.id === r.pdf.id);
     if (p) rows.push({ k: "pdf", title: p.title, sub: "Page " + r.pdf.page + (r.pdf.n ? " of " + r.pdf.n : ""), go: () => openViewer(p) });
     const d = r.deck && ALL.find(x => x.id === r.deck.id);
-    if (d) rows.push({ k: "deck", title: String(r.deck.title || d.title), sub: "Flashcards · " + d.title, go: () => openDeck(deckFor(d), d.id, r.deck.title || (d.subject + " · Flashcards")) });
+    if (d) rows.push({ k: "deck", title: String(r.deck.title || d.title), sub: (d.tab === "Card Test" ? "Card test" : "Series") + " \u00B7 " + (d.series || d.title), go: () => openDeck(deckFor(d), d.id, r.deck.title || d.series || d.title) });
   }
   box.innerHTML = "";
   if (!rows.length) { box.style.display = "none"; return; }
