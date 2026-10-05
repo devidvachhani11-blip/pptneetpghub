@@ -1582,6 +1582,17 @@
 .pg-id { font-size: 13.5px; color: var(--gray); margin: 0 0 10px; }
 .pg-id b { color: var(--navy); letter-spacing: .5px; }
 :where(html[data-eff="dark"]) .pg-id b { color: var(--ink); }
+.lb-top { background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--gold-b); border-radius: 14px; padding: 12px 14px 8px; margin-bottom: 14px; }
+.lb-top h4 { margin: 0 0 2px; font-size: 14px; font-weight: 800; color: var(--navy); }
+.lb-top .cap { margin: 0 0 6px; font-size: 12px; color: var(--gray); }
+.lb-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-top: 1px solid var(--border); }
+.lb-row > div { min-width: 0; }
+.lb-row b { display: block; font-size: 14px; color: var(--navy); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-row span { font-size: 12px; color: var(--gray); }
+.lb-row button { flex: none; border: 0; background: #0F8F83; color: #fff; border-radius: 10px; padding: 9px 16px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; }
+.lb-more { border: 0; background: none; color: #0F8F83; font-weight: 700; font-size: 13px; font-family: inherit; padding: 6px 0 4px; cursor: pointer; }
+:where(html[data-eff="dark"]) .lb-top { background: var(--white); }
+:where(html[data-eff="dark"]) .lb-top h4, :where(html[data-eff="dark"]) .lb-row b { color: var(--ink); }
 </style>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "362cf34ae1ca4d419ca60743b0ca099f"}'></script>
 </head>
@@ -1923,6 +1934,7 @@
 
     <div id="libBrowse">
     <button class="inst-bar" id="libInstall2" type="button"><img src="/logo-96.webp" width="26" height="26" alt="" style="border-radius:50%;display:block">Install the app on your phone</button>
+    <div class="lb-top" id="libTop10" style="display:none;"></div>
     <div class="rs-card" id="libResume" style="display:none;"></div>
     <div class="pr-card" id="libPractice" style="display:none;"></div>
     <div class="lib-search">
@@ -2208,7 +2220,7 @@ async function ensureDevice() {
 
 function afterAccessReady() {
   updateView(); render(); renderDeviceGate();
-  if (isPaidMember && deviceState.status === "ok") { loadResourcesFromFirestore(); loadAttempts(); loadTgInfo(); loadNotebook(); prLoadIndex(); window.scrollTo(0, 0); }
+  if (isPaidMember && deviceState.status === "ok") { loadResourcesFromFirestore(); loadAttempts(); loadTgInfo(); loadTop10List(); loadNotebook(); prLoadIndex(); window.scrollTo(0, 0); }
 }
 
 async function replaceDevice(oldId, label) {
@@ -2391,6 +2403,7 @@ onFbReady(() => {
       loadResourcesFromFirestore();
       loadAttempts();
       loadTgInfo();
+      loadTop10List();
       loadNotebook();
       prLoadIndex();
       window.scrollTo(0, 0);
@@ -4024,6 +4037,43 @@ function trRenderGtDone() {
   trLoadLb();
 }
 
+// ---------- Top 10 list for every member (published ones, even if you never took the test) ----------
+let LB_LIST = [], LB_ALL = false;
+async function loadTop10List() {
+  if (!window.__fb) return;
+  try {
+    const { db, doc, getDoc } = window.__fb;
+    const snap = await getDoc(doc(db, "leaderboards", "_index"));
+    const items = snap.exists() && Array.isArray(snap.data().items) ? snap.data().items : [];
+    LB_LIST = items.filter(x => x && x.t && x.n).sort((p, q) => (q.at || 0) - (p.at || 0));
+  } catch (e) { LB_LIST = []; }
+  paintTop10();
+  if (libView === "progress") renderProgress();
+}
+function top10Fill(box) {
+  box.innerHTML = "";
+  box.appendChild(libEl("h4", null, "Top 10"));
+  box.appendChild(libEl("p", "cap", "Only member IDs and scores are shown. Your ID is " + (memberInfo.id || "given by the admin") + "."));
+  const shown = LB_ALL ? LB_LIST : LB_LIST.slice(0, 3);
+  shown.forEach(x => {
+    const row = libEl("div", "lb-row"), t = libEl("div");
+    t.appendChild(libEl("b", null, x.n)); t.appendChild(libEl("span", null, (x.c || 0) + ((x.c || 0) === 1 ? " student" : " students") + (x.m ? " \u00B7 out of " + x.m : "")));
+    const b = libEl("button", null, "View"); b.onclick = () => lbOpen(x.t, x.n);
+    row.appendChild(t); row.appendChild(b); box.appendChild(row);
+  });
+  if (LB_LIST.length > 3) {
+    const m = libEl("button", "lb-more", LB_ALL ? "Show fewer" : "Show all " + LB_LIST.length);
+    m.onclick = () => { LB_ALL = !LB_ALL; paintTop10(); if (libView === "progress") renderProgress(); };
+    box.appendChild(m);
+  }
+}
+function paintTop10() {
+  const box = document.getElementById("libTop10");
+  if (!box) return;
+  if (!LB_LIST.length || libView !== "library") { box.style.display = "none"; return; }
+  top10Fill(box); box.style.display = "";
+}
+
 // ---------- Top 10 (anonymous: member ID and score only) ----------
 function lbHTML(d, myId) {
   const all = Array.isArray(d.all) ? d.all : [];
@@ -4034,7 +4084,7 @@ function lbHTML(d, myId) {
   });
   h += '</div>';
   if (mine >= 0) h += '<div class="tr-cmp">Your rank: <b>#' + (mine + 1) + '</b> of ' + all.length + ' (first attempt, ' + esc(String(all[mine].s)) + ' / ' + esc(String(d.max)) + ')</div>';
-  else if (myId) h += '<div class="tr-cmp">Your first attempt is not in this list.</div>';
+  else if (myId) h += '<div class="tr-cmp">' + (MY_ATTEMPTS.some(a => a.testId === d.testId) ? "Your first attempt is not in this list." : "You have not taken this test yet.") + '</div>';
   return h;
 }
 async function trLoadLb() {
@@ -4214,6 +4264,8 @@ function renderProgress() {
   const box = document.getElementById("libProgress");
   box.innerHTML = "";
   if (!attemptsLoaded) { box.appendChild(libEl("div", "lib-empty", "Loading your progress…")); return; }
+  if (memberInfo.id) { const idl = libEl("p", "pg-id"); idl.innerHTML = 'Your member ID: <b>' + esc(memberInfo.id) + '</b> \u00B7 shown instead of your name in Top 10 lists'; box.appendChild(idl); }
+  if (LB_LIST.length) { const tc = libEl("div", "lb-top"); top10Fill(tc); box.appendChild(tc); }
   if (!MY_ATTEMPTS.length) {
     const e = libEl("div", "lib-empty", "No tests taken yet. Take a test and your scores and progress will appear here.");
     const b = libEl("button", null, "Browse tests");
@@ -4224,7 +4276,6 @@ function renderProgress() {
     return;
   }
 
-  if (memberInfo.id) { const idl = libEl("p", "pg-id"); idl.innerHTML = 'Your member ID: <b>' + esc(memberInfo.id) + '</b> \u00B7 shown instead of your name in Top 10 lists'; box.appendChild(idl); }
   const all = MY_ATTEMPTS;
   const byTest = {};
   all.forEach(a => { (byTest[a.testId] = byTest[a.testId] || []).push(a); });
@@ -4238,21 +4289,6 @@ function renderProgress() {
     const c = libEl("div", "pg-s"); c.appendChild(libEl("b", null, String(x[0]))); c.appendChild(libEl("span", null, x[1])); sum.appendChild(c);
   });
   box.appendChild(sum);
-
-  // Top 10 lists (only for tests where you published one)
-  const lbKeys = Object.keys(byTest).filter(k => k.indexOf("practice:") !== 0 && k.indexOf("__") !== 0).slice(-12).reverse();
-  if (lbKeys.length) {
-    const lc = libEl("div", "pg-card");
-    lc.appendChild(libEl("h3", null, "Top 10 lists"));
-    lc.appendChild(libEl("p", "cap", "Only member IDs and scores are shown. Open a test to see its list when one is published."));
-    lbKeys.forEach(k => {
-      const a = byTest[k][byTest[k].length - 1], row = libEl("div", "pg-weak");
-      const t = libEl("div", "t"); t.appendChild(libEl("span", null, a.title || "Test"));
-      const b = libEl("button", "pri", "Top 10"); b.onclick = () => lbOpen(k, a.title);
-      t.appendChild(b); row.appendChild(t); lc.appendChild(row);
-    });
-    box.appendChild(lc);
-  }
 
   // overall trend
   const recent = all.slice(-12);
@@ -5073,6 +5109,7 @@ function render() {
   paintLibNews();
   paintExpiry();
   paintTg();
+  paintTop10();
   paintNbTab();
   if (nbk) { renderNotebook(); return; }
   if (prog) { renderProgress(); return; }

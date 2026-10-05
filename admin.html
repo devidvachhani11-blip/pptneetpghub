@@ -1610,7 +1610,22 @@ async function lbCompute(testId) {
   return { title: t.title || '', max: qs.length * plus, rows, bad, gone };
 }
 
+// A small list of every published Top 10, so each member can see them (also members who never took the test).
+async function lbRebuildIndex() {
+  const { db, collection, getDocs, doc, setDoc, serverTimestamp } = window.__fb;
+  const items = [];
+  (await getDocs(collection(db, 'leaderboards'))).forEach(d => {
+    if (d.id === '_index') return;
+    const x = d.data(), at = x.publishedAt && x.publishedAt.toMillis ? x.publishedAt.toMillis() : 0;
+    items.push({ t: d.id, n: String(x.title || 'Test').slice(0, 120), m: Number(x.max) || 0, c: Number(x.total) || 0, at });
+  });
+  items.sort((p, q) => q.at - p.at);
+  await setDoc(doc(db, 'leaderboards', '_index'), { items, updatedAt: serverTimestamp() });
+  return items.length;
+}
+
 async function loadLbTests() {
+  lbRebuildIndex().catch(() => {});
   const sel = document.getElementById('lb_test');
   const { db, collection, getDocs } = window.__fb;
   try {
@@ -1672,7 +1687,8 @@ async function lbPublish() {
       testId: res.testId, title: res.title, max: res.max, total: res.rows.length,
       all: res.rows.map(r => ({ i: r.id, s: r.score, w: r.w })), publishedAt: serverTimestamp()
     });
-    showToast('\u2714 Top 10 published for "' + res.title + '".');
+    await lbRebuildIndex();
+    showToast('\u2714 Top 10 published for "' + res.title + '". All members can see it now.');
     lbStatus();
   } catch (e) { showToast('Failed: ' + e.message, true); }
   finally { btn.disabled = false; }
@@ -1681,7 +1697,7 @@ async function lbHide() {
   const id = document.getElementById('lb_test').value;
   if (!id) return;
   if (!confirm('Hide the Top 10 for this test? Students will no longer see it. You can publish it again any time.')) return;
-  try { const { db, doc, deleteDoc } = window.__fb; await deleteDoc(doc(db, 'leaderboards', id)); showToast('\u2714 Top 10 hidden.'); lbStatus(); }
+  try { const { db, doc, deleteDoc } = window.__fb; await deleteDoc(doc(db, 'leaderboards', id)); await lbRebuildIndex(); showToast('\u2714 Top 10 hidden.'); lbStatus(); }
   catch (e) { showToast('Failed: ' + e.message, true); }
 }
 
