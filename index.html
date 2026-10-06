@@ -1331,12 +1331,16 @@
   }
   @media (max-width: 350px) { .lib-brand { font-size: 12.5px; } .lib-brand .lg { display: none; } .lib-hbtn { padding: 7px 9px; } }
   .pdf-wrap { overflow: hidden; }
+  html.viewer-lock, html.viewer-lock body { overflow: hidden; overscroll-behavior: none; }     /* the page behind does not scroll, so the address bar stays still */
+  .viewer-body { overscroll-behavior: contain; display: flex; flex-direction: column; }
+  .viewer-body > .pdf-wrap { margin: auto 0; flex: 0 0 auto; }        /* a short (landscape) page sits in the middle, a tall one scrolls */
   .pdf-wrap.zoomed { justify-content: flex-start; width: max-content; }
   .pdf-wrap canvas { max-width: none; }
   .zoom-lab { font-size: 12px; font-weight: 700; color: var(--gray); min-width: 38px; text-align: center; align-self: center; }
   .nav-btn:disabled { opacity: .4; }
   @media (max-width: 560px) {
-    .viewer-overlay { padding: 0; align-items: stretch; }
+    /* The panel is exactly as tall as what you can see (the address bar sliding in and out no longer cuts the bottom bar) */
+    .viewer-overlay { padding: 0; align-items: stretch; inset: 0 0 auto 0; height: 100vh; height: 100dvh; height: var(--vvh, 100dvh); }
     .viewer-panel { width: 100%; max-height: none; height: 100%; border-radius: 0; }
     .viewer-body { padding: 8px; }
     .viewer-bar { padding: 12px 14px; padding-top: calc(12px + env(safe-area-inset-top, 0px)); }
@@ -5294,12 +5298,31 @@ let currentPdfDoc = null;
 let currentPdfPage = 1;
 let viewerItem = null;
 
+function syncViewerHeight() {
+  const ov = document.getElementById("viewerOverlay"); if (!ov) return;
+  const vv = window.visualViewport;
+  const h = vv && Math.abs(vv.scale - 1) < 0.01 ? vv.height : window.innerHeight;       // what you can really see right now
+  ov.style.setProperty("--vvh", Math.round(h) + "px");
+}
+if (window.visualViewport) { window.visualViewport.addEventListener("resize", () => { if (document.documentElement.classList.contains("viewer-lock")) syncViewerHeight(); }); }
+function viewerShow() {
+  document.documentElement.classList.add("viewer-lock");
+  document.getElementById("viewerOverlay").classList.add("open");
+  syncViewerHeight();
+}
+function viewerHide() {
+  document.getElementById("viewerOverlay").classList.remove("open");
+  document.documentElement.classList.remove("viewer-lock");
+}
 function openViewer(item) {
   trackOpen(item && item.id);
   pdfZoom = 1;
   viewerItem = item;
   document.getElementById("viewerTitle").textContent = item.title;
-  document.getElementById("viewerOverlay").classList.add("open");
+  const cv0 = document.getElementById("pdfCanvas"); cv0.style.visibility = "hidden"; cv0.width = 1; cv0.height = 1;      // no old page flashing while the file opens
+  document.getElementById("viewerBody").scrollTop = 0;
+  document.getElementById("pdfWrap").style.minHeight = "300px";          // room for the loading text only until the page is drawn
+  viewerShow();
 
   const placeholder = document.getElementById("placeholderPage");
   const pdfWrap = document.getElementById("pdfWrap");
@@ -5350,7 +5373,7 @@ function setViewerWatermark() {
 async function loadPdf(source) {
   const loading = document.getElementById("pdfLoading");
   const canvas = document.getElementById("pdfCanvas");
-  loading.style.display = "block";
+  loading.style.display = "flex";
   loading.textContent = "Loading…";
 
   try {
@@ -5375,6 +5398,8 @@ async function loadPdf(source) {
     const sv = rsGet().pdf;
     currentPdfPage = (viewerItem && sv && sv.id === viewerItem.id && sv.page >= 1 && sv.page <= currentPdfDoc.numPages) ? sv.page : 1;
     await renderPdfPage(currentPdfPage);
+    canvas.style.visibility = "visible";
+    document.getElementById("pdfWrap").style.minHeight = "0";             // the box is exactly as tall as the page, no grey strip under it
     loading.style.display = "none";
     updatePdfNav();
     rsSavePdf();
@@ -5396,6 +5421,7 @@ async function renderPdfPage(pageNum) {
   const body = document.querySelector(".viewer-body");
   const cs = getComputedStyle(body);
   const containerWidth = Math.max(160, body.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0));
+  pdfLastW = body.clientWidth;
   const unscaledViewport = page.getViewport({ scale: 1 });
   const dpr = Math.min(window.devicePixelRatio || 1, 3);
   const fitScale = containerWidth / unscaledViewport.width;
@@ -5422,10 +5448,17 @@ async function pdfZoomStep(dir) {
   pdfZoom = PDF_ZOOMS[j];
   await renderPdfPage(currentPdfPage);
 }
-let pdfResizeT = null;
+let pdfResizeT = null, pdfLastW = 0;
 window.addEventListener("resize", () => {
+  if (document.documentElement.classList.contains("viewer-lock")) syncViewerHeight();
   clearTimeout(pdfResizeT);
-  pdfResizeT = setTimeout(() => { if (currentPdfDoc && document.getElementById("viewerOverlay").classList.contains("open")) renderPdfPage(currentPdfPage); }, 250);
+  pdfResizeT = setTimeout(() => {
+    const ov = document.getElementById("viewerOverlay"), body = document.getElementById("viewerBody");
+    if (!currentPdfDoc || !ov.classList.contains("open")) return;
+    const w = body.clientWidth;
+    if (Math.abs(w - pdfLastW) < 2) return;                 // same width: nothing to redraw, so no flicker
+    pdfLastW = w; renderPdfPage(currentPdfPage);
+  }, 250);
 });
 
 function updatePdfNav() {
@@ -5458,12 +5491,12 @@ document.getElementById("viewerReport").onclick = () => { if (viewerItem) openRe
 document.getElementById("nextPageBtn").onclick = pdfNextPage;
 
 document.getElementById("closeViewer").onclick = () => {
-  document.getElementById("viewerOverlay").classList.remove("open");
+  viewerHide();
   currentPdfDoc = null; paintResume();
 };
 document.getElementById("viewerOverlay").addEventListener("click", (e) => {
   if (e.target.id === "viewerOverlay") {
-    e.currentTarget.classList.remove("open");
+    viewerHide();
     currentPdfDoc = null; paintResume();
   }
 });
