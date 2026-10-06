@@ -4872,6 +4872,7 @@ let libError = false;
 const lib = { tab: "All", subject: "All", q: "" };
 const KNOWN_SUBJECTS = SUBJECTS.concat(OTHER_SUBJECTS);
 
+function subjLabel(s) { return s === "Mixed" ? "Mix subjects" : s; }      // what students see; the stored value stays "Mixed"
 function canonSubject(s) {
   const t = String(s || "").trim();
   const hit = KNOWN_SUBJECTS.find(k => k.toLowerCase() === t.toLowerCase());
@@ -5045,7 +5046,7 @@ function renderSubjects() {
     head(g.label, g.hint, "g-" + g.k);
     g.list.forEach(s => add(s, s, "g-" + g.k));
   });
-  if (extra.length) { head("Other subjects", "", "g-oth"); extra.forEach(s => add(s, s, "g-oth")); }
+  if (extra.length) { head("Other subjects", "", "g-oth"); extra.forEach(s => add(subjLabel(s), s, "g-oth")); }
 
   // INICET sits after every NEET PG subject, in its own colour
   if (iniSubs.length || ALL.some(isInicet)) {
@@ -5068,7 +5069,7 @@ function itemEl(it) {
   if (it.meta) txt.appendChild(libEl("div", "lib-meta", it.meta));
   const tags = libEl("div", "lib-tags");
   if (isInicet(it)) tags.appendChild(libEl("span", "lib-pill ini", "INICET"));
-  tags.appendChild(libEl("span", "lib-pill sub", it.subject));
+  tags.appendChild(libEl("span", "lib-pill sub", subjLabel(it.subject)));
   if (it.tab) tags.appendChild(libEl("span", "lib-pill cat", it.tab));
   const att = isTest && it.testId ? ATTEMPTS[it.testId] : null;
   if (att) tags.appendChild(libEl("span", "lib-pill best", "Best " + trRound(att.best) + "/" + att.max));
@@ -5212,7 +5213,7 @@ function renderHeading() {
   const parts = [];
   if (cardTab) parts.push(lib.tab === "Series" ? "Card series" : "Card tests");
   else {
-    parts.push(lib.subject === "All" ? "All resources" : lib.subject);
+    parts.push(lib.subject === "All" ? "All resources" : subjLabel(lib.subject));
     if (lib.tab !== "All") parts.push(lib.tab === "New" ? "New this week" : lib.tab);
   }
   document.getElementById("libTitle").textContent = parts.join(" · ");

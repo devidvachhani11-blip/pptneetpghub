@@ -462,7 +462,6 @@
       <button class="tab-btn active" data-panel="homePanel">Home</button>
       <button class="tab-btn" data-panel="paymentsPanel">Payments<span class="tab-count" id="pendingCount" style="display:none;">0</span></button>
       <button class="tab-btn" data-panel="resourcesPanel">Add Resource</button>
-      <button class="tab-btn" data-panel="bulkPanel">Bulk Upload</button>
       <button class="tab-btn" data-panel="testsPanel">Add Test</button>
       <button class="tab-btn" data-panel="gtPanel">Real Test (GT)</button>
       <button class="tab-btn" data-panel="seriesPanel">Series</button>
@@ -603,7 +602,7 @@
 
         <label>Students can</label>
         <select id="b_type">
-          <option value="download">Download (flashcards, and a ZIP of all of them)</option>
+          <option value="download">Download (students can save the file)</option>
           <option value="view">View only (PDF files)</option>
         </select>
 
@@ -982,8 +981,6 @@
         <option>High Yield</option>
         <option>PYQs</option>
         <option>PYTs</option>
-        <option>Tests</option>
-        <option>Flashcards</option>
       </select>
 
       <label>Title</label>
@@ -994,8 +991,8 @@
 
       <label>Type</label>
       <select id="r_type">
-        <option value="view">View (PDFs, tests — no download)</option>
-        <option value="download">Download (flashcards)</option>
+        <option value="view">View only (PDF, no download)</option>
+        <option value="download">Download (students can save the file)</option>
       </select>
 
       <label>File (PDF for view-only, or PDF / APKG / ZIP / image for download)</label>
@@ -2937,7 +2934,7 @@ function fillSubjectSelect(id, firstLabel, withMixed) {
     g[1].forEach(x => { const o = document.createElement('option'); o.value = x; o.textContent = x; og.appendChild(o); });
     sel.appendChild(og);
   });
-  if (withMixed) { const o = document.createElement('option'); o.value = 'Mixed'; o.textContent = 'Mixed (grand tests)'; sel.appendChild(o); }
+  if (withMixed) { const o = document.createElement('option'); o.value = 'Mixed'; o.textContent = 'Mix subjects'; sel.appendChild(o); }
   if (Array.from(sel.options).some(o => o.value === cur)) sel.value = cur;
 }
 function fillSubjectSelects() {
@@ -2972,8 +2969,8 @@ function edSelect(id, options, value, keepLabel) {
   return s;
 }
 function subjectOptions(extra) {
-  const list = KNOWN_SUBJECTS_ADMIN.concat(['Mixed']);
-  if (extra && list.indexOf(extra) === -1) list.push(extra);
+  const list = KNOWN_SUBJECTS_ADMIN.concat([['Mixed', 'Mix subjects']]);
+  if (extra && extra !== 'Mixed' && KNOWN_SUBJECTS_ADMIN.indexOf(extra) === -1) list.push(extra);
   return list;
 }
 
