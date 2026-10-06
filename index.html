@@ -374,6 +374,7 @@
   .viewer-bar .title { font-weight: 600; font-size: 15.5px; }
   .viewer-bar .close-btn { background: transparent; color: #AEB6C0; font-size: 20px; }
   .viewer-body {
+    background: #EEF1F4;
     padding: 16px;
     overflow-x: auto;
     overflow-y: auto;
@@ -395,7 +396,7 @@
   .watermark {
     position: absolute; inset: 0;
     display: flex; align-items: center; justify-content: center;
-    font-size: 38px; font-weight: 800; color: rgba(180,180,180,0.28);
+    font-size: 30px; font-weight: 700; color: rgba(120,128,140,0.09);
     transform: rotate(-24deg);
     pointer-events: none;
   }
@@ -1532,14 +1533,16 @@
 :where(html[data-eff="dark"]) .pg-weak .acts button { background: var(--white); color: var(--ink); }
   html[data-eff="dark"] .lib-head, html[data-eff="dark"] .tr-top, html[data-eff="dark"] .viewer-bar { background: #0A1830; color: #fff; }
   html[data-eff="dark"] .viewer-bar .close-btn { color: #AEB6C0; }
-  html[data-eff="dark"] .viewer-footer { background: #101828; }
+  html[data-eff="dark"] .viewer-footer { background: #FFFFFF; border-top-color: #DDE2E8; }
   html[data-eff="dark"] .tr-prog { background: #243148; }
   html[data-eff="dark"] .lib-q::placeholder { color: #7F8CA1; }
   html[data-eff="dark"] .pr-sel { color: var(--ink); background-color: var(--paper-alt); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1.5l6 6 6-6' fill='none' stroke='%23E6EBF3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
   html[data-eff="dark"] .pr-n.on, html[data-eff="dark"] .theme-seg button.on { color: #fff; }
   html[data-eff="dark"] .rs-card h4, html[data-eff="dark"] .pr-card h4, html[data-eff="dark"] .pg-card h3, html[data-eff="dark"] .tg-card h4 { color: var(--ink); }
   html[data-eff="dark"] .toast { border: 1px solid #2A384F; }
-  html[data-eff="dark"] .viewer-body { background: #0B111C; }
+  /* The PDF viewer stays light in dark mode too, so the pages are easy to read */
+  html[data-eff="dark"] #viewerOverlay { --paper: #F3F6F4; --paper-alt: #EEF1F4; --white: #FFFFFF; --ink: #12213A; --gray: #5F6C7D; --border: #DDE2E8; color-scheme: light; color: #12213A; }
+  html[data-eff="dark"] .viewer-body { background: #EEF1F4; }
   html[data-eff="dark"] .exp-bar { background: #3A2F12; border-color: #6B5A25; color: #F0DDA6; }
   html[data-eff="dark"] .exp-bar.soon { background: #3B1B1A; border-color: #7A3A36; color: #F4C2BE; }
 
@@ -5339,7 +5342,7 @@ function setViewerWatermark() {
   const el = document.getElementById('wmEmail');
   if (!el) return;
   const email = (currentUser && currentUser.email) || '';
-  const svg = "<svg xmlns='http://www.w3.org/2000/svg' width='340' height='210'><text x='24' y='120' transform='rotate(-24 170 105)' font-family='sans-serif' font-size='14' font-weight='600' fill='rgba(110,110,110,0.20)'>" +
+  const svg = "<svg xmlns='http://www.w3.org/2000/svg' width='420' height='260'><text x='30' y='150' transform='rotate(-24 210 130)' font-family='sans-serif' font-size='13' font-weight='500' fill='rgba(90,98,110,0.11)'>" +
     email.replace(/[&<>"']/g, '') + "</text></svg>";
   el.style.backgroundImage = 'url("data:image/svg+xml;utf8,' + encodeURIComponent(svg) + '")';
 }
