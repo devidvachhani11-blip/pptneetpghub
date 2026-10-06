@@ -425,6 +425,7 @@
 .ct-row{display:flex;gap:10px;align-items:flex-start;margin:10px 0;padding:10px;border:1px solid var(--border,#E6DFC9);border-radius:12px;background:#fff}
 .ct-row img{width:78px;height:78px;object-fit:cover;border-radius:8px;flex:none;background:#eee}
 .ct-row .ct-in{flex:1;min-width:0}.ct-row .ct-in b{display:block;font-size:12.5px;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ct-empty{border:2px dashed #E3DCC8;border-radius:12px;padding:16px;text-align:center;color:#6E7A8A;font-size:13.5px;background:#FFFCF4;margin:6px 0 10px}
 .ct-row textarea{width:100%;min-height:58px}.ct-row button.x{flex:none;border:0;background:#eee;border-radius:50%;width:28px;height:28px;font-size:16px}
 .sr-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--border,#E6DFC9)}
 .sr-item:first-child{border-top:0}.sr-item b{display:block;font-size:14px}.sr-item span{font-size:12px;color:#6E7A8A}
@@ -723,6 +724,11 @@
         <label>Card pictures</label>
         <input type="file" id="ct_files" class="file-inp" multiple accept=".png,.jpg,.jpeg,.webp">
         <p class="hint" id="ct_hint">Pictures are added in file-name order. Type the answer under each picture.</p>
+        <label>Answers (paste all at once, optional)</label>
+        <textarea id="ct_paste" rows="4" placeholder="One answer on each line, in the same order as the pictures&#10;Reed-Sternberg cell&#10;Auer rods&#10;..."></textarea>
+        <button class="btn outline" id="ct_fill" type="button" style="margin-top:6px">Fill the answer boxes</button>
+        <p class="hint" id="ct_fillNote"></p>
+        <label>Answer for each picture</label>
         <div id="ct_rows"></div>
         <label>Release on (optional)</label>
         <input type="datetime-local" id="ct_release">
@@ -1758,9 +1764,22 @@ async function srUpload() {
 }
 
 // ---- Card Test ----
-const CT = { rows: [] };      // { file, url, answer }
+const CT = { rows: [], pasted: [] };      // { file, url, answer }; pasted = answers typed or pasted before the pictures were chosen
+function ctLines() { const l = document.getElementById('ct_paste').value.split(/\r?\n/).map(x => x.trim()); while (l.length && !l[l.length - 1]) l.pop(); return l; }
+function ctFill() {
+  const lines = ctLines(), note = document.getElementById('ct_fillNote');
+  CT.pasted = lines;
+  if (!lines.length) { note.textContent = 'Type or paste your answers first, one on each line.'; return; }
+  if (!CT.rows.length) { note.textContent = lines.length + ' answers kept. They fill the boxes as soon as you choose the pictures.'; return; }
+  CT.rows.forEach((r, i) => { if (lines[i] !== undefined) r.answer = lines[i].slice(0, 300); });
+  const n = Math.min(lines.length, CT.rows.length), extra = lines.length - CT.rows.length, short = CT.rows.length - lines.length;
+  note.textContent = n + ' answers filled.' + (extra > 0 ? ' ' + extra + ' extra ' + (extra === 1 ? 'line was' : 'lines were') + ' not used (more answers than pictures).' : '') + (short > 0 ? ' ' + short + ' ' + (short === 1 ? 'picture still has' : 'pictures still have') + ' no answer.' : '');
+  note.style.color = (extra > 0 || short > 0) ? '#B06A00' : '';
+  ctPaint();
+}
 function ctPaint() {
   const box = document.getElementById('ct_rows'); box.innerHTML = '';
+  if (!CT.rows.length) { box.appendChild(mk('div', 'ct-empty', 'Choose the card pictures above. An answer box will appear here under each picture.')); return; }
   CT.rows.forEach((r, i) => {
     const row = mk('div', 'ct-row'), im = document.createElement('img'); im.src = r.url; im.alt = r.file.name;
     const inn = mk('div', 'ct-in'); inn.appendChild(mk('b', null, (i + 1) + '. ' + r.file.name));
@@ -1788,6 +1807,7 @@ function ctAdd(list) {
     else CT.rows.push({ file: f, url: URL.createObjectURL(f), answer: '' });
   });
   CT.rows.sort((p, q) => natCompare(p.file.name, q.file.name));
+  if (CT.pasted.length) CT.rows.forEach((r, i) => { if (!r.answer && CT.pasted[i]) r.answer = CT.pasted[i].slice(0, 300); });      // answers pasted earlier
   if (skipped.length) showToast(skipped.length + ' skipped: ' + skipped.slice(0, 2).join(', '), true);
   ctPaint(); ctSizes();
 }
@@ -1842,7 +1862,7 @@ async function ctUpload() {
     await Promise.all([worker(), worker(), worker()]);
     CT.rows.filter(r => r.done).forEach(r => URL.revokeObjectURL(r.url));
     CT.rows = CT.rows.filter(r => !r.done);
-    if (!failed.length) document.getElementById('ct_release').value = '';
+    if (!failed.length) { document.getElementById('ct_release').value = ''; document.getElementById('ct_paste').value = ''; document.getElementById('ct_fillNote').textContent = ''; CT.pasted = []; }
     ctPaint(); ctSizes();
     st.textContent = failed.length ? done + ' added, ' + failed.length + ' failed: ' + failed.slice(0, 3).join(', ') + '. Press Upload again to retry the failed ones.' : '';
     showToast(failed.length ? done + ' added, ' + failed.length + ' failed.' : '\u2714 ' + done + (done === 1 ? ' card' : ' cards') + ' added to "' + name + '".', failed.length > 0);
@@ -1989,6 +2009,7 @@ async function itPublish() {
 }
 
 function initCards() {
+  ctPaint();                      // shows the answer area (an empty box) before any picture is chosen
   // Series
   document.getElementById('sr_files').addEventListener('change', (e) => { srAddFiles(e.target.files); e.target.value = ''; });
   document.getElementById('sr_upload').addEventListener('click', srUpload);
@@ -1996,7 +2017,8 @@ function initCards() {
   // Card Test
   document.getElementById('ct_files').addEventListener('change', (e) => { ctAdd(e.target.files); e.target.value = ''; });
   document.getElementById('ct_upload').addEventListener('click', ctUpload);
-  document.getElementById('ct_clear').addEventListener('click', () => { CT.rows.forEach(r => URL.revokeObjectURL(r.url)); CT.rows = []; ctPaint(); ctSizes(); document.getElementById('ct_status').textContent = ''; });
+  document.getElementById('ct_fill').addEventListener('click', ctFill);
+  document.getElementById('ct_clear').addEventListener('click', () => { CT.rows.forEach(r => URL.revokeObjectURL(r.url)); CT.rows = []; CT.pasted = []; document.getElementById('ct_paste').value = ''; document.getElementById('ct_fillNote').textContent = ''; ctPaint(); ctSizes(); document.getElementById('ct_status').textContent = ''; });
   // Image Tests
   fillSubjectSelect('it_subject', 'Choose subject\u2026', true);
   document.getElementById('it_mode').addEventListener('change', () => { document.getElementById('it_examFields').style.display = itBlockedMode() ? 'block' : 'none'; });
