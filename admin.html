@@ -502,11 +502,11 @@
 
       <div class="card">
         <h3>Add questions</h3>
-        <label class="bk-l">Subject for rows that have none (optional)</label>
-        <select id="bk_defSubject"><option value="">No subject (optional)</option></select>
+        <label class="bk-l">Exam for the questions you add</label>
+        <select id="bk_addExam"><option value="NEET PG">NEET PG</option><option value="INICET">INICET</option></select>
         <label class="bk-l">1. Excel or CSV file</label>
         <input type="file" id="bk_xlfile" accept=".xlsx,.xls,.csv">
-        <p class="hint">First row = headings: Question, A, B, C, D, Answer, Explanation. Subject is optional, and so are E, F and Tag. Answer can be A to F or 1 to 6. <a href="#" id="bk_tpl">Download the template</a>.</p>
+        <p class="hint">First row = headings: Question, A, B, C, D, Answer, Explanation. Subject, Exam (NEET PG or INICET), E, F and Tag are optional. A row with its own Exam uses it. Answer can be A to F or 1 to 6. <a href="#" id="bk_tpl">Download the template</a>.</p>
         <label class="bk-l">2. Paste questions (same format as Add Test; a Subject line is optional)</label>
         <textarea id="bk_paste" rows="6" placeholder="Q1. Question text&#10;A. ...&#10;B. ...&#10;Answer: B&#10;Explanation: ..."></textarea>
         <button class="btn teal" id="bk_pasteGo" style="margin-top:8px;">Check pasted questions</button>
@@ -514,33 +514,14 @@
       </div>
 
       <div class="card">
-        <h3>Build a test from the bank</h3>
-        <div class="bk-grid">
-          <div><label class="bk-l">Subject</label><select id="bk_bSubject"></select></div>
-          <div><label class="bk-l">Questions</label><input type="number" id="bk_bCount" min="1" max="300" value="30"></div>
-        </div>
-        <label class="bk-l">Test title</label>
-        <input type="text" id="bk_bTitle" placeholder="e.g. Pharmacology Test 1">
-        <label class="bk-l">Exam</label>
-        <select id="bk_bExamType"><option value="NEET PG">NEET PG</option><option value="INICET">INICET</option></select>
-        <div class="bk-grid">
-          <div><label class="bk-l">Mode</label><select id="bk_bMode"><option value="instant">Instant answers</option><option value="exam">Timed exam</option></select></div>
-          <div><label class="bk-l">Go live (optional)</label><input type="datetime-local" id="bk_bRelease"></div>
-        </div>
-        <div id="bk_bExam" style="display:none;">
-          <div class="bk-grid">
-            <div><label class="bk-l">Minutes (blank = 1 per question)</label><input type="number" id="bk_bDur" min="1"></div>
-            <div><label class="bk-l">Marks per right</label><input type="number" id="bk_bPlus" value="4" min="0.25" step="0.25"></div>
-            <div><label class="bk-l">Minus per wrong</label><input type="number" id="bk_bMinus" value="1" min="0" step="0.25"></div>
-          </div>
-          <div class="bk-grid">
-            <div><label class="bk-l">Questions per block (optional)</label><input type="number" id="bk_bBlock" min="1"></div>
-            <div><label class="bk-l">Minutes per block</label><input type="number" id="bk_bBlockMin" min="1"></div>
-          </div>
-        </div>
-        <label class="bk-chk"><input type="checkbox" id="bk_bFresh" checked> Prefer questions not used in a test before</label>
-        <button class="btn teal" id="bk_bPick" style="margin-top:8px;">Pick questions</button>
-        <div id="bk_bPrev"></div>
+        <h3>Practice settings</h3>
+        <p class="hint" style="margin-top:-6px">What students get in their Practice card. They pick 10, 30 or 50 random questions from the bank. Changes save by themselves.</p>
+        <label class="bk-l">Exam questions students can practise</label>
+        <label class="bk-chk"><input type="checkbox" id="pp_exNeet" checked> NEET PG <span class="hint" id="pp_cNeet"></span></label>
+        <label class="bk-chk"><input type="checkbox" id="pp_exInicet" checked> INICET <span class="hint" id="pp_cInicet"></span></label>
+        <label class="bk-l">Mode</label>
+        <select id="pp_modes"><option value="both">Instant and Timed</option><option value="instant">Instant answers only</option><option value="exam">Timed only</option></select>
+        <p class="hint">Questions a student has not seen yet always come first.</p>
       </div>
 
       <div class="card">
@@ -2939,7 +2920,6 @@ function fillSubjectSelects() {
   fillSubjectSelect('t_subject', 'Choose a subject…', true);
   fillSubjectSelect('r_subject', 'Choose a subject…', true);
   fillSubjectSelect('b_subject', 'Choose a subject…', true);
-  fillSubjectSelect('bk_defSubject', 'No subject (optional)', false);
 }
 
 const ED = { mode: '', row: null, rows: [], testId: null, busy: false };
@@ -4122,6 +4102,7 @@ function qHash(q) { return 'q' + cyrb53((String(q.q) + '|' + (q.o || []).join('|
 function canonSubject(s) { s = String(s || '').trim(); const k = KNOWN_SUBJECTS_ADMIN.find(z => z.toLowerCase() === s.toLowerCase()); return k || s; }
 
 // rows: array of arrays (what a sheet gives). Returns { questions, errors }
+function normExam(v) { const t = String(v || '').toLowerCase().replace(/[^a-z]/g, ''); return t === 'inicet' ? 'INICET' : (t === 'neetpg' || t === 'neet') ? 'NEET PG' : ''; }
 function rowsToQuestions(aoa, defSubject, subjectOptional) {
   const errors = [], questions = [];
   const cell = (v) => String(v == null ? '' : v).replace(/\s+/g, ' ').trim();
@@ -4135,6 +4116,7 @@ function rowsToQuestions(aoa, defSubject, subjectOptional) {
     else if (/^(answer|ans|correct|correct answer|key)$/.test(h)) col.a = i;
     else if (/^(explanation|expl|exp|rationale|reason)$/.test(h)) col.e = i;
     else if (/^(subject)$/.test(h)) col.s = i;
+    else if (/^(exam|exam type)$/.test(h)) col.ex = i;
     else if (/^(image|picture|img|photo|image file|image name)$/.test(h)) col.img = i;
     else if (/^(explanation image|explanation picture|expl image|answer image)$/.test(h)) col.eimg = i;
     else if (/^(tag|topic|chapter)$/.test(h)) col.t = i;
@@ -4163,6 +4145,7 @@ function rowsToQuestions(aoa, defSubject, subjectOptional) {
     const s = canonSubject(col.s !== undefined ? cell(row[col.s]) : '') || canonSubject(defSubject);
     if (!s && !subjectOptional) { errors.push(label + ': no subject. Fill the Subject column or the subject box above.'); continue; }
     const item = { q: q, o: o, a: a, e: col.e !== undefined ? cell(row[col.e]) : '', s: s };
+    if (col.ex !== undefined) { const ev = normExam(cell(row[col.ex])); if (ev) item.ex = ev; }
     if (col.t !== undefined && cell(row[col.t])) item.t = cell(row[col.t]);
     if (col.img !== undefined && cell(row[col.img])) item.img = cell(row[col.img]);
     if (col.eimg !== undefined && cell(row[col.eimg])) item.eimg = cell(row[col.eimg]);
@@ -4190,9 +4173,9 @@ async function readSheetFile(file) {
   return out;
 }
 async function downloadBankTemplate() {
-  const aoa = [['Subject', 'Question', 'A', 'B', 'C', 'D', 'Answer', 'Explanation', 'Tag'],
-    ['Pharmacology', 'Which drug is the antidote for paracetamol poisoning?', 'N-acetylcysteine', 'Naloxone', 'Flumazenil', 'Atropine', 'A', 'NAC replenishes glutathione.', 'Toxicology'],
-    ['Pharmacology', 'Which drug is a loop diuretic?', 'Spironolactone', 'Furosemide', 'Mannitol', 'Amiloride', 'B', 'Furosemide acts on the thick ascending limb.', '']];
+  const aoa = [['Subject', 'Question', 'A', 'B', 'C', 'D', 'Answer', 'Explanation', 'Tag', 'Exam'],
+    ['Pharmacology', 'Which drug is the antidote for paracetamol poisoning?', 'N-acetylcysteine', 'Naloxone', 'Flumazenil', 'Atropine', 'A', 'NAC replenishes glutathione.', 'Toxicology', 'NEET PG'],
+    ['', 'Which drug is a loop diuretic?', 'Spironolactone', 'Furosemide', 'Mannitol', 'Amiloride', 'B', 'Furosemide acts on the thick ascending limb.', '', '']];
   try { const X = await loadXlsxLib(); const wb = X.utils.book_new(); X.utils.book_append_sheet(wb, X.utils.aoa_to_sheet(aoa), 'Questions'); X.writeFile(wb, 'question-bank-template.xlsx'); }
   catch (e) { bkDownload('question-bank-template.csv', aoa.map(r => r.map(csvCell).join(',')).join('\n'), 'text/csv'); showToast('Excel reader not available. Downloaded a CSV template instead.'); }
 }
@@ -4217,14 +4200,17 @@ function renderBank() {
   const st = document.getElementById('bkStats'); st.innerHTML = '';
   const subj = bankSubjects();
   st.appendChild(mk('p', null, BANK.rows.length + ' question' + (BANK.rows.length === 1 ? '' : 's') + ' in the bank.'));
+  const exC = { 'NEET PG': 0, 'INICET': 0 }; BANK.rows.forEach(x => { exC[x.ex === 'INICET' ? 'INICET' : 'NEET PG']++; });
+  const exChips = mk('div', 'bk-chips'); Object.keys(exC).forEach(k => { if (exC[k]) exChips.appendChild(mk('span', 'bk-chip', k + ' \u00B7 ' + exC[k])); }); st.appendChild(exChips);
   const chips = mk('div', 'bk-chips'); subj.forEach(s => chips.appendChild(mk('span', 'bk-chip', s[0] + ' · ' + s[1]))); st.appendChild(chips);
+  const cN = document.getElementById('pp_cNeet'), cI = document.getElementById('pp_cInicet'); if (cN) cN.textContent = '(' + exC['NEET PG'] + ')'; if (cI) cI.textContent = '(' + exC['INICET'] + ')';
   const fill = (id, withAll, allLabel) => {
     const sel = document.getElementById(id), cur = sel.value; sel.innerHTML = '';
     const a = document.createElement('option'); a.value = withAll; a.textContent = allLabel; sel.appendChild(a);
     subj.forEach(s => { const o = document.createElement('option'); o.value = s[0]; o.textContent = s[0] + ' (' + s[1] + ')'; sel.appendChild(o); });
     if (Array.from(sel.options).some(o => o.value === cur)) sel.value = cur;
   };
-  fill('bk_bSubject', '__all', 'All subjects (mixed)'); fill('bk_fSubject', '__all', 'All subjects');
+  fill('bk_fSubject', '__all', 'All subjects');
   renderBankList();
 }
 function renderBankList() {
@@ -4234,7 +4220,7 @@ function renderBankList() {
   if (!rows.length) { el.appendChild(mk('div', 'empty', BANK.rows.length ? 'No question matches.' : 'The bank is empty. Add questions above.')); return; }
   rows.slice(0, BANK.shown).forEach(x => {
     const d = mk('div', 'bk-q'); d.appendChild(mk('div', null, x.q));
-    d.appendChild(mk('small', null, (x.s || 'No subject') + ' · answer ' + String.fromCharCode(65 + (x.a || 0)) + ' · used in ' + (x.used || 0) + ' test' + ((x.used || 0) === 1 ? '' : 's') + (x.src ? ' · ' + x.src : '')));
+    d.appendChild(mk('small', null, (x.ex === 'INICET' ? 'INICET' : 'NEET PG') + ' · ' + (x.s || 'No subject') + ' · answer ' + String.fromCharCode(65 + (x.a || 0)) + (x.src ? ' · ' + x.src : '')));
     const b = mk('button', null, 'Delete'); b.onclick = () => deleteBankQ(x); d.appendChild(b); el.appendChild(d);
   });
   if (rows.length > BANK.shown) { const b = mk('button', 'btn', 'Show more (' + (rows.length - BANK.shown) + ' left)'); b.onclick = () => { BANK.shown += 50; renderBankList(); }; el.appendChild(b); }
@@ -4249,11 +4235,12 @@ async function deleteBankQ(x) {
 function showBankPreview(qs, errors, src, extraNote) {
   const el = document.getElementById('bk_prev'); el.innerHTML = '';
   const fresh = [], seen = {}; let dup = 0;
-  qs.forEach(q => { const id = qHash(q); if (BANK.byId[id] || seen[id]) { dup++; return; } seen[id] = 1; q._id = id; fresh.push(q); });
+  qs.forEach(q => { const id = qHash(q) + (q.ex === 'INICET' ? 'i' : ''); if (BANK.byId[id] || seen[id]) { dup++; return; } seen[id] = 1; q._id = id; fresh.push(q); });
   BANK.prev = fresh;
   const p = mk('p'); p.appendChild(mk('span', 'bk-ok', fresh.length + ' new question' + (fresh.length === 1 ? '' : 's') + ' ready'));
   p.appendChild(document.createTextNode((dup ? ', ' + dup + ' already in the bank (skipped)' : '') + (errors.length ? ', ' : ''))); if (errors.length) p.appendChild(mk('span', 'bk-bad', errors.length + ' with problems'));
   el.appendChild(p);
+  if (fresh.length) { const ex = {}; fresh.forEach(q => { const k = q.ex === 'INICET' ? 'INICET' : 'NEET PG'; ex[k] = (ex[k] || 0) + 1; }); el.appendChild(mk('p', 'hint', 'By exam: ' + Object.keys(ex).sort().map(k => k + ' ' + ex[k]).join(' \u00B7 '))); }
   if (fresh.length) { const by = {}; fresh.forEach(q => { const k = q.s || 'No subject'; by[k] = (by[k] || 0) + 1; }); el.appendChild(mk('p', 'hint', 'By subject: ' + Object.keys(by).sort().map(k => k + ' ' + by[k]).join(' · '))); }
   if (extraNote) el.appendChild(mk('p', 'hint', extraNote));
   if (errors.length) { const ul = document.createElement('ul'); errors.slice(0, 10).forEach(e => ul.appendChild(mk('li', 'bk-bad', e))); if (errors.length > 10) ul.appendChild(mk('li', null, '+ ' + (errors.length - 10) + ' more')); el.appendChild(ul); }
@@ -4267,12 +4254,12 @@ async function saveBankPreview(src, btn) {
     for (let i = 0; i < list.length; i += 400) {
       const batch = writeBatch(db);
       list.slice(i, i + 400).forEach(q => {
-        const d = { q: q.q, o: q.o, a: q.a, e: q.e || '', s: q.s, t: q.t || '', used: 0, src: src, createdAt: serverTimestamp() };
+        const d = { q: q.q, o: q.o, a: q.a, e: q.e || '', s: q.s, t: q.t || '', ex: q.ex === 'INICET' ? 'INICET' : 'NEET PG', used: 0, src: src, createdAt: serverTimestamp() };
         batch.set(doc(db, 'questions', q._id), d);
       });
       await batch.commit();
     }
-    list.forEach(q => { const x = { id: q._id, q: q.q, o: q.o, a: q.a, e: q.e || '', s: q.s, t: q.t || '', used: 0, src: src }; BANK.rows.push(x); BANK.byId[x.id] = x; });
+    list.forEach(q => { const x = { id: q._id, q: q.q, o: q.o, a: q.a, e: q.e || '', s: q.s, t: q.t || '', ex: q.ex === 'INICET' ? 'INICET' : 'NEET PG', used: 0, src: src }; BANK.rows.push(x); BANK.byId[x.id] = x; });
     BANK.prev = []; document.getElementById('bk_prev').innerHTML = ''; renderBank();
     showToast('Saved ' + list.length + ' question' + (list.length === 1 ? '' : 's') + '. Updating the practice pool\u2026');
     const ok = await publishPracticePool(true);
@@ -4287,7 +4274,8 @@ async function bankFromFile(file) {
   try {
     const sheets = await readSheetFile(file);
     let qs = [], errs = [];
-    sheets.forEach(aoa => { const r = rowsToQuestions(aoa, document.getElementById('bk_defSubject').value, true); qs = qs.concat(r.questions); errs = errs.concat(r.errors); });
+    sheets.forEach(aoa => { const r = rowsToQuestions(aoa, '', true); qs = qs.concat(r.questions); errs = errs.concat(r.errors); });
+    const ex0 = document.getElementById('bk_addExam').value; qs.forEach(q => { q.ex = q.ex || ex0; });
     showBankPreview(qs, errs, srcLabel('Excel'));
   } catch (e) { showToast(e.message, true); }
 }
@@ -4295,77 +4283,17 @@ async function bankFromPaste() {
   await loadBank();
   const raw = document.getElementById('bk_paste').value;
   if (!raw.trim()) { showToast('Paste some questions first.', true); return; }
-  const r = parseQuestions(raw), def = canonSubject(document.getElementById('bk_defSubject').value);
+  const r = parseQuestions(raw), ex0 = document.getElementById('bk_addExam').value;
   const qs = [], errs = r.errors.slice(); let noImg = 0;
   r.questions.forEach((q, i) => {
     if (q.img || q.eimg) { noImg++; return; }
-    q.s = canonSubject(q.s) || def || '';          // a subject is optional
+    q.s = canonSubject(q.s) || '';          // a subject is optional
+    q.ex = ex0;
     qs.push(q);
   });
   showBankPreview(qs, errs, srcLabel('Pasted'), noImg ? noImg + ' question' + (noImg === 1 ? ' has' : 's have') + ' a picture and was not added. Pictures stay inside their test.' : '');
 }
 function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
-function pickQuestions() {
-  const sub = document.getElementById('bk_bSubject').value, n = Math.floor(Number(document.getElementById('bk_bCount').value));
-  const fresh = document.getElementById('bk_bFresh').checked;
-  if (!(n >= 1 && n <= 300)) { showToast('Questions must be between 1 and 300.', true); return null; }
-  const pool = BANK.rows.filter(x => sub === '__all' || (x.s || 'No subject') === sub);
-  if (pool.length < n) { showToast('Only ' + pool.length + ' question' + (pool.length === 1 ? ' is' : 's are') + ' in ' + (sub === '__all' ? 'the bank' : sub) + '. Add more or lower the number.', true); return null; }
-  shuffle(pool);
-  if (fresh) pool.sort((a, b) => (a.used || 0) - (b.used || 0));
-  return shuffle(pool.slice(0, n));
-}
-function paintBuildPreview() {
-  const el = document.getElementById('bk_bPrev'); el.innerHTML = '';
-  if (!BANK.pick.length) return;
-  const c = {}; BANK.pick.forEach(x => { c[x.s || 'No subject'] = (c[x.s || 'No subject'] || 0) + 1; });
-  const reused = BANK.pick.filter(x => (x.used || 0) > 0).length;
-  el.appendChild(mk('p', null, BANK.pick.length + ' questions picked' + (reused ? ' (' + reused + ' used before)' : ', none used before') + '.'));
-  const chips = mk('div', 'bk-chips'); Object.keys(c).sort().forEach(k => chips.appendChild(mk('span', 'bk-chip', k + ' · ' + c[k]))); el.appendChild(chips);
-  const ul = document.createElement('ul'); BANK.pick.slice(0, 8).forEach(x => ul.appendChild(mk('li', null, x.q.length > 90 ? x.q.slice(0, 89) + '…' : x.q))); el.appendChild(ul);
-  if (BANK.pick.length > 8) el.appendChild(mk('p', 'hint', '+ ' + (BANK.pick.length - 8) + ' more'));
-  const row = mk('div'); row.style.cssText = 'display:flex;gap:8px;margin-top:10px;';
-  const re = mk('button', 'btn', 'Pick again'); re.onclick = () => { const p = pickQuestions(); if (p) { BANK.pick = p; paintBuildPreview(); } };
-  const pub = mk('button', 'btn teal', 'Publish test'); pub.id = 'bk_bPublish'; pub.onclick = publishBankTest;
-  row.appendChild(re); row.appendChild(pub); el.appendChild(row);
-}
-async function publishBankTest() {
-  const { db, collection, addDoc, deleteDoc, doc, writeBatch, serverTimestamp } = window.__fb;
-  const list = BANK.pick.slice(); if (!list.length) return;
-  const title = document.getElementById('bk_bTitle').value.trim();
-  const sub = document.getElementById('bk_bSubject').value, subject = sub === '__all' ? 'Mixed' : sub;
-  const mode = document.getElementById('bk_bMode').value, exam = mode === 'exam';
-  const n = list.length;
-  const duration = exam ? (Number(document.getElementById('bk_bDur').value) || n) : 0;
-  const plus = exam ? Number(document.getElementById('bk_bPlus').value) : 1, minus = exam ? Number(document.getElementById('bk_bMinus').value) : 0;
-  if (!title) { showToast('Enter a test title.', true); return; }
-  if (exam && !(plus > 0 && minus >= 0)) { showToast('Check the marks per right and minus per wrong.', true); return; }
-  const bi = exam ? blockInfo(n, document.getElementById('bk_bBlock').value, document.getElementById('bk_bBlockMin').value) : { on: false, blockSize: 0, blockMinutes: 0 };
-  if (bi.error) { showToast(bi.error, true); return; }
-  const qs = list.map(x => { const o = { q: x.q, o: x.o, a: x.a, e: x.e || '' }; if (x.t) o.t = x.t; if (x.s) o.s = x.s; return o; });
-  if (JSON.stringify(qs).length > 900000) { showToast('This test is too large. Pick fewer questions.', true); return; }
-  const btn = document.getElementById('bk_bPublish'); btn.disabled = true; btn.textContent = 'Publishing…';
-  let testRef = null;
-  try {
-    testRef = await addDoc(collection(db, 'tests'), { title, subject, mode, durationMin: bi.on ? bi.total : duration, plus, minus, count: n, blockSize: bi.blockSize, blockMinutes: bi.blockMinutes, qs, createdAt: serverTimestamp() });
-    const rel = relMs('bk_bRelease');
-    await addDoc(collection(db, 'resources'), { subject, exam: document.getElementById('bk_bExamType').value, tab: 'Tests', title, meta: examMeta(n, exam, duration, bi), type: 'test', testId: testRef.id, fileUrl: null, releaseAt: rel ? window.__fb.Timestamp.fromMillis(rel) : null, createdAt: serverTimestamp() });
-    try {
-      for (let i = 0; i < list.length; i += 400) {
-        const batch = writeBatch(db);
-        list.slice(i, i + 400).forEach(x => batch.update(doc(db, 'questions', x.id), { used: (x.used || 0) + 1, lastUsed: serverTimestamp() }));
-        await batch.commit();
-      }
-      list.forEach(x => { x.used = (x.used || 0) + 1; });
-    } catch (e) { console.error('Could not update usage counts', e); }
-    showToast('Test published: ' + title + ' (' + n + ' questions)' + (rel ? ', live ' + relText(rel) : ''));
-    BANK.pick = []; document.getElementById('bk_bTitle').value = ''; document.getElementById('bk_bRelease').value = '';
-    paintBuildPreview(); renderBank(); loadResourcesList();
-  } catch (e) {
-    if (testRef) { try { await deleteDoc(doc(db, 'tests', testRef.id)); } catch (x) {} }
-    showToast('Failed: ' + e.message, true); btn.disabled = false; btn.textContent = 'Publish test';
-  }
-}
 function wireHomeBank() {
   document.getElementById('homeRefresh').addEventListener('click', loadHome);
   document.getElementById('bkRefresh').addEventListener('click', () => loadBank(true));
@@ -4373,8 +4301,7 @@ function wireHomeBank() {
   document.getElementById('bk_xlfile').addEventListener('change', (e) => { bankFromFile(e.target.files[0]); e.target.value = ''; });
   document.getElementById('bk_tpl').addEventListener('click', (e) => { e.preventDefault(); downloadBankTemplate(); });
   document.getElementById('bk_pasteGo').addEventListener('click', bankFromPaste);
-  document.getElementById('bk_bMode').addEventListener('change', () => { document.getElementById('bk_bExam').style.display = document.getElementById('bk_bMode').value === 'exam' ? 'block' : 'none'; });
-  document.getElementById('bk_bPick').addEventListener('click', async () => { await loadBank(); const p = pickQuestions(); if (p) { BANK.pick = p; paintBuildPreview(); } });
+  ['pp_exNeet', 'pp_exInicet', 'pp_modes'].forEach(id => document.getElementById(id).addEventListener('change', ppSettingsChanged));
   document.getElementById('bk_fSubject').addEventListener('change', () => { BANK.shown = 50; renderBankList(); });
   document.getElementById('bk_fQ').addEventListener('input', () => { BANK.shown = 50; renderBankList(); });
 }
@@ -4382,47 +4309,83 @@ function wireHomeBank() {
 
 // ---------- Practice pool (what students practise from) ----------
 function slugOf(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '').slice(0, 30) || 'x'; }
+// Settings (which exams students can practise, which modes) are kept in the pool index, so students read them with the pool.
+const PP = { live: false, timer: 0, pending: false, busy: false };
+function ppSettings() {
+  return { neet: document.getElementById('pp_exNeet').checked, inicet: document.getElementById('pp_exInicet').checked, modes: document.getElementById('pp_modes').value };
+}
+function ppApplySettings(d) {
+  if (d.v >= 3) {
+    const ex = d.exams || {};
+    document.getElementById('pp_exNeet').checked = ex.neet !== false;          // saved ticks, so an exam with no questions yet stays ticked
+    document.getElementById('pp_exInicet').checked = ex.inicet !== false;
+    document.getElementById('pp_modes').value = ['both', 'instant', 'exam'].indexOf(d.modes) > -1 ? d.modes : 'both';
+  }
+}
+function ppSettingsChanged() {
+  clearTimeout(PP.timer);
+  if (!PP.live) return;                                   // nothing is published yet: the first publish uses these settings
+  PP.pending = true;
+  PP.timer = setTimeout(async () => { PP.pending = false; const ok = await publishPracticePool(true); if (ok) showToast('\u2714 Practice settings saved.'); }, 700);
+}
+function bankExamOf(x) { return x.ex === 'INICET' ? 'INICET' : 'NEET PG'; }
 async function ppStatus() {
   const el = document.getElementById('pp_status'), top = document.getElementById('bk_poolTop'); if (!el) return;
   const say = (t) => { el.textContent = t; if (top) top.textContent = t; };
   try {
     const { db, doc, getDoc } = window.__fb;
     const s = await getDoc(doc(db, 'practice', 'index'));
-    if (!s.exists()) { say('Practice pool: not published yet. Students do not see the Practice card.'); return; }
+    if (!s.exists()) { PP.live = false; say('Practice pool: not published yet. Students do not see the Practice card.'); return; }
+    PP.live = true;
     const d = s.data();
-    if (d.v !== 2) { say('Practice pool: it uses the old layout (by subject). Press "Update practice pool" once.'); return; }
-    const behind = BANK.loaded && BANK.rows.length !== (d.total || 0);
-    say('Practice pool: ' + (d.total || 0) + ' questions are live for students. Last updated ' + fmtTime(d.updatedAt) + '.' + (behind ? ' The bank has ' + BANK.rows.length + ' now. Press "Update practice pool".' : (BANK.loaded ? ' Up to date.' : '')));
+    if (!(d.v >= 3)) { say('Practice pool: it uses an older layout. Press "Update practice pool" once.'); return; }
+    if (!PP.busy && !PP.pending) ppApplySettings(d);          // never overwrite a change that is being saved
+    const st = ppSettings();
+    const want = BANK.rows.filter(x => (bankExamOf(x) === 'INICET' ? st.inicet : st.neet)).length;
+    const behind = BANK.loaded && want !== (d.total || 0);
+    const parts = (d.subjects || []).map(x => x.subject + ' ' + x.count).join(', ');
+    say('Practice pool: ' + (d.total || 0) + ' questions are live for students (' + (parts || 'none') + '). Last updated ' + fmtTime(d.updatedAt) + '.' + (behind ? ' The bank has ' + want + ' for the chosen exams now. Press "Update practice pool".' : (BANK.loaded ? ' Up to date.' : '')));
   } catch (e) { say('Could not read the pool status: ' + e.message); }
 }
-// The pool is the whole bank, in order of adding, cut into parts of up to 300 questions. Students draw random questions from it.
+// The pool is the whole bank of each exam, in order of adding, cut into parts of up to 300 questions. Students draw random questions from it.
 async function publishPracticePool(auto) {
   const btn = document.getElementById('pp_publish');
   const { db, doc, collection, getDocs, writeBatch, serverTimestamp } = window.__fb;
   btn.disabled = true; btn.textContent = 'Updating…';
+  const st = ppSettings();                                  // read the ticks first: loading the bank refreshes the status
+  PP.busy = true;
   try {
     await loadBank(true);
-    const rows = BANK.rows.filter(x => x.q && Array.isArray(x.o) && x.o.length >= 2)
+    const all = BANK.rows.filter(x => x.q && Array.isArray(x.o) && x.o.length >= 2)
       .sort((p, q) => ((tsMs(p.createdAt) || 9e15) - (tsMs(q.createdAt) || 9e15)) || String(p.id).localeCompare(String(q.id)));
-    if (!rows.length) { showToast('The bank is empty. Add questions first.', true); return false; }
-    const chunks = [];
-    let cur = [], size = 0, part = 0;
-    const flush = () => { if (cur.length) { chunks.push({ id: 'pr_all_' + part, part: part, qs: cur }); part++; cur = []; size = 0; } };
-    rows.forEach(x => {
-      const q = { id: x.id, q: x.q, o: x.o, a: x.a, e: x.e || '' }; if (x.t) q.t = x.t; if (x.s) q.s = x.s;
-      const len = JSON.stringify(q).length;
-      if (cur.length >= 300 || size + len > 300000) flush();
-      cur.push(q); size += len;
+    const groups = [];
+    if (st.neet) groups.push({ exam: 'NEET PG', slug: 'neet', rows: all.filter(x => bankExamOf(x) === 'NEET PG') });
+    if (st.inicet) groups.push({ exam: 'INICET', slug: 'inicet', rows: all.filter(x => bankExamOf(x) === 'INICET') });
+    const usable = groups.filter(g => g.rows.length);
+    if (!usable.length) { showToast(all.length ? 'Tick at least one exam that has questions.' : 'The bank is empty. Add questions first.', true); return false; }
+    const chunks = [], index = [];
+    let total = 0;
+    usable.forEach(g => {
+      let cur = [], size = 0, part = 0;
+      const flush = () => { if (cur.length) { chunks.push({ id: 'pr_' + g.slug + '_' + part, exam: g.exam, part: part, qs: cur }); part++; cur = []; size = 0; } };
+      g.rows.forEach(x => {
+        const q = { id: x.id, q: x.q, o: x.o, a: x.a, e: x.e || '' }; if (x.t) q.t = x.t; if (x.s) q.s = x.s;
+        const len = JSON.stringify(q).length;
+        if (cur.length >= 300 || size + len > 300000) flush();
+        cur.push(q); size += len;
+      });
+      flush();
+      index.push({ subject: g.exam, slug: g.slug, count: g.rows.length, parts: part });
+      total += g.rows.length;
     });
-    flush();
     const keep = new Set(chunks.map(c => c.id)); keep.add('index');
     // new parts first, then the index, then the old parts go, so students never meet a missing part
     for (let i = 0; i < chunks.length; i += 8) {
       const batch = writeBatch(db);
-      chunks.slice(i, i + 8).forEach(c => batch.set(doc(db, 'practice', c.id), { subject: 'All questions', part: c.part, qs: c.qs, updatedAt: serverTimestamp() }));
+      chunks.slice(i, i + 8).forEach(c => batch.set(doc(db, 'practice', c.id), { subject: c.exam, part: c.part, qs: c.qs, updatedAt: serverTimestamp() }));
       await batch.commit();
     }
-    await window.__fb.setDoc(doc(db, 'practice', 'index'), { subjects: [{ subject: 'All questions', slug: 'all', count: rows.length, parts: chunks.length }], total: rows.length, v: 2, updatedAt: serverTimestamp() });
+    await window.__fb.setDoc(doc(db, 'practice', 'index'), { subjects: index, total: total, v: 3, modes: st.modes, exams: { neet: st.neet, inicet: st.inicet }, updatedAt: serverTimestamp() });
     const old = await getDocs(collection(db, 'practice'));
     const gone = []; old.forEach(d => { if (!keep.has(d.id)) gone.push(d.id); });
     for (let i = 0; i < gone.length; i += 400) {
@@ -4430,11 +4393,12 @@ async function publishPracticePool(auto) {
       gone.slice(i, i + 400).forEach(id => batch.delete(doc(db, 'practice', id)));
       await batch.commit();
     }
-    if (!auto) showToast('\u2714 Practice pool updated: ' + rows.length + ' questions');
+    PP.live = true;
+    if (!auto) showToast('\u2714 Practice pool updated: ' + total + ' questions');
     ppStatus();
     return true;
   } catch (e) { console.error(e); showToast('Failed: ' + e.message, true); return false; }
-  finally { btn.disabled = false; btn.textContent = 'Update practice pool'; }
+  finally { PP.busy = false; btn.disabled = false; btn.textContent = 'Update practice pool'; ppStatus(); }
 }
 
 // ---------- Free sample (public, needs no sign-in) ----------

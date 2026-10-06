@@ -5656,8 +5656,8 @@ document.addEventListener("visibilitychange", () => { if (document.visibilitySta
 
 // ---------- Practice (random questions from the whole question bank) ----------
 // The admin copies the whole bank into "practice": an index document and parts named pr_all_<n> (up to 300 questions each).
-const PR = { index: null, loading: null, parts: {}, n: 30, mode: "instant" };
-try { const v = Number(localStorage.getItem("pptPrN")); if (v === 10 || v === 30 || v === 50) PR.n = v; if (localStorage.getItem("pptPrMode") === "exam") PR.mode = "exam"; } catch (e) {}
+const PR = { index: null, loading: null, parts: {}, n: 30, mode: "instant", exam: "" };
+try { const v = Number(localStorage.getItem("pptPrN")); if (v === 10 || v === 30 || v === 50) PR.n = v; if (localStorage.getItem("pptPrMode") === "exam") PR.mode = "exam"; PR.exam = localStorage.getItem("pptPrExam") || ""; } catch (e) {}
 function prLoadIndex() {
   if (PR.index) { paintPractice(); return Promise.resolve(); }
   if (PR.loading) return PR.loading;
@@ -5666,7 +5666,7 @@ function prLoadIndex() {
       const { db, doc, getDoc } = window.__fb;
       const s = await getDoc(doc(db, "practice", "index"));
       const d = s.exists() ? (s.data() || {}) : {};
-      PR.index = { subjects: (Array.isArray(d.subjects) ? d.subjects : []).filter(x => x && x.subject && x.slug && Number(x.count) > 0), total: Number(d.total) || 0 };
+      PR.index = { subjects: (Array.isArray(d.subjects) ? d.subjects : []).filter(x => x && x.subject && x.slug && Number(x.count) > 0), total: Number(d.total) || 0, modes: d.modes === "instant" || d.modes === "exam" ? d.modes : "both", legacy: !(Number(d.v) >= 3) };
     } catch (e) { console.error("Could not load practice", e); PR.index = null; }
     PR.loading = null;
     paintPractice();
@@ -5700,13 +5700,27 @@ function paintPractice() {
   box.innerHTML = ""; box.style.display = "";
   box.appendChild(libEl("h4", null, "Practice"));
   box.appendChild(libEl("p", "sub", "Random questions from our whole question bank, new ones first. Your wrong answers go to the Mistake notebook."));
-  const modeRow = libEl("div", "pr-row");
-  [["instant", "Instant answers"], ["exam", "Timed"]].forEach(m => {
-    const bt = libEl("button", "pr-n" + (PR.mode === m[0] ? " on" : ""), m[1]); bt.type = "button";
-    bt.onclick = () => { PR.mode = m[0]; try { localStorage.setItem("pptPrMode", PR.mode); } catch (e) {} paintPractice(); };
-    modeRow.appendChild(bt);
-  });
-  box.appendChild(modeRow);
+  const ents = ix.subjects;
+  if (!ix.legacy && ents.length > 1) {                   // NEET PG | INICET: each draws only from its own questions
+    if (!ents.some(x => x.slug === PR.exam)) PR.exam = ents[0].slug;
+    const exRow = libEl("div", "pr-row");
+    ents.forEach(x => {
+      const bt = libEl("button", "pr-n" + (PR.exam === x.slug ? " on" : ""), x.subject); bt.type = "button";
+      bt.onclick = () => { PR.exam = x.slug; try { localStorage.setItem("pptPrExam", PR.exam); } catch (e) {} paintPractice(); };
+      exRow.appendChild(bt);
+    });
+    box.appendChild(exRow);
+  }
+  if (ix.modes === "instant") PR.mode = "instant"; else if (ix.modes === "exam") PR.mode = "exam";       // the admin allows only one mode
+  else {
+    const modeRow = libEl("div", "pr-row");
+    [["instant", "Instant answers"], ["exam", "Timed"]].forEach(m => {
+      const bt = libEl("button", "pr-n" + (PR.mode === m[0] ? " on" : ""), m[1]); bt.type = "button";
+      bt.onclick = () => { PR.mode = m[0]; try { localStorage.setItem("pptPrMode", PR.mode); } catch (e) {} paintPractice(); };
+      modeRow.appendChild(bt);
+    });
+    box.appendChild(modeRow);
+  }
   const row = libEl("div", "pr-row");
   [10, 30, 50].forEach(n => { const bt = libEl("button", "pr-n" + (PR.n === n ? " on" : ""), String(n)); bt.type = "button"; bt.setAttribute("aria-label", n + " questions"); bt.onclick = () => { PR.n = n; try { localStorage.setItem("pptPrN", String(n)); } catch (e) {} paintPractice(); }; row.appendChild(bt); });
   box.appendChild(row);
@@ -5716,12 +5730,15 @@ function paintPractice() {
 }
 async function prStart(n, mode) {
   n = [10, 30, 50].indexOf(Number(n)) > -1 ? Number(n) : 30;
-  const timed = mode === "exam";
+  let timed = mode === "exam";
   if (!PR.index) { await prLoadIndex(); }
   const ix = PR.index;
   // every part of the pool (up to 4 chosen at random, which is the whole bank for up to 1200 questions)
   const need = [];
-  (ix ? ix.subjects : []).forEach(sb => { for (let p = 0; p < (Number(sb.parts) || 1); p++) need.push({ s: sb, p: p }); });
+  const ents = ix ? ix.subjects : [], ent = ents.find(x => x.slug === PR.exam) || ents[0];
+  if (ix && ix.modes === "instant") timed = false; else if (ix && ix.modes === "exam") timed = true;
+  if (ix && ix.legacy) ents.forEach(sb => { for (let p = 0; p < (Number(sb.parts) || 1); p++) need.push({ s: sb, p: p }); });      // an older pool: use all of it
+  else if (ent) for (let p = 0; p < (Number(ent.parts) || 1); p++) need.push({ s: ent, p: p });
   if (!need.length) { showToast("No practice questions yet.", true); return; }
   prShuffle(need);
   trOverlay().classList.add("on"); document.body.style.overflow = "hidden";
@@ -5737,8 +5754,8 @@ async function prStart(n, mode) {
     const take = Math.min(n, pool.length);
     const pick = prShuffle(pool.slice(0, take));
     const mins = Math.ceil(pick.length * 70 / 60);
-    TR.t = { id: "__practice__", practice: true, slug: "all", sel: "__all", nPick: n, pmode: timed ? "exam" : "instant",
-      title: "Practice \u00B7 " + pick.length + " questions", subject: "Mixed", mode: timed ? "exam" : "instant", duration: timed ? mins : 0, plus: timed ? 4 : 1, minus: timed ? 1 : 0,
+    TR.t = { id: "__practice__", practice: true, slug: ent.slug, sel: "__all", nPick: n, pmode: timed ? "exam" : "instant",
+      title: "Practice \u00B7 " + (!ix.legacy && ents.length > 1 ? ent.subject + " \u00B7 " : "") + pick.length + " questions", subject: "Mixed", mode: timed ? "exam" : "instant", duration: timed ? mins : 0, plus: timed ? 4 : 1, minus: timed ? 1 : 0,
       qs: pick.map(x => Object.assign({}, x.q, { s: x.subject })), origs: pick.map(x => x.q), refs: pick.map(x => x.ref) };
     TR.phase = "run"; TR.pal = false; TR.filter = "All"; TR.res = null; TR.prev = null; TR.blocks = []; TR.blk = -1;
     trFresh(); trStartTimer(); trRender();
