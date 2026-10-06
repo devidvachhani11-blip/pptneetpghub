@@ -497,21 +497,19 @@
       <div class="card">
         <div class="hm-top"><h3>Question bank</h3><button class="btn" id="bkRefresh" style="flex:0 0 auto;padding:8px 14px;">Refresh</button></div>
         <div id="bkStats"><div class="empty">Open this tab to load the bank.</div></div>
+        <p class="hint" id="bk_poolTop"></p>
       </div>
 
       <div class="card">
         <h3>Add questions</h3>
-        <label class="bk-l">Subject for rows that have none</label>
-        <select id="bk_defSubject"><option value="">Use the Subject column / none</option></select>
+        <label class="bk-l">Subject for rows that have none (optional)</label>
+        <select id="bk_defSubject"><option value="">No subject (optional)</option></select>
         <label class="bk-l">1. Excel or CSV file</label>
         <input type="file" id="bk_xlfile" accept=".xlsx,.xls,.csv">
-        <p class="hint">First row = headings: Subject, Question, A, B, C, D, Answer, Explanation (E, F and Tag are optional). Answer can be A to F or 1 to 6. <a href="#" id="bk_tpl">Download the template</a>.</p>
-        <label class="bk-l">2. Paste questions (same format as Add Test)</label>
+        <p class="hint">First row = headings: Question, A, B, C, D, Answer, Explanation. Subject is optional, and so are E, F and Tag. Answer can be A to F or 1 to 6. <a href="#" id="bk_tpl">Download the template</a>.</p>
+        <label class="bk-l">2. Paste questions (same format as Add Test; a Subject line is optional)</label>
         <textarea id="bk_paste" rows="6" placeholder="Q1. Question text&#10;A. ...&#10;B. ...&#10;Answer: B&#10;Explanation: ..."></textarea>
         <button class="btn teal" id="bk_pasteGo" style="margin-top:8px;">Check pasted questions</button>
-        <label class="bk-l">3. Copy from a test you already published</label>
-        <select id="bk_fromTest"><option value="">Choose a test…</option></select>
-        <button class="btn teal" id="bk_fromGo" style="margin-top:8px;">Check that test's questions</button>
         <div id="bk_prev"></div>
       </div>
 
@@ -547,7 +545,7 @@
 
       <div class="card">
         <h3>Practice pool for students</h3>
-        <p class="hint">Students get a "Practice by subject" card in their library. It draws random questions from this pool. Press the button after you add or delete questions in the bank.</p>
+        <p class="hint">Students get a "Practice" card in their library. Each practice picks random questions from the whole bank (10, 30 or 50, instant or timed). The pool updates by itself when you save questions. After you delete questions, press the button.</p>
         <div id="pp_status" class="hint">Checking…</div>
         <button class="btn teal" id="pp_publish" style="margin-top:8px;">Update practice pool</button>
       </div>
@@ -1207,7 +1205,7 @@ window.addEventListener('fbReady', () => {
       if (btn.dataset.panel === 'seriesPanel') loadSeriesAdmin();
       if (btn.dataset.panel === 'cardsPanel') loadCardDecks();
       if (btn.dataset.panel === 'lbPanel') loadLbTests();
-      if (btn.dataset.panel === 'bankPanel') { fillTestPicker(); loadBank(); }
+      if (btn.dataset.panel === 'bankPanel') { loadBank(); }
       if (btn.dataset.panel === 'resultsPanel' && !RESULTS.loaded) loadResults();
       if (['newsPanel', 'counsellingPanel', 'tipsPanel'].indexOf(btn.dataset.panel) > -1 && !NEWS.loaded) loadNews();
       if (btn.dataset.panel === 'reportsPanel') loadReports();
@@ -1270,7 +1268,7 @@ function showToast(msg, isError) {
 // Numbering can be "Q1.", "1.", "1)", "Question 1:". Blank lines between questions are welcome.
 function parseQuestions(raw) {
   const lines = String(raw || '').replace(/\r/g, '').replace(/\u00A0/g, ' ').split('\n');
-  const RE_Q = /^\s*(?:(Q(?:uestion)?)\s*\.?\s*)?(\d{1,3})\s*[.):\-]\s*(\S.*)$/i;
+  const RE_Q = /^\s*(?:(Q(?:uestion)?)\s*\.?\s*)?(\d{1,4})\s*[.):\-]\s*(\S.*)$/i;
   const RE_OPT = /^\s*\(?([A-Fa-f])\s*[.)\]:]\s*(\S.*)$/;
   const RE_ANS = /^\s*(?:correct\s+answer|answer|ans|correct|key)\s*[:\-=]\s*\(?\s*([A-Fa-f])\b/i;
   const RE_EXP = /^\s*(?:explanation|expl|exp|rationale|reason)\s*[:\-]\s*(.*)$/i;
@@ -2941,7 +2939,7 @@ function fillSubjectSelects() {
   fillSubjectSelect('t_subject', 'Choose a subject…', true);
   fillSubjectSelect('r_subject', 'Choose a subject…', true);
   fillSubjectSelect('b_subject', 'Choose a subject…', true);
-  fillSubjectSelect('bk_defSubject', 'Use the Subject column / none', false);
+  fillSubjectSelect('bk_defSubject', 'No subject (optional)', false);
 }
 
 const ED = { mode: '', row: null, rows: [], testId: null, busy: false };
@@ -4124,7 +4122,7 @@ function qHash(q) { return 'q' + cyrb53((String(q.q) + '|' + (q.o || []).join('|
 function canonSubject(s) { s = String(s || '').trim(); const k = KNOWN_SUBJECTS_ADMIN.find(z => z.toLowerCase() === s.toLowerCase()); return k || s; }
 
 // rows: array of arrays (what a sheet gives). Returns { questions, errors }
-function rowsToQuestions(aoa, defSubject) {
+function rowsToQuestions(aoa, defSubject, subjectOptional) {
   const errors = [], questions = [];
   const cell = (v) => String(v == null ? '' : v).replace(/\s+/g, ' ').trim();
   let hi = -1;
@@ -4163,7 +4161,7 @@ function rowsToQuestions(aoa, defSubject) {
     else a = o.findIndex(x => x.toLowerCase() === raw.toLowerCase());
     if (a < 0 || a >= o.length) { errors.push(label + ': answer "' + raw + '" is not one of the options'); continue; }
     const s = canonSubject(col.s !== undefined ? cell(row[col.s]) : '') || canonSubject(defSubject);
-    if (!s) { errors.push(label + ': no subject. Fill the Subject column or the subject box above.'); continue; }
+    if (!s && !subjectOptional) { errors.push(label + ': no subject. Fill the Subject column or the subject box above.'); continue; }
     const item = { q: q, o: o, a: a, e: col.e !== undefined ? cell(row[col.e]) : '', s: s };
     if (col.t !== undefined && cell(row[col.t])) item.t = cell(row[col.t]);
     if (col.img !== undefined && cell(row[col.img])) item.img = cell(row[col.img]);
@@ -4243,7 +4241,7 @@ function renderBankList() {
 }
 async function deleteBankQ(x) {
   if (!confirm('Delete this question from the bank? Tests that already use it are not changed.')) return;
-  try { await window.__fb.deleteDoc(window.__fb.doc(window.__fb.db, 'questions', x.id)); BANK.rows = BANK.rows.filter(r => r.id !== x.id); delete BANK.byId[x.id]; renderBank(); showToast('Deleted'); }
+  try { await window.__fb.deleteDoc(window.__fb.doc(window.__fb.db, 'questions', x.id)); BANK.rows = BANK.rows.filter(r => r.id !== x.id); delete BANK.byId[x.id]; renderBank(); showToast('Deleted. Press "Update practice pool" when you finish deleting.'); ppStatus(); }
   catch (e) { showToast('Failed: ' + e.message, true); }
 }
 
@@ -4256,6 +4254,7 @@ function showBankPreview(qs, errors, src, extraNote) {
   const p = mk('p'); p.appendChild(mk('span', 'bk-ok', fresh.length + ' new question' + (fresh.length === 1 ? '' : 's') + ' ready'));
   p.appendChild(document.createTextNode((dup ? ', ' + dup + ' already in the bank (skipped)' : '') + (errors.length ? ', ' : ''))); if (errors.length) p.appendChild(mk('span', 'bk-bad', errors.length + ' with problems'));
   el.appendChild(p);
+  if (fresh.length) { const by = {}; fresh.forEach(q => { const k = q.s || 'No subject'; by[k] = (by[k] || 0) + 1; }); el.appendChild(mk('p', 'hint', 'By subject: ' + Object.keys(by).sort().map(k => k + ' ' + by[k]).join(' · '))); }
   if (extraNote) el.appendChild(mk('p', 'hint', extraNote));
   if (errors.length) { const ul = document.createElement('ul'); errors.slice(0, 10).forEach(e => ul.appendChild(mk('li', 'bk-bad', e))); if (errors.length > 10) ul.appendChild(mk('li', null, '+ ' + (errors.length - 10) + ' more')); el.appendChild(ul); }
   if (fresh.length) { const b = mk('button', 'btn', 'Save ' + fresh.length + ' to the bank'); b.style.marginTop = '10px'; b.onclick = () => saveBankPreview(src, b); el.appendChild(b); }
@@ -4275,7 +4274,9 @@ async function saveBankPreview(src, btn) {
     }
     list.forEach(q => { const x = { id: q._id, q: q.q, o: q.o, a: q.a, e: q.e || '', s: q.s, t: q.t || '', used: 0, src: src }; BANK.rows.push(x); BANK.byId[x.id] = x; });
     BANK.prev = []; document.getElementById('bk_prev').innerHTML = ''; renderBank();
-    showToast('Saved ' + list.length + ' question' + (list.length === 1 ? '' : 's') + ' to the bank');
+    showToast('Saved ' + list.length + ' question' + (list.length === 1 ? '' : 's') + '. Updating the practice pool\u2026');
+    const ok = await publishPracticePool(true);
+    showToast(ok ? '\u2714 Saved ' + list.length + ' to the bank. The practice pool is updated.' : 'Saved to the bank, but the practice pool did not update. Press "Update practice pool".', !ok);
   } catch (e) { btn.disabled = false; btn.textContent = 'Try again'; showToast('Failed: ' + e.message, true); }
 }
 function srcLabel(kind) { return kind + ' · ' + new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }); }
@@ -4286,7 +4287,7 @@ async function bankFromFile(file) {
   try {
     const sheets = await readSheetFile(file);
     let qs = [], errs = [];
-    sheets.forEach(aoa => { const r = rowsToQuestions(aoa, document.getElementById('bk_defSubject').value); qs = qs.concat(r.questions); errs = errs.concat(r.errors); });
+    sheets.forEach(aoa => { const r = rowsToQuestions(aoa, document.getElementById('bk_defSubject').value, true); qs = qs.concat(r.questions); errs = errs.concat(r.errors); });
     showBankPreview(qs, errs, srcLabel('Excel'));
   } catch (e) { showToast(e.message, true); }
 }
@@ -4298,37 +4299,11 @@ async function bankFromPaste() {
   const qs = [], errs = r.errors.slice(); let noImg = 0;
   r.questions.forEach((q, i) => {
     if (q.img || q.eimg) { noImg++; return; }
-    q.s = canonSubject(q.s) || def;
-    if (!q.s) { errs.push('Question ' + (i + 1) + ': no subject. Add "Subject: ..." or fill the subject box above.'); return; }
+    q.s = canonSubject(q.s) || def || '';          // a subject is optional
     qs.push(q);
   });
   showBankPreview(qs, errs, srcLabel('Pasted'), noImg ? noImg + ' question' + (noImg === 1 ? ' has' : 's have') + ' a picture and was not added. Pictures stay inside their test.' : '');
 }
-async function bankFromTest() {
-  const id = document.getElementById('bk_fromTest').value;
-  if (!id) { showToast('Choose a test first.', true); return; }
-  await loadBank();
-  const { db, doc, getDoc } = window.__fb;
-  try {
-    const snap = await getDoc(doc(db, 'tests', id));
-    if (!snap.exists()) { showToast('That test was not found.', true); return; }
-    const t = snap.data(), def = canonSubject(document.getElementById('bk_defSubject').value) || (t.subject && t.subject !== 'Mixed' ? canonSubject(t.subject) : '');
-    const qs = [], errs = []; let noImg = 0;
-    (t.qs || []).forEach((q, i) => {
-      if (q.img || q.eimg) { noImg++; return; }
-      const x = { q: q.q, o: q.o, a: q.a, e: q.e || '', s: canonSubject(q.s) || def };
-      if (q.t) x.t = q.t;
-      if (!x.s) { errs.push('Question ' + (i + 1) + ': no subject. Fill the subject box above.'); return; }
-      qs.push(x);
-    });
-    showBankPreview(qs, errs, 'Test · ' + (t.title || id), noImg ? noImg + ' picture question' + (noImg === 1 ? '' : 's') + ' skipped.' : '');
-  } catch (e) { showToast('Failed: ' + e.message, true); }
-}
-function fillTestPicker() {
-  const sel = document.getElementById('bk_fromTest'); if (sel.options.length > 1) return;
-  (RLIST.rows || []).filter(r => r.type === 'test' && r.testId).forEach(r => { const o = document.createElement('option'); o.value = r.testId; o.textContent = r.title + (r.subject ? ' (' + r.subject + ')' : ''); sel.appendChild(o); });
-}
-
 function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
 function pickQuestions() {
   const sub = document.getElementById('bk_bSubject').value, n = Math.floor(Number(document.getElementById('bk_bCount').value));
@@ -4398,7 +4373,6 @@ function wireHomeBank() {
   document.getElementById('bk_xlfile').addEventListener('change', (e) => { bankFromFile(e.target.files[0]); e.target.value = ''; });
   document.getElementById('bk_tpl').addEventListener('click', (e) => { e.preventDefault(); downloadBankTemplate(); });
   document.getElementById('bk_pasteGo').addEventListener('click', bankFromPaste);
-  document.getElementById('bk_fromGo').addEventListener('click', bankFromTest);
   document.getElementById('bk_bMode').addEventListener('change', () => { document.getElementById('bk_bExam').style.display = document.getElementById('bk_bMode').value === 'exam' ? 'block' : 'none'; });
   document.getElementById('bk_bPick').addEventListener('click', async () => { await loadBank(); const p = pickQuestions(); if (p) { BANK.pick = p; paintBuildPreview(); } });
   document.getElementById('bk_fSubject').addEventListener('change', () => { BANK.shown = 50; renderBankList(); });
@@ -4409,51 +4383,46 @@ function wireHomeBank() {
 // ---------- Practice pool (what students practise from) ----------
 function slugOf(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '').slice(0, 30) || 'x'; }
 async function ppStatus() {
-  const el = document.getElementById('pp_status'); if (!el) return;
+  const el = document.getElementById('pp_status'), top = document.getElementById('bk_poolTop'); if (!el) return;
+  const say = (t) => { el.textContent = t; if (top) top.textContent = t; };
   try {
     const { db, doc, getDoc } = window.__fb;
     const s = await getDoc(doc(db, 'practice', 'index'));
-    if (!s.exists()) { el.textContent = 'Not published yet. Students do not see the Practice card.'; return; }
-    const d = s.data(), subs = (d.subjects || []).length;
-    el.textContent = 'Live for students: ' + (d.total || 0) + ' questions in ' + subs + ' subject' + (subs === 1 ? '' : 's') + '. Last updated ' + fmtTime(d.updatedAt) + '. The bank has ' + BANK.rows.length + ' now.';
-  } catch (e) { el.textContent = 'Could not read the pool status: ' + e.message; }
+    if (!s.exists()) { say('Practice pool: not published yet. Students do not see the Practice card.'); return; }
+    const d = s.data();
+    if (d.v !== 2) { say('Practice pool: it uses the old layout (by subject). Press "Update practice pool" once.'); return; }
+    const behind = BANK.loaded && BANK.rows.length !== (d.total || 0);
+    say('Practice pool: ' + (d.total || 0) + ' questions are live for students. Last updated ' + fmtTime(d.updatedAt) + '.' + (behind ? ' The bank has ' + BANK.rows.length + ' now. Press "Update practice pool".' : (BANK.loaded ? ' Up to date.' : '')));
+  } catch (e) { say('Could not read the pool status: ' + e.message); }
 }
-async function publishPracticePool() {
+// The pool is the whole bank, in order of adding, cut into parts of up to 300 questions. Students draw random questions from it.
+async function publishPracticePool(auto) {
   const btn = document.getElementById('pp_publish');
   const { db, doc, collection, getDocs, writeBatch, serverTimestamp } = window.__fb;
   btn.disabled = true; btn.textContent = 'Updating…';
   try {
     await loadBank(true);
-    const bySub = {};
-    BANK.rows.forEach(x => { const s = String(x.s || '').trim(); if (s && x.q && Array.isArray(x.o)) (bySub[s] = bySub[s] || []).push(x); });
-    const subjects = Object.keys(bySub).sort();
-    if (!subjects.length) { showToast('The bank has no questions with a subject yet.', true); return; }
-    const chunks = [], index = [];
-    let total = 0;
-    subjects.forEach(sub => {
-      const rows = bySub[sub].slice().sort((a, b) => ((tsMs(a.createdAt) || 9e15) - (tsMs(b.createdAt) || 9e15)) || String(a.id).localeCompare(String(b.id)));
-      const slug = slugOf(sub);
-      let cur = [], size = 0, part = 0;
-      const flush = () => { if (cur.length) { chunks.push({ id: 'pr_' + slug + '_' + part, subject: sub, part: part, qs: cur }); part++; cur = []; size = 0; } };
-      rows.forEach(x => {
-        const q = { id: x.id, q: x.q, o: x.o, a: x.a, e: x.e || '' }; if (x.t) q.t = x.t;
-        const len = JSON.stringify(q).length;
-        if (cur.length >= 300 || size + len > 700000) flush();
-        cur.push(q); size += len;
-      });
-      flush();
-      index.push({ subject: sub, slug: slug, count: rows.length, parts: part });
-      total += rows.length;
+    const rows = BANK.rows.filter(x => x.q && Array.isArray(x.o) && x.o.length >= 2)
+      .sort((p, q) => ((tsMs(p.createdAt) || 9e15) - (tsMs(q.createdAt) || 9e15)) || String(p.id).localeCompare(String(q.id)));
+    if (!rows.length) { showToast('The bank is empty. Add questions first.', true); return false; }
+    const chunks = [];
+    let cur = [], size = 0, part = 0;
+    const flush = () => { if (cur.length) { chunks.push({ id: 'pr_all_' + part, part: part, qs: cur }); part++; cur = []; size = 0; } };
+    rows.forEach(x => {
+      const q = { id: x.id, q: x.q, o: x.o, a: x.a, e: x.e || '' }; if (x.t) q.t = x.t; if (x.s) q.s = x.s;
+      const len = JSON.stringify(q).length;
+      if (cur.length >= 300 || size + len > 300000) flush();
+      cur.push(q); size += len;
     });
-    const keep = new Set(chunks.map(c => c.id));
-    keep.add('index');
-    // new chunks first, then the index, then remove old chunks, so students never meet a missing part
-    for (let i = 0; i < chunks.length; i += 20) {
+    flush();
+    const keep = new Set(chunks.map(c => c.id)); keep.add('index');
+    // new parts first, then the index, then the old parts go, so students never meet a missing part
+    for (let i = 0; i < chunks.length; i += 8) {
       const batch = writeBatch(db);
-      chunks.slice(i, i + 20).forEach(c => batch.set(doc(db, 'practice', c.id), { subject: c.subject, part: c.part, qs: c.qs, updatedAt: serverTimestamp() }));
+      chunks.slice(i, i + 8).forEach(c => batch.set(doc(db, 'practice', c.id), { subject: 'All questions', part: c.part, qs: c.qs, updatedAt: serverTimestamp() }));
       await batch.commit();
     }
-    await window.__fb.setDoc(doc(db, 'practice', 'index'), { subjects: index, total: total, updatedAt: serverTimestamp() });
+    await window.__fb.setDoc(doc(db, 'practice', 'index'), { subjects: [{ subject: 'All questions', slug: 'all', count: rows.length, parts: chunks.length }], total: rows.length, v: 2, updatedAt: serverTimestamp() });
     const old = await getDocs(collection(db, 'practice'));
     const gone = []; old.forEach(d => { if (!keep.has(d.id)) gone.push(d.id); });
     for (let i = 0; i < gone.length; i += 400) {
@@ -4461,9 +4430,10 @@ async function publishPracticePool() {
       gone.slice(i, i + 400).forEach(id => batch.delete(doc(db, 'practice', id)));
       await batch.commit();
     }
-    showToast('Practice pool updated: ' + total + ' questions in ' + subjects.length + ' subject' + (subjects.length === 1 ? '' : 's'));
+    if (!auto) showToast('\u2714 Practice pool updated: ' + rows.length + ' questions');
     ppStatus();
-  } catch (e) { console.error(e); showToast('Failed: ' + e.message, true); }
+    return true;
+  } catch (e) { console.error(e); showToast('Failed: ' + e.message, true); return false; }
   finally { btn.disabled = false; btn.textContent = 'Update practice pool'; }
 }
 

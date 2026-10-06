@@ -4010,7 +4010,7 @@ document.getElementById("trOverlay").addEventListener("click", (e) => {
   if (act === "share") return trShareCard();
   if (act === "gtnew") return gtNewAttempt();
   if (act === "retake") {
-    if (t && t.practice) return prStart(t.sel, t.nPick);
+    if (t && t.practice) return prStart(t.nPick, t.pmode);
     if (t && t.gt) return gtNewAttempt();
     if (!confirm(trSynthetic() ? "Practise these questions again?" : "Start this test again?\n\nThis is practice. The score card and the Top 10 use only your first attempt.")) return;
     trFresh(); TR.phase = trHasBlocks() ? "blocks" : "run"; TR.res = null; TR.nbNote = 0; trStartTimer(); return trRender();
@@ -4449,8 +4449,6 @@ function renderProgress() {
       f.style.background = x.p < 50 ? "#D98B54" : x.p < 70 ? "#D4AF55" : "#0F8F83";
       tk.appendChild(f); row.appendChild(tk);
       const acts = libEl("div", "acts");
-      const ps = prSubjectEntry(x.k);
-      if (ps) { const pb = libEl("button", "pri", "Practise"); pb.onclick = () => prStart(ps.subject, PR.n); acts.appendChild(pb); }
       const rb = libEl("button", null, "Resources"); rb.onclick = () => { lib.subject = canonSubject(x.k); lib.tab = "All"; setLibView("library"); };
       acts.appendChild(rb);
       row.appendChild(acts);
@@ -5656,10 +5654,10 @@ async function opFlush() {
 }
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && OP.timer) opFlush(); });
 
-// ---------- Practice by subject ----------
-// The admin copies the question bank into "practice": an index document and chunks named pr_<subject>_<n>.
-const PR = { index: null, loading: null, parts: {}, n: 20, sel: "" };
-try { const v = Number(localStorage.getItem("pptPrN")); if (v === 10 || v === 20 || v === 30) PR.n = v; PR.sel = localStorage.getItem("pptPrSel") || ""; } catch (e) {}
+// ---------- Practice (random questions from the whole question bank) ----------
+// The admin copies the whole bank into "practice": an index document and parts named pr_all_<n> (up to 300 questions each).
+const PR = { index: null, loading: null, parts: {}, n: 30, mode: "instant" };
+try { const v = Number(localStorage.getItem("pptPrN")); if (v === 10 || v === 30 || v === 50) PR.n = v; if (localStorage.getItem("pptPrMode") === "exam") PR.mode = "exam"; } catch (e) {}
 function prLoadIndex() {
   if (PR.index) { paintPractice(); return Promise.resolve(); }
   if (PR.loading) return PR.loading;
@@ -5674,11 +5672,6 @@ function prLoadIndex() {
     paintPractice();
   })();
   return PR.loading;
-}
-function prSubjectEntry(name) {
-  if (!PR.index) return null;
-  const k = String(name || "").toLowerCase();
-  return PR.index.subjects.find(s => String(s.subject).toLowerCase() === k) || null;
 }
 function prSeenKey() { return "pptPrSeen:" + String((currentUser && currentUser.email) || "").toLowerCase(); }
 function prSeenGet() { try { const a = JSON.parse(localStorage.getItem(prSeenKey()) || "[]"); return new Set(Array.isArray(a) ? a : []); } catch (e) { return new Set(); } }
@@ -5705,57 +5698,47 @@ function paintPractice() {
   const ix = PR.index;
   if (!ix || !ix.total || !libLoaded || libError || !currentUser || lib.q) { box.style.display = "none"; return; }
   box.innerHTML = ""; box.style.display = "";
-  box.appendChild(libEl("h4", null, "Practice by subject"));
-  box.appendChild(libEl("p", "sub", "Random questions with instant answers. Your wrong answers go to the Mistake notebook."));
-  const sel = document.createElement("select"); sel.className = "pr-sel"; sel.setAttribute("aria-label", "Subject");
-  const add = (parent, value, label) => { const o = document.createElement("option"); o.value = value; o.textContent = label; parent.appendChild(o); };
-  add(sel, "__all", "Mixed \u00B7 all subjects (" + ix.total + ")");
-  const used = new Set();
-  SUBJECT_GROUPS.forEach(g => {
-    const rows = g.list.map(n => prSubjectEntry(n)).filter(Boolean);
-    if (!rows.length) return;
-    const og = document.createElement("optgroup"); og.label = g.label;
-    rows.forEach(r => { used.add(r.subject); add(og, r.subject, r.subject + " (" + r.count + ")"); });
-    sel.appendChild(og);
+  box.appendChild(libEl("h4", null, "Practice"));
+  box.appendChild(libEl("p", "sub", "Random questions from our whole question bank, new ones first. Your wrong answers go to the Mistake notebook."));
+  const modeRow = libEl("div", "pr-row");
+  [["instant", "Instant answers"], ["exam", "Timed"]].forEach(m => {
+    const bt = libEl("button", "pr-n" + (PR.mode === m[0] ? " on" : ""), m[1]); bt.type = "button";
+    bt.onclick = () => { PR.mode = m[0]; try { localStorage.setItem("pptPrMode", PR.mode); } catch (e) {} paintPractice(); };
+    modeRow.appendChild(bt);
   });
-  const rest = ix.subjects.filter(r => !used.has(r.subject));
-  if (rest.length) { const og = document.createElement("optgroup"); og.label = "Other subjects"; rest.forEach(r => add(og, r.subject, r.subject + " (" + r.count + ")")); sel.appendChild(og); }
-  const want = (lib.subject !== "All" && prSubjectEntry(lib.subject)) ? prSubjectEntry(lib.subject).subject : PR.sel;
-  sel.value = Array.from(sel.options).some(o => o.value === want) ? want : "__all";
-  sel.onchange = () => { PR.sel = sel.value; try { localStorage.setItem("pptPrSel", PR.sel); } catch (e) {} };
-  box.appendChild(sel);
+  box.appendChild(modeRow);
   const row = libEl("div", "pr-row");
-  [10, 20, 30].forEach(n => { const b = libEl("button", "pr-n" + (PR.n === n ? " on" : ""), String(n)); b.type = "button"; b.setAttribute("aria-label", n + " questions"); b.onclick = () => { PR.n = n; try { localStorage.setItem("pptPrN", String(n)); } catch (e) {} PR.sel = sel.value; paintPractice(); }; row.appendChild(b); });
+  [10, 30, 50].forEach(n => { const bt = libEl("button", "pr-n" + (PR.n === n ? " on" : ""), String(n)); bt.type = "button"; bt.setAttribute("aria-label", n + " questions"); bt.onclick = () => { PR.n = n; try { localStorage.setItem("pptPrN", String(n)); } catch (e) {} paintPractice(); }; row.appendChild(bt); });
   box.appendChild(row);
-  const go = libEl("button", "pr-go", "Start practice"); go.type = "button"; go.onclick = () => prStart(sel.value, PR.n);
+  if (PR.mode === "exam") box.appendChild(libEl("p", "sub", "Timed: 70 seconds for each question, like the real exam. +4 for a right answer, \u22121 for a wrong one."));
+  const go = libEl("button", "pr-go", "Start practice"); go.type = "button"; go.onclick = () => prStart(PR.n, PR.mode);
   box.appendChild(go);
 }
-async function prStart(sel, n) {
+async function prStart(n, mode) {
+  n = [10, 30, 50].indexOf(Number(n)) > -1 ? Number(n) : 30;
+  const timed = mode === "exam";
   if (!PR.index) { await prLoadIndex(); }
   const ix = PR.index;
-  const subs = !ix ? [] : (sel === "__all" || !sel) ? ix.subjects : ix.subjects.filter(s => String(s.subject).toLowerCase() === String(sel).toLowerCase());
-  if (!subs.length) { showToast("No practice questions for this subject yet.", true); return; }
-  const all = (sel === "__all" || !sel);
+  // every part of the pool (up to 4 chosen at random, which is the whole bank for up to 1200 questions)
+  const need = [];
+  (ix ? ix.subjects : []).forEach(sb => { for (let p = 0; p < (Number(sb.parts) || 1); p++) need.push({ s: sb, p: p }); });
+  if (!need.length) { showToast("No practice questions yet.", true); return; }
+  prShuffle(need);
   trOverlay().classList.add("on"); document.body.style.overflow = "hidden";
   trLoading("Getting your questions\u2026");
   try {
-    const need = [];
-    subs.forEach(s => {
-      const parts = []; for (let p = 0; p < (Number(s.parts) || 1); p++) parts.push(p);
-      if (all) need.push({ s: s, p: parts[Math.floor(Math.random() * parts.length)] }); else parts.forEach(p => need.push({ s: s, p: p }));
-    });
-    const docs = await Promise.all(need.map(x => prPart(x.s, x.p)));
+    const docs = await Promise.all(need.slice(0, 4).map(x => prPart(x.s, x.p)));
     const pool = [];
-    docs.forEach(d => d.qs.forEach((q, i) => { if (q && q.q && Array.isArray(q.o)) pool.push({ q: q, ref: { t: d.id, i: i }, subject: d.subject, key: d.id + ":" + i }); }));
+    docs.forEach(d => d.qs.forEach((q, i) => { if (q && q.q && Array.isArray(q.o)) pool.push({ q: q, ref: { t: d.id, i: i, k: q.id ? "q:" + q.id : d.id + ":" + i }, subject: q.s || "" }); }));
     if (!pool.length) throw new Error("empty");
     const seen = prSeenGet();
     prShuffle(pool);
-    pool.sort((a, b) => (seen.has(a.key) ? 1 : 0) - (seen.has(b.key) ? 1 : 0));      // questions you have not seen come first
-    const take = Math.min(n || 20, pool.length);
+    pool.sort((a, b) => (seen.has(a.ref.k) ? 1 : 0) - (seen.has(b.ref.k) ? 1 : 0));      // questions you have not seen come first
+    const take = Math.min(n, pool.length);
     const pick = prShuffle(pool.slice(0, take));
-    const name = all ? "Mixed" : subs[0].subject;
-    TR.t = { id: "__practice__", practice: true, slug: all ? "all" : subs[0].slug, sel: all ? "__all" : subs[0].subject, nPick: n || 20,
-      title: "Practice \u00B7 " + name, subject: name, mode: "instant", duration: 0, plus: 1, minus: 0,
+    const mins = Math.ceil(pick.length * 70 / 60);
+    TR.t = { id: "__practice__", practice: true, slug: "all", sel: "__all", nPick: n, pmode: timed ? "exam" : "instant",
+      title: "Practice \u00B7 " + pick.length + " questions", subject: "Mixed", mode: timed ? "exam" : "instant", duration: timed ? mins : 0, plus: timed ? 4 : 1, minus: timed ? 1 : 0,
       qs: pick.map(x => Object.assign({}, x.q, { s: x.subject })), origs: pick.map(x => x.q), refs: pick.map(x => x.ref) };
     TR.phase = "run"; TR.pal = false; TR.filter = "All"; TR.res = null; TR.prev = null; TR.blocks = []; TR.blk = -1;
     trFresh(); trStartTimer(); trRender();
@@ -5778,7 +5761,7 @@ function practiceRecord(t, ans) {
     });
     nbChanged();
   }
-  prSeenAdd(t.refs.map(r => r.t + ":" + r.i));
+  prSeenAdd(t.refs.map(r => r.k || (r.t + ":" + r.i)));
   return mastered;
 }
 
@@ -5831,7 +5814,7 @@ function tourSteps() {
   const list = [
     { t: "Welcome to PPTNEETPGHUB Premium", b: "Here is a quick tour of where everything is. It takes less than a minute." },
     { el: first("#libFilterBtn", "#libSide"), t: "Pick a subject", b: "Use Filter to see one subject at a time. Core subjects come first, and INICET is at the end." },
-    { el: first("#libPractice"), t: "Practice by subject", b: "Choose a subject and practise random questions with instant answers. Your wrong answers go to the Mistake notebook." },
+    { el: first("#libPractice"), t: "Practice", b: "Practise 10, 30 or 50 random questions, with instant answers or a timer. Your wrong answers go to the Mistake notebook." },
     { el: first(".lib-switch"), t: "Library, progress and notebook", b: "Library has all your files. My progress shows your scores and weak areas. Notebook keeps the questions you got wrong." },
     { el: first("#libInstall2.on", "#libInstall"), t: "Install the app", b: "Add this website to your home screen so it opens like an app." },
     { el: first("#helpFab"), t: "Need help?", b: "Tap here any time to message us on Telegram or WhatsApp." },
