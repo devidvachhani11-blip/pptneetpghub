@@ -5004,7 +5004,7 @@ function renderChips() {
   const base = { tab: "All", subject: lib.subject, q: lib.q };
   const tabs = ["All", "New"].concat(CATEGORIES);
   tabs.forEach(t => {
-    const n = isCardTab(t) ? seriesGroups(t, lib.q).length : ALL.filter(it => libMatch(it, Object.assign({}, base, { tab: t }))).length;
+    const n = isCardTab(t) ? seriesGroups(t, lib.q).length : (t === "All" && lib.subject === "All" ? seriesGroups("Card Test", lib.q).length + seriesGroups("Series", lib.q).length : 0) + ALL.filter(it => libMatch(it, Object.assign({}, base, { tab: t }))).length;
     const b = libEl("button", "lib-chip" + (lib.tab === t ? " on" : ""));
     b.appendChild(document.createTextNode(t === "New" ? "New this week" : t));
     b.appendChild(libEl("b", null, String(n)));
@@ -5134,6 +5134,13 @@ function renderList() {
 
   if (isCardTab(lib.tab)) return renderTiles(box);
   const items = ALL.filter(it => libMatch(it, lib));
+  const showDecks = lib.tab === "All" && lib.subject === "All";
+  const nDecks = showDecks ? seriesGroups("Card Test", lib.q).length + seriesGroups("Series", lib.q).length : 0;
+  if (showDecks && nDecks) {
+    const dg = libEl("div", "lib-group", "Card decks"); box.appendChild(dg);
+    renderTiles(box, "Card Test"); renderTiles(box, "Series");
+  }
+  if (items.length === 0 && nDecks) return;
   if (items.length === 0) {
     const e = libEl("div", "lib-empty", "No files match these filters.");
     const b = libEl("button", null, "Clear filters");
@@ -5175,8 +5182,9 @@ function seriesGroups(tab, q) {
   });
   return Object.keys(g).map(k => g[k]).sort((a, b) => (b.t - a.t) || a.name.localeCompare(b.name, undefined, { numeric: true }));
 }
-function renderTiles(box) {
-  const tab = lib.tab, ct = tab === "Card Test", groups = seriesGroups(tab, lib.q);
+function renderTiles(box, tabArg) {
+  const tab = tabArg || lib.tab, ct = tab === "Card Test", groups = seriesGroups(tab, lib.q);
+  if (!groups.length && tabArg) return;
   if (!groups.length) {
     box.appendChild(libEl("div", "lib-empty", lib.q ? "Nothing matches your search." : ct ? "No card tests yet. New ones appear here as soon as they are added." : "No series yet. New series appear here as soon as they are added."));
     return;
@@ -5197,7 +5205,7 @@ function renderTiles(box) {
       rv.textContent = c.due ? "Revise (" + c.due + ")" : "All caught up";
       rv.disabled = !c.due;
       sub.textContent = deck.length + (deck.length === 1 ? " card" : " cards") + " \u00B7 " + c.known + " known \u00B7 " + c.again + " to revise";
-    } else loadCards().then(() => { if (libView === "library" && lib.tab === tab) renderList(); });
+    } else loadCards().then(() => { if (libView === "library" && (lib.tab === tab || lib.tab === "All")) renderList(); });
     rv.onclick = () => openDeck(deck, deck[0].id, g.name, "revise");
     btns.appendChild(go); btns.appendChild(rv);
     tile.appendChild(ico); tile.appendChild(txt); tile.appendChild(btns);
@@ -5222,7 +5230,7 @@ function renderHeading() {
     if (lib.tab !== "All") parts.push(lib.tab === "New" ? "New this week" : lib.tab);
   }
   document.getElementById("libTitle").textContent = parts.join(" · ");
-  const n = cardTab ? seriesGroups(lib.tab, lib.q).length : ALL.filter(it => libMatch(it, lib)).length;
+  const n = cardTab ? seriesGroups(lib.tab, lib.q).length : ALL.filter(it => libMatch(it, lib)).length + (lib.tab === "All" && lib.subject === "All" ? seriesGroups("Card Test", lib.q).length + seriesGroups("Series", lib.q).length : 0);
   document.getElementById("libSub").textContent = libLoaded
     ? (cardTab ? n + (n === 1 ? " set" : " sets") : n + (n === 1 ? " file" : " files")) + " · newest first"
     : "Newest first";
