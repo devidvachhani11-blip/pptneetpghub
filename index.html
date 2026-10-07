@@ -1290,6 +1290,17 @@
   .v-notebook .lib-fbtn, .v-notebook .lib-side, .v-notebook .lib-scrim { display: none !important; }
   .v-notebook .lib-wrap { grid-template-columns: minmax(0, 1fr); max-width: 760px; }
   .lib-switch button { font-size: 13.5px; padding-left: 6px; padding-right: 6px; }
+  .tr-why { margin-top: 10px; font-size: 13px; color: var(--gray); }
+  .tr-why > span { display: block; font-weight: 700; margin-bottom: 6px; }
+  .tr-why button { font: inherit; font-size: 12.5px; font-weight: 700; margin: 0 6px 6px 0; padding: 7px 11px; border-radius: 16px; border: 1.5px solid var(--border); background: #fff; color: var(--ink); cursor: pointer; }
+  .tr-why button.on { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .tr-trap { margin-top: 10px; padding: 9px 11px; border-radius: 10px; background: #FFF3E0; border-left: 3px solid #E08A00; font-size: 13.5px; line-height: 1.5; color: #6B4300; }
+  .pg-why { display: grid; gap: 8px; margin-top: 10px; }
+  .pg-why .row { display: grid; grid-template-columns: 112px 1fr 38px; gap: 8px; align-items: center; font-size: 13px; }
+  .pg-why .bar { height: 10px; border-radius: 6px; background: #ECE6D6; overflow: hidden; }
+  .pg-why .bar i { display: block; height: 100%; background: var(--navy); }
+  :where(html[data-eff="dark"]) .tr-why button { background: var(--white); }
+  :where(html[data-eff="dark"]) .tr-trap { background: #3A2C10; color: #F2D9A6; }
   .tr-save { display: inline-block; margin: 8px 12px 0 0; font-size: 12.5px; font-weight: 700; color: #7A5C12; background: var(--gold-tint); border: 1.5px solid #E5D3A1; border-radius: 16px; padding: 5px 12px; font-family: inherit; }
   .tr-save.on { background: var(--gold-b); border-color: var(--gold-b); color: var(--navy); }
 </style>
@@ -3659,6 +3670,7 @@ async function openTest(item) {
 
 function trFresh() {
   const t = TR.t, n = t.qs.length;
+  TR.why = {};
   TR.ans = new Array(n).fill(-1);
   TR.marked = new Array(n).fill(false);
   TR.shown = new Array(n).fill(false);
@@ -3740,12 +3752,32 @@ function saveBtn(i) {
   const r = trRefOf(i), on = nbSaved(r.t, r.i);
   return '<button class="tr-save' + (on ? " on" : "") + '" data-act="nbsave" data-i="' + i + '">' + (on ? "★ Saved for revision" : "☆ Save for revision") + '</button>';
 }
+const WHY = [["dk", "Did not know"], ["silly", "Silly mistake"], ["trap", "Fell for the trap"], ["guess", "Guessed"]];
+function whyOf(i) {
+  if (TR.why && TR.why[i]) return TR.why[i];
+  const r = trRefOf(i), x = NB.loaded ? nbFind(r.t, r.i) : null;
+  return x && x.r ? x.r : "";
+}
+function whyHTML(i) {
+  const cur = whyOf(i);
+  return '<div class="tr-why" data-wi="' + i + '"><span>Why did you get it wrong?</span>' + WHY.map(w => '<button type="button" class="' + (cur === w[0] ? "on" : "") + '" data-act="why" data-i="' + i + '" data-w="' + w[0] + '">' + w[1] + '</button>').join("") + '</div>';
+}
+function trapHint(q) {
+  if (!q || String(q.t || "").toLowerCase() !== "trap") return "";
+  const neg = /\b(NOT|EXCEPT|FALSE|INCORRECT)\b/.test(String(q.q || ""));
+  return '<div class="tr-trap"><b style="display:inline;color:inherit">Trap:</b> ' + (neg ? "a negative question (NOT / EXCEPT). Three options are true, you need the odd one out." : "a look-alike option. Read every option fully before you choose.") + '</div>';
+}
+function whyApply(i) {
+  const w = TR.why && TR.why[i]; if (!w || !NB.loaded) return;
+  const r = trRefOf(i), x = nbFind(r.t, r.i);
+  if (x && x.r !== w) { x.r = w; x.last = Date.now(); nbChanged(); }
+}
 function trExpHTML(q, i) {
   const a = TR.ans[i];
   const right = a === q.a;
   const head = a < 0 ? "Answer: " + String.fromCharCode(65 + q.a) + ". " + esc(q.o[q.a])
     : right ? "Correct" : "Wrong. Correct answer: " + String.fromCharCode(65 + q.a) + ". " + esc(q.o[q.a]);
-  return '<div class="tr-exp' + (a >= 0 && !right ? " bad" : "") + '"><b>' + head + '</b>' + (q.e ? esc(q.e) : "") + trImgHTML(q.eimg) + '<div>' + saveBtn(i) + reportLink(q, i) + '</div></div>';
+  return '<div class="tr-exp' + (a >= 0 && !right ? " bad" : "") + '"><b>' + head + '</b>' + (q.e ? esc(q.e) : "") + trImgHTML(q.eimg) + (TR.t && TR.t.practice ? trapHint(q) : "") + (a >= 0 && !right && !(TR.t && TR.t.sample) ? whyHTML(i) : "") + '<div>' + saveBtn(i) + reportLink(q, i) + '</div></div>';
 }
 
 function trRenderRun() {
@@ -3844,6 +3876,7 @@ async function trFinish(auto) {
   trForget();
   TR.nbNote = t.practice ? practiceRecord(t, TR.ans) : t.sample ? 0 : trSynthetic() ? nbPracticeDone(t, TR.ans) : 0;
   if (!trSynthetic()) nbRecordResult(t, TR.ans);
+  Object.keys(TR.why || {}).forEach(k => whyApply(Number(k)));
   TR.first = trSynthetic() ? false : null; TR.firstInfo = null;      // null = still checking
   trRenderResult();
   if (!trSynthetic()) await trCheckFirst();                            // look at the saved results BEFORE saving this one
@@ -3931,6 +3964,7 @@ function trRenderResult() {
       trSpeedHTML() +
       (!trSynthetic() && !t.sample ? '<div id="trLb"></div>' : '') +
       '<div id="trShare">' + trShareHTML() + '</div>' +
+      (t.trapMode ? '<div class="tr-cmp">Trap Spotter: you fell for <b>' + r.w + '</b> of <b>' + t.qs.length + '</b> traps' + (r.w === 0 ? ". Sharp eyes!" : ".") + '</div>' : "") +
       (TR.nbNote ? '<div class="tr-cmp">' + TR.nbNote + (TR.nbNote === 1 ? " question" : " questions") + ' mastered and removed from your notebook.</div>' : "") +
       ((!trSynthetic() || t.practice) && r.w > 0 ? '<div class="tr-cmp">Your ' + r.w + (r.w === 1 ? " wrong answer was" : " wrong answers were") + ' added to your Mistake notebook.</div>' : "") +
     (t.sample ? '<div class="tr-cta"><b>Want the full question bank?</b><span>Unlock every test, note and flashcard deck.</span><button class="tr-btn pri" data-act="join">Go Premium</button></div>' : '') +
@@ -3979,6 +4013,13 @@ document.getElementById("trOverlay").addEventListener("click", (e) => {
     if (t && (TR.phase === "run" || TR.phase === "blocks") && t.mode === "exam" && !confirm("Leave the test? Your answers are saved and the timer keeps running.")) return;
     if (t && TR.phase === "run") { trLap(true); trPersist(); }
     trCloseOverlay(); return;
+  }
+  if (act === "why") {
+    const qi = Number(b.dataset.i), w = b.dataset.w; TR.why = TR.why || {};
+    TR.why[qi] = TR.why[qi] === w ? "" : w;
+    b.parentElement.querySelectorAll("button").forEach(x => x.classList.toggle("on", x.dataset.w === TR.why[qi]));
+    if (TR.phase === "result" || TR.phase === "review") whyApply(qi);
+    return;
   }
   if (act === "report") { const qi = Number(b.dataset.i), q = t.qs[qi], ref = trRefOf(qi); return openReport({ kind: "test", testId: ref.t, title: t.practice ? "Practice question" : t.refs ? "Mistake notebook question" : t.title, questionNo: ref.i + 1, questionText: q ? q.q : "" }); }
   if (act === "nbsave") {
@@ -4421,6 +4462,30 @@ function renderProgress() {
     tr.appendChild(line);
   }
   box.appendChild(tr);
+
+  // why mistakes happen (from the reasons the student tapped; only the student sees this)
+  if (NB.loaded) {
+    const cnt = { dk: 0, silly: 0, trap: 0, guess: 0 }; let tot = 0;
+    NB.items.forEach(x => { if (x.r && cnt[x.r] !== undefined) { cnt[x.r]++; tot++; } });
+    if (tot >= 3) {
+      const wc = libEl("div", "pg-card");
+      wc.appendChild(libEl("h3", null, "Why you get questions wrong"));
+      wc.appendChild(libEl("p", "cap", "From " + tot + " mistakes in your notebook where you tapped a reason"));
+      const g = libEl("div", "pg-why");
+      let topK = "dk";
+      WHY.forEach(w => {
+        if (cnt[w[0]] > cnt[topK]) topK = w[0];
+        const p = Math.round(cnt[w[0]] / tot * 100), r = libEl("div", "row");
+        r.appendChild(libEl("span", null, w[1]));
+        const bar = libEl("div", "bar"); const f = document.createElement("i"); f.style.width = p + "%"; bar.appendChild(f); r.appendChild(bar);
+        r.appendChild(libEl("b", null, p + "%")); g.appendChild(r);
+      });
+      wc.appendChild(g);
+      const tips = { dk: "Most mistakes are gaps in knowledge. Revise the topic, then practise it again.", silly: "Most mistakes are silly ones. Slow down and read the question and all options once more.", trap: "Most mistakes are traps. Try Trap Spotter in Practice and watch for NOT / EXCEPT.", guess: "You guess a lot. Mark guesses and revise them, or skip when you are unsure in a timed test." };
+      wc.appendChild(libEl("p", "pg-line", "Tip: " + tips[topK]));
+      box.appendChild(wc);
+    }
+  }
 
   // weak areas by subject
   const subj = {};
@@ -5700,7 +5765,7 @@ document.addEventListener("visibilitychange", () => { if (document.visibilitySta
 
 // ---------- Practice (random questions from the whole question bank) ----------
 // The admin copies the whole bank into "practice": an index document and parts named pr_all_<n> (up to 300 questions each).
-const PR = { index: null, loading: null, parts: {}, n: 30, mode: "instant", exam: "" };
+const PR = { index: null, loading: null, parts: {}, n: 30, mode: "instant", exam: "", trap: false };
 try { const v = Number(localStorage.getItem("pptPrN")); if (v === 10 || v === 30 || v === 50) PR.n = v; if (localStorage.getItem("pptPrMode") === "exam") PR.mode = "exam"; PR.exam = localStorage.getItem("pptPrExam") || ""; } catch (e) {}
 function prLoadIndex() {
   if (PR.index) { paintPractice(); return Promise.resolve(); }
@@ -5777,6 +5842,17 @@ function paintPractice() {
     });
     box.appendChild(modeRow);
   }
+  const entNow = ents.find(x => x.slug === PR.exam) || ents[0];
+  if (!ix.legacy && entNow && Number(entNow.traps) > 0) {
+    const tr = libEl("div", "pr-row");
+    [[false, "All questions"], [true, "Trap Spotter"]].forEach(m => {
+      const bt = libEl("button", "pr-n" + (PR.trap === m[0] ? " on" : ""), m[1]); bt.type = "button";
+      bt.onclick = () => { PR.trap = m[0]; paintPractice(); };
+      tr.appendChild(bt);
+    });
+    box.appendChild(tr);
+    if (PR.trap) box.appendChild(libEl("p", "sub", "Only trap questions (NOT / EXCEPT and look-alike options). After each one you see the trick."));
+  } else PR.trap = false;
   const row = libEl("div", "pr-row");
   [10, 30, 50].forEach(n => { const bt = libEl("button", "pr-n" + (PR.n === n ? " on" : ""), String(n)); bt.type = "button"; bt.setAttribute("aria-label", n + " questions"); bt.onclick = () => { PR.n = n; try { localStorage.setItem("pptPrN", String(n)); } catch (e) {} paintPractice(); }; row.appendChild(bt); });
   box.appendChild(row);
@@ -5809,6 +5885,7 @@ async function prStart(n, mode) {
     const pool = [];
     docs.forEach(d => d.qs.forEach((q, i) => { if (q && q.q && Array.isArray(q.o)) pool.push({ q: q, ref: { t: d.id, i: i, k: q.id ? "q:" + q.id : d.id + ":" + i }, subject: q.s || "" }); }));
     if (!pool.length) throw new Error("empty");
+    if (PR.trap) { for (let i = pool.length - 1; i >= 0; i--) if (String(pool[i].q.t || "").toLowerCase() !== "trap") pool.splice(i, 1); if (!pool.length) { trCloseOverlay(); showToast("No trap questions yet. Ask the admin to update the pool.", true); return; } }
     const seen = prSeenGet();
     prShuffle(pool);
     pool.sort((a, b) => (seen.has(a.ref.k) ? 1 : 0) - (seen.has(b.ref.k) ? 1 : 0));      // questions you have not seen come first
@@ -5816,8 +5893,8 @@ async function prStart(n, mode) {
     const pick = prShuffle(pool.slice(0, take));
     prAddUsed(pick.length);
     const mins = Math.ceil(pick.length * 70 / 60);
-    TR.t = { id: "__practice__", practice: true, slug: ent.slug, sel: "__all", nPick: n, pmode: timed ? "exam" : "instant",
-      title: "Practice \u00B7 " + (!ix.legacy && ents.length > 1 ? ent.subject + " \u00B7 " : "") + pick.length + " questions", subject: "Mixed", mode: timed ? "exam" : "instant", duration: timed ? mins : 0, plus: timed ? 4 : 1, minus: timed ? 1 : 0,
+    TR.t = { id: "__practice__", practice: true, trapMode: !!PR.trap, slug: ent.slug, sel: "__all", nPick: n, pmode: timed ? "exam" : "instant",
+      title: (PR.trap ? "Trap Spotter" : "Practice") + " \u00B7 " + (!ix.legacy && ents.length > 1 ? ent.subject + " \u00B7 " : "") + pick.length + " questions", subject: "Mixed", mode: timed ? "exam" : "instant", duration: timed ? mins : 0, plus: timed ? 4 : 1, minus: timed ? 1 : 0,
       qs: pick.map(x => Object.assign({}, x.q, { s: x.subject })), origs: pick.map(x => x.q), refs: pick.map(x => x.ref) };
     TR.phase = "run"; TR.pal = false; TR.filter = "All"; TR.res = null; TR.prev = null; TR.blocks = []; TR.blk = -1;
     trFresh(); trStartTimer(); trRender();

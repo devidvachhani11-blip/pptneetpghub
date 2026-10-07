@@ -4400,7 +4400,7 @@ async function publishPracticePool(auto) {
         cur.push(q); size += len;
       });
       flush();
-      index.push({ subject: g.exam, slug: g.slug, count: g.rows.length, parts: part });
+      index.push({ subject: g.exam, slug: g.slug, count: g.rows.length, parts: part, traps: g.rows.filter(r => String(r.t || '').toLowerCase() === 'trap').length });
       total += g.rows.length;
     });
     const keep = new Set(chunks.map(c => c.id)); keep.add('index');
