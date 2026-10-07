@@ -3764,6 +3764,7 @@ function whyHTML(i) {
 }
 function trapHint(q) {
   if (!q || String(q.t || "").toLowerCase() !== "trap") return "";
+  if (q.tn) return '<div class="tr-trap"><b style="display:inline;color:inherit">Trap:</b> ' + esc(q.tn) + '</div>';
   const neg = /\b(NOT|EXCEPT|FALSE|INCORRECT)\b/.test(String(q.q || ""));
   return '<div class="tr-trap"><b style="display:inline;color:inherit">Trap:</b> ' + (neg ? "a negative question (NOT / EXCEPT). Three options are true, you need the odd one out." : "a look-alike option. Read every option fully before you choose.") + '</div>';
 }

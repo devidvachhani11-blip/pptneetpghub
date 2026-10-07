@@ -4144,6 +4144,7 @@ function rowsToQuestions(aoa, defSubject, subjectOptional) {
     else if (/^(image|picture|img|photo|image file|image name)$/.test(h)) col.img = i;
     else if (/^(explanation image|explanation picture|expl image|answer image)$/.test(h)) col.eimg = i;
     else if (/^(tag|topic|chapter)$/.test(h)) col.t = i;
+    else if (/^(trap note|trap|trap tip|trap info)$/.test(h)) col.tn = i;
     else if ((m = /^(?:option|opt)?\s*\(?([a-f])\)?$/.exec(h))) col.opts[m[1].charCodeAt(0) - 97] = i;
     else if ((m = /^(?:option|opt)\s*([1-6])$/.exec(h))) col.opts[Number(m[1]) - 1] = i;
   });
@@ -4171,6 +4172,7 @@ function rowsToQuestions(aoa, defSubject, subjectOptional) {
     const item = { q: q, o: o, a: a, e: col.e !== undefined ? cell(row[col.e]) : '', s: s };
     if (col.ex !== undefined) { const ev = normExam(cell(row[col.ex])); if (ev) item.ex = ev; }
     if (col.t !== undefined && cell(row[col.t])) item.t = cell(row[col.t]);
+    if (col.tn !== undefined && cell(row[col.tn])) item.tn = cell(row[col.tn]);
     if (col.img !== undefined && cell(row[col.img])) item.img = cell(row[col.img]);
     if (col.eimg !== undefined && cell(row[col.eimg])) item.eimg = cell(row[col.eimg]);
     questions.push(item);
@@ -4197,7 +4199,7 @@ async function readSheetFile(file) {
   return out;
 }
 async function downloadBankTemplate() {
-  const aoa = [['Subject', 'Question', 'A', 'B', 'C', 'D', 'Answer', 'Explanation', 'Tag', 'Exam'],
+  const aoa = [['Subject', 'Question', 'A', 'B', 'C', 'D', 'Answer', 'Explanation', 'Tag', 'Exam', 'Trap note'],
     ['Pharmacology', 'Which drug is the antidote for paracetamol poisoning?', 'N-acetylcysteine', 'Naloxone', 'Flumazenil', 'Atropine', 'A', 'NAC replenishes glutathione.', 'Toxicology', 'NEET PG'],
     ['', 'Which drug is a loop diuretic?', 'Spironolactone', 'Furosemide', 'Mannitol', 'Amiloride', 'B', 'Furosemide acts on the thick ascending limb.', '', '']];
   try { const X = await loadXlsxLib(); const wb = X.utils.book_new(); X.utils.book_append_sheet(wb, X.utils.aoa_to_sheet(aoa), 'Questions'); X.writeFile(wb, 'question-bank-template.xlsx'); }
@@ -4259,31 +4261,40 @@ async function deleteBankQ(x) {
 function showBankPreview(qs, errors, src, extraNote) {
   const el = document.getElementById('bk_prev'); el.innerHTML = '';
   const fresh = [], seen = {}; let dup = 0;
-  qs.forEach(q => { const id = qHash(q) + (q.ex === 'INICET' ? 'i' : ''); if (BANK.byId[id] || seen[id]) { dup++; return; } seen[id] = 1; q._id = id; fresh.push(q); });
-  BANK.prev = fresh;
+  const upd = [];
+  qs.forEach(q => { const id = qHash(q) + (q.ex === 'INICET' ? 'i' : ''); if (BANK.byId[id] || seen[id]) { dup++; if (BANK.byId[id] && q.tn && BANK.byId[id].tn !== q.tn && !seen[id]) { seen[id] = 1; q._id = id; upd.push(q); } return; } seen[id] = 1; q._id = id; fresh.push(q); });
+  BANK.prev = fresh; BANK.upd = upd;
   const p = mk('p'); p.appendChild(mk('span', 'bk-ok', fresh.length + ' new question' + (fresh.length === 1 ? '' : 's') + ' ready'));
   p.appendChild(document.createTextNode((dup ? ', ' + dup + ' already in the bank (skipped)' : '') + (errors.length ? ', ' : ''))); if (errors.length) p.appendChild(mk('span', 'bk-bad', errors.length + ' with problems'));
   el.appendChild(p);
   if (fresh.length) { const ex = {}; fresh.forEach(q => { const k = q.ex === 'INICET' ? 'INICET' : 'NEET PG'; ex[k] = (ex[k] || 0) + 1; }); el.appendChild(mk('p', 'hint', 'By exam: ' + Object.keys(ex).sort().map(k => k + ' ' + ex[k]).join(' \u00B7 '))); }
   if (fresh.length) { const by = {}; fresh.forEach(q => { const k = q.s || 'No subject'; by[k] = (by[k] || 0) + 1; }); el.appendChild(mk('p', 'hint', 'By subject: ' + Object.keys(by).sort().map(k => k + ' ' + by[k]).join(' · '))); }
+  if (upd.length) el.appendChild(mk('p', 'hint', upd.length + ' questions already in the bank will get a trap note.'));
   if (extraNote) el.appendChild(mk('p', 'hint', extraNote));
   if (errors.length) { const ul = document.createElement('ul'); errors.slice(0, 10).forEach(e => ul.appendChild(mk('li', 'bk-bad', e))); if (errors.length > 10) ul.appendChild(mk('li', null, '+ ' + (errors.length - 10) + ' more')); el.appendChild(ul); }
-  if (fresh.length) { const b = mk('button', 'btn', 'Save ' + fresh.length + ' to the bank'); b.style.marginTop = '10px'; b.onclick = () => saveBankPreview(src, b); el.appendChild(b); }
+  if (fresh.length || upd.length) { const b = mk('button', 'btn', fresh.length ? 'Save ' + fresh.length + ' to the bank' + (upd.length ? ' + ' + upd.length + ' trap notes' : '') : 'Add ' + upd.length + ' trap notes'); b.style.marginTop = '10px'; b.onclick = () => saveBankPreview(src, b); el.appendChild(b); }
 }
 async function saveBankPreview(src, btn) {
   const { db, doc, writeBatch, serverTimestamp } = window.__fb;
-  const list = BANK.prev.slice(); if (!list.length) return;
+  const list = BANK.prev.slice(), updl = (BANK.upd || []).slice(); if (!list.length && !updl.length) return;
   btn.disabled = true; btn.textContent = 'Saving…';
   try {
     for (let i = 0; i < list.length; i += 400) {
       const batch = writeBatch(db);
       list.slice(i, i + 400).forEach(q => {
         const d = { q: q.q, o: q.o, a: q.a, e: q.e || '', s: q.s, t: q.t || '', ex: q.ex === 'INICET' ? 'INICET' : 'NEET PG', used: 0, src: src, createdAt: serverTimestamp() };
+        if (q.tn) d.tn = q.tn;
         batch.set(doc(db, 'questions', q._id), d);
       });
       await batch.commit();
     }
-    list.forEach(q => { const x = { id: q._id, q: q.q, o: q.o, a: q.a, e: q.e || '', s: q.s, t: q.t || '', ex: q.ex === 'INICET' ? 'INICET' : 'NEET PG', used: 0, src: src }; BANK.rows.push(x); BANK.byId[x.id] = x; });
+    for (let i = 0; i < updl.length; i += 400) {
+      const batch = writeBatch(db);
+      updl.slice(i, i + 400).forEach(q => batch.update(doc(db, 'questions', q._id), { tn: q.tn }));
+      await batch.commit();
+    }
+    updl.forEach(q => { if (BANK.byId[q._id]) BANK.byId[q._id].tn = q.tn; });
+    list.forEach(q => { const x = { id: q._id, q: q.q, o: q.o, a: q.a, e: q.e || '', s: q.s, t: q.t || '', tn: q.tn || '', ex: q.ex === 'INICET' ? 'INICET' : 'NEET PG', used: 0, src: src }; BANK.rows.push(x); BANK.byId[x.id] = x; });
     BANK.prev = []; document.getElementById('bk_prev').innerHTML = ''; renderBank();
     showToast('Saved ' + list.length + ' question' + (list.length === 1 ? '' : 's') + '. Updating the practice pool\u2026');
     const ok = await publishPracticePool(true);
@@ -4394,7 +4405,7 @@ async function publishPracticePool(auto) {
       let cur = [], size = 0, part = 0;
       const flush = () => { if (cur.length) { chunks.push({ id: 'pr_' + g.slug + '_' + part, exam: g.exam, part: part, qs: cur }); part++; cur = []; size = 0; } };
       g.rows.forEach(x => {
-        const q = { id: x.id, q: x.q, o: x.o, a: x.a, e: x.e || '' }; if (x.t) q.t = x.t; if (x.s) q.s = x.s;
+        const q = { id: x.id, q: x.q, o: x.o, a: x.a, e: x.e || '' }; if (x.t) q.t = x.t; if (x.tn) q.tn = x.tn; if (x.s) q.s = x.s;
         const len = JSON.stringify(q).length;
         if (cur.length >= 300 || size + len > 300000) flush();
         cur.push(q); size += len;
