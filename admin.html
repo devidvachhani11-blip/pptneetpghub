@@ -522,7 +522,9 @@
         <label class="bk-chk"><input type="checkbox" id="pp_exInicet" checked> INICET <span class="hint" id="pp_cInicet"></span></label>
         <label class="bk-l">Mode</label>
         <select id="pp_modes"><option value="both">Instant and Timed</option><option value="instant">Instant answers only</option><option value="exam">Timed only</option></select>
-        <p class="hint">Questions a student has not seen yet always come first.</p>
+        <label class="bk-l">Questions per student per day (0 = no limit)</label>
+        <input type="number" id="pp_daily" min="0" max="1000" value="50">
+        <p class="hint">Questions a student has not seen yet always come first. The day changes at midnight India time.</p>
       </div>
 
       <div class="card">
@@ -4323,7 +4325,7 @@ function wireHomeBank() {
   document.getElementById('bk_xlfile').addEventListener('change', (e) => { bankFromFile(e.target.files[0]); e.target.value = ''; });
   document.getElementById('bk_tpl').addEventListener('click', (e) => { e.preventDefault(); downloadBankTemplate(); });
   document.getElementById('bk_pasteGo').addEventListener('click', bankFromPaste);
-  ['pp_exNeet', 'pp_exInicet', 'pp_modes'].forEach(id => document.getElementById(id).addEventListener('change', ppSettingsChanged));
+  ['pp_exNeet', 'pp_exInicet', 'pp_modes', 'pp_daily'].forEach(id => document.getElementById(id).addEventListener('change', ppSettingsChanged));
   document.getElementById('bk_fSubject').addEventListener('change', () => { BANK.shown = 50; renderBankList(); });
   document.getElementById('bk_fQ').addEventListener('input', () => { BANK.shown = 50; renderBankList(); });
 }
@@ -4334,7 +4336,7 @@ function slugOf(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '').s
 // Settings (which exams students can practise, which modes) are kept in the pool index, so students read them with the pool.
 const PP = { live: false, timer: 0, pending: false, busy: false };
 function ppSettings() {
-  return { neet: document.getElementById('pp_exNeet').checked, inicet: document.getElementById('pp_exInicet').checked, modes: document.getElementById('pp_modes').value };
+  return { neet: document.getElementById('pp_exNeet').checked, inicet: document.getElementById('pp_exInicet').checked, modes: document.getElementById('pp_modes').value, daily: Math.max(0, Math.min(1000, Math.floor(Number(document.getElementById('pp_daily').value)) || 0)) };
 }
 function ppApplySettings(d) {
   if (d.v >= 3) {
@@ -4342,6 +4344,7 @@ function ppApplySettings(d) {
     document.getElementById('pp_exNeet').checked = ex.neet !== false;          // saved ticks, so an exam with no questions yet stays ticked
     document.getElementById('pp_exInicet').checked = ex.inicet !== false;
     document.getElementById('pp_modes').value = ['both', 'instant', 'exam'].indexOf(d.modes) > -1 ? d.modes : 'both';
+    document.getElementById('pp_daily').value = (d.daily === undefined || d.daily === null) ? 50 : d.daily;
   }
 }
 function ppSettingsChanged() {
@@ -4407,7 +4410,7 @@ async function publishPracticePool(auto) {
       chunks.slice(i, i + 8).forEach(c => batch.set(doc(db, 'practice', c.id), { subject: c.exam, part: c.part, qs: c.qs, updatedAt: serverTimestamp() }));
       await batch.commit();
     }
-    await window.__fb.setDoc(doc(db, 'practice', 'index'), { subjects: index, total: total, v: 3, modes: st.modes, exams: { neet: st.neet, inicet: st.inicet }, updatedAt: serverTimestamp() });
+    await window.__fb.setDoc(doc(db, 'practice', 'index'), { subjects: index, total: total, v: 3, modes: st.modes, daily: st.daily, exams: { neet: st.neet, inicet: st.inicet }, updatedAt: serverTimestamp() });
     const old = await getDocs(collection(db, 'practice'));
     const gone = []; old.forEach(d => { if (!keep.has(d.id)) gone.push(d.id); });
     for (let i = 0; i < gone.length; i += 400) {

@@ -5710,7 +5710,7 @@ function prLoadIndex() {
       const { db, doc, getDoc } = window.__fb;
       const s = await getDoc(doc(db, "practice", "index"));
       const d = s.exists() ? (s.data() || {}) : {};
-      PR.index = { subjects: (Array.isArray(d.subjects) ? d.subjects : []).filter(x => x && x.subject && x.slug && Number(x.count) > 0), total: Number(d.total) || 0, modes: d.modes === "instant" || d.modes === "exam" ? d.modes : "both", legacy: !(Number(d.v) >= 3) };
+      PR.index = { subjects: (Array.isArray(d.subjects) ? d.subjects : []).filter(x => x && x.subject && x.slug && Number(x.count) > 0), total: Number(d.total) || 0, modes: d.modes === "instant" || d.modes === "exam" ? d.modes : "both", daily: (d.daily === undefined || d.daily === null || isNaN(Number(d.daily))) ? 50 : Math.max(0, Math.floor(Number(d.daily))), legacy: !(Number(d.v) >= 3) };
     } catch (e) { console.error("Could not load practice", e); PR.index = null; }
     PR.loading = null;
     paintPractice();
@@ -5724,6 +5724,18 @@ function prSeenAdd(keys) {
   let a = Array.from(s); if (a.length > 4000) a = a.slice(a.length - 4000);
   try { localStorage.setItem(prSeenKey(), JSON.stringify(a)); } catch (e) {}
 }
+// Daily limit: counted per day in India time. Kept on this device and also read from today's saved practice results, so a second device does not give a fresh 50.
+function prDay() { return new Date(Date.now() + 19800000).toISOString().slice(0, 10); }
+function prUsedKey() { return "pptPrUsed:" + String((currentUser && currentUser.email) || "").toLowerCase() + ":" + prDay(); }
+function prUsedToday() {
+  let a = 0, b = 0;
+  try { a = Number(localStorage.getItem(prUsedKey())) || 0; } catch (e) {}
+  const start = Date.parse(prDay() + "T00:00:00+05:30");
+  try { MY_ATTEMPTS.forEach(x => { if (String(x.testId).indexOf("practice:") === 0 && x.t >= start) b += Number(x.total) || 0; }); } catch (e) {}
+  return Math.max(a, b);
+}
+function prAddUsed(n) { try { localStorage.setItem(prUsedKey(), String(prUsedToday() + n)); } catch (e) {} }
+function prLeft() { const ix = PR.index, lim = ix && ix.daily; return lim > 0 ? Math.max(0, lim - prUsedToday()) : Infinity; }
 function prShuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
 async function prPart(s, p) {
   const id = "pr_" + s.slug + "_" + p;
@@ -5769,7 +5781,9 @@ function paintPractice() {
   [10, 30, 50].forEach(n => { const bt = libEl("button", "pr-n" + (PR.n === n ? " on" : ""), String(n)); bt.type = "button"; bt.setAttribute("aria-label", n + " questions"); bt.onclick = () => { PR.n = n; try { localStorage.setItem("pptPrN", String(n)); } catch (e) {} paintPractice(); }; row.appendChild(bt); });
   box.appendChild(row);
   if (PR.mode === "exam") box.appendChild(libEl("p", "sub", "Timed: 70 seconds for each question, like the real exam. +4 for a right answer, \u22121 for a wrong one."));
-  const go = libEl("button", "pr-go", "Start practice"); go.type = "button"; go.onclick = () => prStart(PR.n, PR.mode);
+  const left = prLeft(), lim = ix.daily;
+  if (lim > 0) box.appendChild(libEl("p", "sub", left > 0 ? "Today: " + (lim - left) + " of " + lim + " questions done. " + left + " left." : "You finished your " + lim + " practice questions for today. Come back tomorrow. Your Mistake notebook is always open."));
+  const go = libEl("button", "pr-go", left > 0 ? "Start practice" : "Come back tomorrow"); go.type = "button"; go.disabled = !(left > 0); go.onclick = () => prStart(PR.n, PR.mode);
   box.appendChild(go);
 }
 async function prStart(n, mode) {
@@ -5784,6 +5798,9 @@ async function prStart(n, mode) {
   if (ix && ix.legacy) ents.forEach(sb => { for (let p = 0; p < (Number(sb.parts) || 1); p++) need.push({ s: sb, p: p }); });      // an older pool: use all of it
   else if (ent) for (let p = 0; p < (Number(ent.parts) || 1); p++) need.push({ s: ent, p: p });
   if (!need.length) { showToast("No practice questions yet.", true); return; }
+  const leftNow = prLeft();
+  if (leftNow <= 0) { showToast("You finished today's practice limit. Come back tomorrow.", true); paintPractice(); return; }
+  n = Math.min(n, leftNow);
   prShuffle(need);
   trOverlay().classList.add("on"); document.body.style.overflow = "hidden";
   trLoading("Getting your questions\u2026");
@@ -5797,6 +5814,7 @@ async function prStart(n, mode) {
     pool.sort((a, b) => (seen.has(a.ref.k) ? 1 : 0) - (seen.has(b.ref.k) ? 1 : 0));      // questions you have not seen come first
     const take = Math.min(n, pool.length);
     const pick = prShuffle(pool.slice(0, take));
+    prAddUsed(pick.length);
     const mins = Math.ceil(pick.length * 70 / 60);
     TR.t = { id: "__practice__", practice: true, slug: ent.slug, sel: "__all", nPick: n, pmode: timed ? "exam" : "instant",
       title: "Practice \u00B7 " + (!ix.legacy && ents.length > 1 ? ent.subject + " \u00B7 " : "") + pick.length + " questions", subject: "Mixed", mode: timed ? "exam" : "instant", duration: timed ? mins : 0, plus: timed ? 4 : 1, minus: timed ? 1 : 0,
