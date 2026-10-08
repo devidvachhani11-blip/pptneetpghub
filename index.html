@@ -1323,6 +1323,7 @@
   .l-brand, .lib-brand { display: inline-flex; align-items: center; gap: 9px; }
   .l-brand .lg, .lib-brand .lg { border-radius: 50%; flex-shrink: 0; display: block; box-shadow: 0 0 0 1.5px rgba(212,175,85,0.55); }
   .hero-logo { display: block; width: 112px; height: 112px; border-radius: 50%; margin: 0 0 18px; box-shadow: 0 0 0 2px rgba(212,175,85,0.6), 0 10px 30px rgba(0,0,0,0.35); }
+  @media (min-width: 900px) { .hero h1 { font-size: clamp(40px, 4.6vw, 64px); max-width: calc(100% - 370px); } .hero .lede, .hero .sub { max-width: min(520px, calc(100% - 370px)); } }
   @media (min-width: 900px) { .hero-logo { position: absolute; right: 24px; top: 6px; width: 330px; height: 330px; margin: 0; box-shadow: 0 0 0 3px rgba(212,175,85,0.6), 0 24px 60px rgba(0,0,0,0.45); } }
   .foot-logo { display: block; width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 10px; }
   @media (max-width: 380px) { .l-brand { font-size: 14px; } }
