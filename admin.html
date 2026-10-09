@@ -1773,7 +1773,7 @@ function ctFill() {
   CT.pasted = lines;
   if (!lines.length) { note.textContent = 'Type or paste your answers first, one on each line.'; return; }
   if (!CT.rows.length) { note.textContent = lines.length + ' answers kept. They fill the boxes as soon as you choose the pictures.'; return; }
-  CT.rows.forEach((r, i) => { if (lines[i] !== undefined) r.answer = lines[i].slice(0, 300); });
+  CT.rows.forEach((r, i) => { if (lines[i] !== undefined) r.answer = lines[i].slice(0, 1200); });
   const n = Math.min(lines.length, CT.rows.length), extra = lines.length - CT.rows.length, short = CT.rows.length - lines.length;
   note.textContent = n + ' answers filled.' + (extra > 0 ? ' ' + extra + ' extra ' + (extra === 1 ? 'line was' : 'lines were') + ' not used (more answers than pictures).' : '') + (short > 0 ? ' ' + short + ' ' + (short === 1 ? 'picture still has' : 'pictures still have') + ' no answer.' : '');
   note.style.color = (extra > 0 || short > 0) ? '#B06A00' : '';
@@ -1785,7 +1785,7 @@ function ctPaint() {
   CT.rows.forEach((r, i) => {
     const row = mk('div', 'ct-row'), im = document.createElement('img'); im.src = r.url; im.alt = r.file.name;
     const inn = mk('div', 'ct-in'); inn.appendChild(mk('b', null, (i + 1) + '. ' + r.file.name));
-    const ta = document.createElement('textarea'); ta.maxLength = 300; ta.placeholder = 'Answer for this picture'; ta.value = r.answer;
+    const ta = document.createElement('textarea'); ta.maxLength = 1200; ta.placeholder = 'Answer, high-yield points and trap'; ta.value = r.answer;
     ta.addEventListener('input', () => { r.answer = ta.value; });
     inn.appendChild(ta);
     const x = mk('button', 'x', '\u00D7'); x.type = 'button'; x.setAttribute('aria-label', 'Remove ' + r.file.name);
@@ -1809,7 +1809,7 @@ function ctAdd(list) {
     else CT.rows.push({ file: f, url: URL.createObjectURL(f), answer: '' });
   });
   CT.rows.sort((p, q) => natCompare(p.file.name, q.file.name));
-  if (CT.pasted.length) CT.rows.forEach((r, i) => { if (!r.answer && CT.pasted[i]) r.answer = CT.pasted[i].slice(0, 300); });      // answers pasted earlier
+  if (CT.pasted.length) CT.rows.forEach((r, i) => { if (!r.answer && CT.pasted[i]) r.answer = CT.pasted[i].slice(0, 1200); });      // answers pasted earlier
   if (skipped.length) showToast(skipped.length + ' skipped: ' + skipped.slice(0, 2).join(', '), true);
   ctPaint(); ctSizes();
 }
@@ -1852,7 +1852,7 @@ async function ctUpload() {
         try {
           const key = await uploadToR2(r.file, name, () => {});
           await addDoc(collection(db, 'resources'), {
-            subject: 'Cards', exam: 'NEET PG', tab: 'Card Test', series: name, title: 'Card ' + r.no, answer: r.answer.trim().slice(0, 300), meta: '',
+            subject: 'Cards', exam: 'NEET PG', tab: 'Card Test', series: name, title: 'Card ' + r.no, answer: r.answer.trim().slice(0, 1200), meta: '',
             type: 'download', fileUrl: 'r2:' + key, size: r.file.size, seq: r.seq,
             releaseAt: rel ? Timestamp.fromMillis(rel) : null, createdAt: serverTimestamp()
           });
@@ -1880,7 +1880,7 @@ function openEditCard(row) {
   const isCt = row.tab === 'Card Test';
   body.appendChild(edField(isCt ? 'Card test name' : 'Series name', edInput('e_series', seriesNameOf(row))));
   if (isCt) {
-    const ta = document.createElement('textarea'); ta.id = 'e_answer'; ta.maxLength = 300; ta.value = row.answer || ''; ta.style.minHeight = '90px';
+    const ta = document.createElement('textarea'); ta.id = 'e_answer'; ta.maxLength = 1200; ta.value = row.answer || ''; ta.style.minHeight = '90px';
     body.appendChild(edField('Answer', ta));
   }
   body.appendChild(edField('Card name (only you see it)', edInput('e_title', row.title)));
