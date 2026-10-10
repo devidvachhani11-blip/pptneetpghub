@@ -864,6 +864,14 @@
   }
   .lib-x span { font-size: 15px; line-height: 1; }
 
+  .lib-exam { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 26px 0 0; padding: 12px 14px; border-radius: 12px; }
+  .lib-exam b { display: block; font-size: 15px; font-weight: 800; }
+  .lib-exam span { display: block; font-size: 12px; margin-top: 2px; opacity: .85; }
+  .lib-exam em { font-style: normal; font-size: 12px; font-weight: 800; white-space: nowrap; }
+  .lib-exam.neet { background: #FBF4E0; border-left: 4px solid #D4AF55; color: #0F2447; }
+  .lib-exam.ini { background: #F4EDFD; border-left: 4px solid #8E4FE0; color: #4B1F82; }
+  :where(html[data-eff="dark"]) .lib-exam.neet { background: #2E2812; color: #F2E3B3; }
+  :where(html[data-eff="dark"]) .lib-exam.ini { background: #2A1D40; color: #D9C4F5; }
   .lib-group { font-size: 13px; font-weight: 800; color: var(--navy); margin: 26px 0 10px; display: flex; align-items: center; gap: 10px; }
   .lib-group::after { content: ""; flex: 1; height: 1px; background: #E4DBC5; }
   .lib-list { display: grid; gap: 10px; }
@@ -5215,18 +5223,31 @@ function renderList() {
     return;
   }
 
-  let current = null;
-  let list = null;
-  items.forEach(it => {
-    const g = groupOf(it.t);
-    if (g !== current) {
-      current = g;
-      box.appendChild(libEl("div", "lib-group", g));
-      list = libEl("div", "lib-list");
-      box.appendChild(list);
-    }
-    list.appendChild(itemEl(it));
-  });
+  // NEET PG first, INICET in its own section below it (only when the library has INICET files at all)
+  const neetItems = items.filter(it => !isInicet(it)), iniItems = items.filter(isInicet);
+  const split = ALL.some(isInicet);
+  const paintItems = arr => {
+    let current = null, list = null;
+    arr.forEach(it => {
+      const g = groupOf(it.t);
+      if (g !== current) {
+        current = g;
+        box.appendChild(libEl("div", "lib-group", g));
+        list = libEl("div", "lib-list");
+        box.appendChild(list);
+      }
+      list.appendChild(itemEl(it));
+    });
+  };
+  const banner = (cls, title, sub, n) => {
+    const h = libEl("div", "lib-exam " + cls);
+    const l = libEl("div"); l.appendChild(libEl("b", null, title)); l.appendChild(libEl("span", null, sub)); h.appendChild(l);
+    h.appendChild(libEl("em", null, n + (n === 1 ? " file" : " files")));
+    box.appendChild(h);
+  };
+  if (!split) { paintItems(items); return; }
+  if (neetItems.length) { banner("neet", "NEET PG 2027", "Your main resources", neetItems.length); paintItems(neetItems); }
+  if (iniItems.length) { banner("ini", "INICET", "Separate exam \u00B7 bonus resources", iniItems.length); paintItems(iniItems); }
 }
 
 // ---------- Series and Card Test: one tile per set ----------
