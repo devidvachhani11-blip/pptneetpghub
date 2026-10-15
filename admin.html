@@ -469,6 +469,7 @@
       <button class="tab-btn" data-panel="cardsPanel">Card Test</button>
       <button class="tab-btn" data-panel="imgTestPanel">Image Tests</button>
       <button class="tab-btn" data-panel="dropsPanel">Recent Drops</button>
+      <button class="tab-btn" data-panel="samplePanel">Home sample</button>
       <button class="tab-btn" data-panel="lbPanel">Top 10</button>
       <button class="tab-btn" data-panel="bankPanel">Question Bank</button>
       <button class="tab-btn" data-panel="newsPanel">News</button>
@@ -785,6 +786,32 @@
         </div>
         <div id="it_preview" class="t-preview"></div>
         <button class="btn" id="it_publish">Publish Image Test</button>
+      </div>
+    </div>
+
+    <!-- Home sample (for visitors who are not signed in) -->
+    <div id="samplePanel" style="display:none;">
+      <div class="card">
+        <h3>Home sample: 10 free questions</h3>
+        <p class="hint" style="margin-top:-6px">Shown on the home page to visitors who are not signed in. Exactly 10 mix-subject questions, answers shown after each one. No pictures. Paste them in the same format as Add Test, then press Save. You can replace them any time.</p>
+        <textarea id="sm_text" class="t-area" rows="14" spellcheck="false" placeholder="Q1. Question text&#10;A. Option&#10;B. Option&#10;C. Option&#10;D. Option&#10;Answer: B&#10;Explanation: Why B is right&#10;Subject: Pathology"></textarea>
+        <div class="t-actions">
+          <button class="btn" id="sm_save">Save 10 questions</button>
+          <button class="btn outline" id="sm_reload">Undo changes</button>
+          <button class="btn outline" id="sm_remove">Remove sample</button>
+        </div>
+        <p class="hint" id="sm_status"></p>
+      </div>
+      <div class="card">
+        <h3>Home sample: card slider (up to 5 cards)</h3>
+        <p class="hint" style="margin-top:-6px">Pick 1 card from each of up to 5 different series. Visitors who are not signed in swipe through them, and the last slide asks them to join Premium. Only these picked pictures (and their answers) become public. Everything else stays private.</p>
+        <div id="sm_slots"></div>
+        <div class="t-actions">
+          <button class="btn" id="sm_csave">Save slider</button>
+          <button class="btn outline" id="sm_creload">Undo changes</button>
+          <button class="btn outline" id="sm_cremove">Remove slider</button>
+        </div>
+        <p class="hint" id="sm_cstatus"></p>
       </div>
     </div>
 
@@ -1186,11 +1213,12 @@ window.addEventListener('fbReady', () => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      ['homePanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'gtPanel', 'seriesPanel', 'cardsPanel', 'imgTestPanel', 'dropsPanel', 'lbPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'launchPanel', 'membersPanel', 'listPanel'].forEach(id => {
+      ['homePanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'gtPanel', 'seriesPanel', 'cardsPanel', 'imgTestPanel', 'dropsPanel', 'samplePanel', 'lbPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'launchPanel', 'membersPanel', 'listPanel'].forEach(id => {
         document.getElementById(id).style.display = (id === btn.dataset.panel) ? 'block' : 'none';
       });
       if (btn.dataset.panel === 'homePanel') loadHome();
       if (btn.dataset.panel === 'dropsPanel') loadDrops();
+      if (btn.dataset.panel === 'samplePanel') loadSampleAdmin();
       if (btn.dataset.panel === 'seriesPanel') loadSeriesAdmin();
       if (btn.dataset.panel === 'cardsPanel') loadCardDecks();
       if (btn.dataset.panel === 'lbPanel') loadLbTests();
@@ -3058,13 +3086,6 @@ async function openEditTest(row) {
     document.getElementById('e_mode').addEventListener('change', toggle); toggle();
     if (ED.gt) { const em = document.getElementById('e_mode'); if (em.previousSibling) em.previousSibling.style.display = 'none'; em.style.display = 'none'; box.style.display = 'none'; }
 
-    let smp = null; try { const ss = await getDoc(doc(db, 'sample', 'main')); smp = ss.exists() ? ss.data() : null; } catch (e) {}
-    const lab = document.createElement('label'); lab.className = 'bk-chk';
-    const cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = 'e_sample'; cb.checked = !!(smp && smp.testId === row.testId);
-    lab.appendChild(cb); lab.appendChild(document.createTextNode('Use as the free sample on the home page'));
-    body.appendChild(lab);
-    body.appendChild(mk('p', 'hint', 'The first 10 questions without pictures become public, with no sign-in. Only one test can be the free sample.' + (smp && smp.testId !== row.testId ? ' Ticking this replaces the current sample: ' + smp.title + '.' : '')));
-
     const ta = document.createElement('textarea'); ta.id = 'e_text'; ta.className = 't-area'; ta.rows = 14; ta.spellcheck = false;
     ta.value = questionsToText(d.qs || []);
     body.appendChild(edField('Questions (edit the text, then check)', ta));
@@ -3209,14 +3230,10 @@ async function saveTestEdit() {
     throw e;
   }
   await updateDoc(doc(db, 'resources', row.id), { title, subject, exam: document.getElementById('e_examType').value, meta: ED.gt ? GT_META : examMeta(n, exam, duration, bi) });
-  const wantSample = !!(document.getElementById('e_sample') && document.getElementById('e_sample').checked);
-  let sampleMsg = '';
-  try { await syncFreeSample(ED.testId, title, res.questions, wantSample); }
-  catch (e) { sampleMsg = (e && e.message) || 'Could not update the free sample'; }
   // pictures the test no longer uses
   const stillUsed = new Set(imageKeysOf(res.questions));
   await deleteStoredFiles((ED.oldKeys || []).filter(k => !stillUsed.has(k)));
-  showToast('✔ Test saved (' + n + ' questions)' + (sampleMsg ? '. Free sample NOT updated: ' + sampleMsg : ''), !!sampleMsg);
+  showToast('✔ Test saved (' + n + ' questions)');
 }
 
 async function saveBulkEdit() {
@@ -4437,17 +4454,87 @@ async function publishPracticePool(auto) {
   finally { PP.busy = false; btn.disabled = false; btn.textContent = 'Update practice pool'; ppStatus(); }
 }
 
-// ---------- Free sample (public, needs no sign-in) ----------
-async function syncFreeSample(testId, title, qs, on) {
-  const { db, doc, getDoc, setDoc, deleteDoc, serverTimestamp } = window.__fb;
-  const ref = doc(db, 'sample', 'main');
-  let cur = null; try { const s = await getDoc(ref); cur = s.exists() ? s.data() : null; } catch (e) {}
-  if (!on) { if (cur && cur.testId === testId) await deleteDoc(ref); return false; }
-  const pub = qs.filter(q => !q.img && !q.eimg).slice(0, 10).map(q => { const o = { q: q.q, o: q.o, a: q.a, e: q.e || '' }; if (q.s) o.s = q.s; if (q.t) o.t = q.t; return o; });
-  if (!pub.length) throw soft('Every question in this test has a picture, so it cannot be the free sample.');
-  await setDoc(ref, { testId: testId, title: title, qs: pub, count: pub.length, updatedAt: serverTimestamp() });
-  return true;
+// ---------- Home sample (public, needs no sign-in): 10 questions + up to 5 slider cards ----------
+const SM = { cards: [] };
+async function loadSampleAdmin() {
+  const { db, doc, getDoc } = window.__fb;
+  const st = document.getElementById('sm_status'), cs = document.getElementById('sm_cstatus');
+  try {
+    const s = await getDoc(doc(db, 'sample', 'main'));
+    const d = s.exists() ? s.data() : null;
+    document.getElementById('sm_text').value = d && Array.isArray(d.qs) ? questionsToText(d.qs) : '';
+    st.textContent = d && Array.isArray(d.qs) && d.qs.length ? 'Saved on the home page: ' + d.qs.length + ' questions.' : 'No sample saved yet. The sample box is hidden on the home page.';
+  } catch (e) { st.textContent = 'Could not load: ' + e.message; }
+  try {
+    const rows = (await readCardDocs()).filter(x => String(x.fileUrl || '').indexOf('r2:') === 0 && /\.(png|jpe?g|webp)$/i.test(String(x.fileUrl)));
+    rows.sort((p, q) => natCompare(seriesNameOf(p), seriesNameOf(q)) || ((Number(p.seq) || 0) - (Number(q.seq) || 0)));
+    SM.cards = rows;
+    const s = await getDoc(doc(db, 'sample', 'cards'));
+    const cur = s.exists() && Array.isArray(s.data().cards) ? s.data().cards : [];
+    const box = document.getElementById('sm_slots'); box.innerHTML = '';
+    for (let i = 0; i < 5; i++) {
+      box.appendChild(mk('label', null, 'Slide ' + (i + 1)));
+      const sel = document.createElement('select'); sel.id = 'sm_c' + i;
+      const o0 = document.createElement('option'); o0.value = ''; o0.textContent = 'No card'; sel.appendChild(o0);
+      let group = null, gname = null;
+      rows.forEach((r, k) => {
+        const n = seriesNameOf(r) + (r.tab === 'Card Test' ? ' (Card Test)' : '');
+        if (n !== gname) { group = document.createElement('optgroup'); group.label = n; sel.appendChild(group); gname = n; }
+        const o = document.createElement('option'); o.value = String(k); o.textContent = r.title || ('Card ' + (k + 1)); group.appendChild(o);
+      });
+      const c = cur[i];
+      if (c && c.key) { const k = rows.findIndex(r => String(r.fileUrl).slice(3) === c.key); if (k > -1) sel.value = String(k); }
+      box.appendChild(sel);
+    }
+    cs.textContent = cur.length ? 'Saved on the home page: ' + cur.length + (cur.length === 1 ? ' card.' : ' cards.') : (rows.length ? 'No slider saved yet.' : 'No picture cards yet. Add cards in Series or Card Test first.');
+  } catch (e) { cs.textContent = 'Could not load: ' + e.message; }
 }
+async function saveSampleQs() {
+  const raw = document.getElementById('sm_text').value;
+  const res = parseQuestions(raw);
+  if (res.errors.length) { showToast(res.errors[0], true); return; }
+  if (res.questions.length !== 10) { showToast('You pasted ' + res.questions.length + ' questions. The home sample needs exactly 10.', true); return; }
+  if (res.questions.some(q => q.img || q.eimg)) { showToast('The home sample cannot have pictures. Remove the Image lines.', true); return; }
+  const qs = res.questions.map(q => { const o = { q: q.q, o: q.o, a: q.a, e: q.e || '' }; if (q.s) o.s = q.s; if (q.t) o.t = q.t; return o; });
+  const btn = document.getElementById('sm_save'); btn.disabled = true;
+  try {
+    const { db, doc, setDoc, serverTimestamp } = window.__fb;
+    await setDoc(doc(db, 'sample', 'main'), { title: 'Free sample', qs: qs, count: qs.length, updatedAt: serverTimestamp() });
+    document.getElementById('sm_status').textContent = 'Saved: 10 questions are live on the home page.';
+    showToast('✔ Home sample saved');
+  } catch (e) { showToast('Failed: ' + e.message, true); } finally { btn.disabled = false; }
+}
+async function removeSampleQs() {
+  if (!confirm('Remove the free sample from the home page?')) return;
+  try { const { db, doc, deleteDoc } = window.__fb; await deleteDoc(doc(db, 'sample', 'main')); document.getElementById('sm_text').value = ''; document.getElementById('sm_status').textContent = 'Removed. The sample box is hidden now.'; showToast('Removed'); }
+  catch (e) { showToast('Failed: ' + e.message, true); }
+}
+async function saveSampleCards() {
+  const picks = [];
+  for (let i = 0; i < 5; i++) { const v = document.getElementById('sm_c' + i).value; if (v !== '') picks.push(SM.cards[Number(v)]); }
+  if (!picks.length) { showToast('Pick at least 1 card, or press Remove slider.', true); return; }
+  const names = picks.map(r => seriesNameOf(r).toLowerCase());
+  if (names.some((n, i) => names.indexOf(n) !== i)) { showToast('Two slides are from the same series. Pick 1 card from each series.', true); return; }
+  const cards = picks.map(r => ({ key: String(r.fileUrl).slice(3), series: seriesNameOf(r), title: String(r.title || ''), answer: r.tab === 'Card Test' ? String(r.answer || '').slice(0, 1200) : '' }));
+  const btn = document.getElementById('sm_csave'); btn.disabled = true;
+  try {
+    const { db, doc, setDoc, serverTimestamp } = window.__fb;
+    await setDoc(doc(db, 'sample', 'cards'), { cards: cards, count: cards.length, updatedAt: serverTimestamp() });
+    document.getElementById('sm_cstatus').textContent = 'Saved: ' + cards.length + (cards.length === 1 ? ' card is' : ' cards are') + ' live on the home page (pictures can take up to 5 minutes to refresh).';
+    showToast('✔ Slider saved');
+  } catch (e) { showToast('Failed: ' + e.message, true); } finally { btn.disabled = false; }
+}
+async function removeSampleCards() {
+  if (!confirm('Remove the card slider from the home page?')) return;
+  try { const { db, doc, deleteDoc } = window.__fb; await deleteDoc(doc(db, 'sample', 'cards')); document.getElementById('sm_cstatus').textContent = 'Removed. The slider is hidden now.'; for (let i = 0; i < 5; i++) document.getElementById('sm_c' + i).value = ''; showToast('Removed'); }
+  catch (e) { showToast('Failed: ' + e.message, true); }
+}
+document.getElementById('sm_save').addEventListener('click', saveSampleQs);
+document.getElementById('sm_reload').addEventListener('click', loadSampleAdmin);
+document.getElementById('sm_remove').addEventListener('click', removeSampleQs);
+document.getElementById('sm_csave').addEventListener('click', saveSampleCards);
+document.getElementById('sm_creload').addEventListener('click', loadSampleAdmin);
+document.getElementById('sm_cremove').addEventListener('click', removeSampleCards);
 
 // ---------- System check and launch test ----------
 function scRow(ok, label, note, optional) { const r = mk('div', 'sc-row ' + (ok ? 'ok' : optional ? 'opt' : 'bad')); r.appendChild(mk('div', 'dot', ok ? '✔' : optional ? '–' : '✘')); const t = mk('div', 'tx'); t.appendChild(mk('b', null, label)); if (note) t.appendChild(mk('span', null, note)); r.appendChild(t); return r; }
@@ -4499,6 +4586,7 @@ const LAUNCH_STEPS = [
     ['a6', 'Question Bank → Update practice pool has been pressed', 'Only if the bank has questions.'] ] },
   { g: 'B. Buy as a new student (second Google account)', s: [
     ['b1', 'Signed out, the home page shows the 3 Rules, Study tips and "Try it free"', 'Try the free sample to the end.'],
+    ['b1b', 'Signed out, the home page shows the card slider', 'Home sample tab: pick up to 5 cards, save, then swipe to the last slide.'],
     ['b2', 'Sign in with the second Google account: you see the payment steps, not the library', ''],
     ['b3', 'Submitting without ticking the agreement is blocked', 'You should see a message.'],
     ['b4', 'Pay the real price by UPI, enter the UTR, tick the agreement, submit', 'Use a real payment once so you know the full journey.'],

@@ -1417,6 +1417,22 @@
   .sample-box p { margin: 0; font-size: 14px; color: var(--gray); line-height: 1.5; }
   .sample-box .btn { flex-shrink: 0; }
   @media (max-width: 560px) { .sample-box .btn { width: 100%; } }
+  .cs-box { background: #fff; border: 1.5px solid var(--border); border-left: 4px solid var(--gold-b); border-radius: 16px; padding: 18px; overflow: hidden; }
+  .cs-box h2 { margin: 0 0 4px; font-size: 20px; font-weight: 800; color: var(--navy); }
+  .cs-box > p { margin: 0 0 12px; font-size: 14px; color: var(--gray); line-height: 1.5; }
+  .cs-track { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .cs-track::-webkit-scrollbar { display: none; }
+  .cs-slide { flex: 0 0 100%; max-width: 460px; margin: 0 auto; scroll-snap-align: center; border: 1.5px solid var(--border); border-radius: 14px; padding: 12px; background: var(--paper); display: flex; flex-direction: column; gap: 10px; box-sizing: border-box; }
+  .cs-series { font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; font-weight: 700; color: var(--teal); }
+  .cs-slide img { width: 100%; max-height: 52vh; object-fit: contain; border-radius: 10px; background: #fff; }
+  .cs-ans { padding: 10px 12px; border-radius: 12px; background: rgba(212,175,85,.16); border: 1px solid rgba(212,175,85,.6); font-size: 15px; line-height: 1.5; font-weight: 600; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 30vh; overflow: auto; }
+  .cs-slide .btn { width: 100%; }
+  .cs-last { justify-content: center; align-items: center; text-align: center; min-height: 260px; }
+  .cs-last b { font-size: 18px; color: var(--navy); }
+  .cs-last p { margin: 0; font-size: 14px; color: var(--gray); line-height: 1.5; }
+  .cs-dots { display: flex; justify-content: center; gap: 7px; margin-top: 12px; }
+  .cs-dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: background .2s, transform .2s; }
+  .cs-dots i.on { background: var(--gold-b); transform: scale(1.25); }
   .tr-cta { margin-top: 16px; background: linear-gradient(160deg, #0F2447, #0A1830); border: 1.5px solid var(--gold-b); border-radius: 14px; padding: 16px; text-align: center; color: #fff; }
   .tr-cta b { display: block; font-size: 16px; color: var(--gold-b); }
   .tr-cta span { display: block; margin: 4px 0 12px; font-size: 13.5px; color: #C9D3E6; }
@@ -1744,6 +1760,17 @@
     <div class="sample-box">
       <div><h2>Try it free</h2><p>Answer <b id="sampleN">10</b> real questions with full explanations. No sign-in needed.</p></div>
       <button class="btn btn-gold" id="sampleStart" type="button">Start free sample</button>
+    </div>
+  </div>
+</section>
+
+<section class="sample-sec" id="cardSliderSec" style="display:none;">
+  <div class="container">
+    <div class="cs-box">
+      <h2>Try our flashcards</h2>
+      <p>Swipe through <b id="csN">5</b> sample cards from our series. Tap &ldquo;Show answer&rdquo; to check yourself.</p>
+      <div class="cs-track" id="csTrack"></div>
+      <div class="cs-dots" id="csDots"></div>
     </div>
   </div>
 </section>
@@ -2412,6 +2439,7 @@ onFbReady(() => {
   const { auth, onAuthStateChanged } = window.__fb;
   loadPricing();
   loadSample();
+  loadSampleCards();
   loadRecentDrops();
 
   onAuthStateChanged(auth, async (user) => {
@@ -5948,8 +5976,9 @@ async function loadSample() {
     const { db, doc, getDoc } = window.__fb;
     const s = await getDoc(doc(db, "sample", "main"));
     const d = s.exists() ? s.data() : null;
-    SMP.data = d && Array.isArray(d.qs) && d.qs.length ? d : null;
-  } catch (e) { SMP.data = null; }
+    const good = d && Array.isArray(d.qs) ? d.qs.filter(q => q && q.q && Array.isArray(q.o) && q.o.length >= 2 && Number.isInteger(Number(q.a)) && Number(q.a) < q.o.length).slice(0, 10).map(q => Object.assign({}, q, { a: Number(q.a) })) : [];
+    SMP.data = good.length ? { qs: good } : null;
+  } catch (e) { SMP.data = null; if (!SMP.retried) { SMP.retried = true; setTimeout(loadSample, 3000); } }
   const sec = document.getElementById("sampleSec");
   if (!sec) return;
   if (!SMP.data) { sec.style.display = "none"; return; }
@@ -5965,6 +5994,48 @@ function startSample() {
   trFresh(); trStartTimer(); trRender();
 }
 document.getElementById("sampleStart").onclick = startSample;
+
+// ---------- Flash card slider on the public home page (up to 5 cards, picked by the admin) ----------
+async function loadSampleCards() {
+  const sec = document.getElementById("cardSliderSec");
+  if (!sec) return;
+  let cards = [];
+  try {
+    const { db, doc, getDoc } = window.__fb;
+    const s = await getDoc(doc(db, "sample", "cards"));
+    const d = s.exists() ? s.data() : null;
+    cards = d && Array.isArray(d.cards) ? d.cards.filter(c => c && c.key).slice(0, 5) : [];
+  } catch (e) { cards = []; }
+  if (!cards.length) { sec.style.display = "none"; return; }
+  const track = document.getElementById("csTrack"), dots = document.getElementById("csDots");
+  track.innerHTML = ""; dots.innerHTML = "";
+  cards.forEach((c, i) => {
+    const sl = document.createElement("div"); sl.className = "cs-slide";
+    const sr = document.createElement("div"); sr.className = "cs-series"; sr.textContent = c.series || "Card"; sl.appendChild(sr);
+    const im = document.createElement("img"); im.alt = (c.series || "Flash card") + " sample card"; im.loading = i ? "lazy" : "eager"; im.decoding = "async";
+    im.src = "/api/sample-card?i=" + i; sl.appendChild(im);
+    if (c.answer) {
+      const an = document.createElement("div"); an.className = "cs-ans"; an.hidden = true; an.textContent = c.answer;
+      const bt = document.createElement("button"); bt.type = "button"; bt.className = "btn btn-gold"; bt.textContent = "Show answer";
+      bt.onclick = () => { an.hidden = !an.hidden; bt.textContent = an.hidden ? "Show answer" : "Hide answer"; };
+      sl.appendChild(bt); sl.appendChild(an);
+    }
+    track.appendChild(sl);
+    dots.appendChild(document.createElement("i"));
+  });
+  const last = document.createElement("div"); last.className = "cs-slide cs-last";
+  last.innerHTML = "<b>Want every card?</b><p>Join Premium for all series and card tests.</p>";
+  const jb = document.createElement("button"); jb.type = "button"; jb.className = "btn btn-gold"; jb.textContent = "Join Premium for all series"; jb.onclick = () => goToJoin();
+  last.appendChild(jb); track.appendChild(last); dots.appendChild(document.createElement("i"));
+  document.getElementById("csN").textContent = String(cards.length);
+  const mark = () => {
+    const w = track.clientWidth || 1, kids = track.children; let best = 0, bd = 1e9;
+    for (let k = 0; k < kids.length; k++) { const d = Math.abs(kids[k].offsetLeft - track.offsetLeft - track.scrollLeft); if (d < bd) { bd = d; best = k; } }
+    Array.prototype.forEach.call(dots.children, (d, k) => d.classList.toggle("on", k === best));
+  };
+  track.onscroll = () => { clearTimeout(track._t); track._t = setTimeout(mark, 40); };
+  sec.style.display = ""; mark();
+}
 
 
 // ---------- Light / dark mode ----------

@@ -1169,6 +1169,32 @@ async function handleNotifyReport(request, env, url) {
   return json({ ok: true });
 }
 
+
+// ---------- Home page sample cards (public: only the few cards the admin picked in Firestore sample/cards) ----------
+const sampleCardsCache = { at: 0, keys: [] };
+async function sampleCardKeys(env) {
+  if (Date.now() - sampleCardsCache.at < 60 * 1000) return sampleCardsCache.keys;
+  const res = await fetch('https://firestore.googleapis.com/v1/projects/' + env.PROJECT_ID + '/databases/(default)/documents/sample/cards');
+  let keys = [];
+  if (res.status === 200) {
+    const f = ((await res.json()).fields) || {};
+    const vals = (f.cards && f.cards.arrayValue && f.cards.arrayValue.values) || [];
+    keys = vals.slice(0, 5).map(v => { const m = (v.mapValue && v.mapValue.fields) || {}; return (m.key && m.key.stringValue) || ''; });
+  } else if (res.status !== 404) throw new HttpError(502, 'Could not read the sample cards');
+  sampleCardsCache.at = Date.now(); sampleCardsCache.keys = keys;
+  return keys;
+}
+async function handleSampleCard(env, url) {
+  const i = parseInt(url.searchParams.get('i') || '', 10);
+  if (!(i >= 0 && i < 5)) throw new HttpError(404, 'Not found');
+  const key = (await sampleCardKeys(env))[i];
+  const ext = key ? key.split('.').pop() : '';
+  if (!key || RESERVED_PREFIXES.some(p => key.indexOf(p) === 0) || ['png', 'jpg', 'jpeg', 'webp'].indexOf(ext) === -1) throw new HttpError(404, 'Not found');
+  const obj = await env.FILES.get(cleanKey(key));
+  if (!obj) throw new HttpError(404, 'Not found');
+  return new Response(obj.body, { headers: { 'Content-Type': MIME[ext], 'Cache-Control': 'public, max-age=300', 'X-Content-Type-Options': 'nosniff' } });
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -1188,6 +1214,7 @@ export default {
       if (pub) return pub;
     }
     try {
+      if (url.pathname === '/api/sample-card' && request.method === 'GET') return await handleSampleCard(env, url);
       if (url.pathname === '/api/file' && request.method === 'GET') return await handleGet(request, env, url);
       if (url.pathname === '/api/file' && request.method === 'DELETE') return await handleDelete(request, env, url);
       if (url.pathname === '/api/upload' && request.method === 'PUT') return await handleUpload(request, env, url);
