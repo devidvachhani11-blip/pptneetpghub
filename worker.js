@@ -446,6 +446,7 @@ details.menu .panel hr{border:0;border-top:1px solid rgba(255,255,255,.12);margi
 @media(max-width:560px){nav.m a.hide{display:none}details.menu{display:block}.brand i,.brand .pr{display:none}nav.m{gap:10px}header.top .in{padding:12px 14px}}
 .btn{white-space:nowrap;line-height:1.3}footer a{white-space:nowrap;display:inline-block;margin-bottom:4px}footer .legal{margin-top:6px}footer .legal a{font-size:12.5px;opacity:.9}.cta-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
 @media(max-width:560px){header.top .btn{padding:8px 13px;font-size:12.5px}.cta-row{flex-direction:column;align-items:stretch}.cta-row .btn{display:block;text-align:center;padding:12px 16px;font-size:14px}}
+/* long links, URLs and wide tables must never push the page sideways on a phone */html{overflow-x:hidden}body{overflow-wrap:anywhere}main,.body,.src,.item,.lead,.crumbs,.note,.cta{max-width:100%;min-width:0}.body a,.src a,.item,.crumbs,h1,h2,p,li{overflow-wrap:anywhere;word-break:break-word}.body img,main img{max-width:100%;height:auto}.body table,.body pre{display:block;max-width:100%;overflow-x:auto}
 @media(max-width:350px){.brand{font-size:12.5px}.brand img{width:26px!important;height:26px!important;margin-right:6px!important}header.top .in{padding:10px 10px;gap:6px}header.top .btn{padding:7px 10px;font-size:12px}nav.m{gap:6px}details.menu summary{width:34px}}`;
 
 function shell(site, o) {
