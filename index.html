@@ -845,6 +845,38 @@
   }
   .lib-q:focus { outline: 2px solid var(--teal); outline-offset: 1px; }
 
+  #libCommunity .pr-go + .nb-card, #libCommunity .pr-go + .lib-chips { margin-top: 12px; }
+  .cm-seg { display: flex; gap: 4px; background: #EEF0F4; padding: 4px; border-radius: 14px; margin: 0 0 14px; }
+  .cm-seg button { flex: 1; border: 0; background: transparent; color: var(--gray); font-weight: 800; font-size: 14px; font-family: inherit; padding: 11px 6px; border-radius: 11px; }
+  .cm-seg button.on { background: var(--navy); color: #fff; }
+  .cm-join { display: flex; gap: 8px; margin-top: 8px; }
+  .cm-join input { flex: 1; min-width: 0; min-height: 44px; border: 1.5px solid var(--border); border-radius: 12px; padding: 0 12px; font: inherit; font-size: 15px; text-transform: uppercase; }
+  .cm-join button { min-height: 44px; padding: 0 18px; border-radius: 12px; background: var(--navy); color: #fff; font-weight: 800; font-family: inherit; }
+  .cm-h { display: flex; align-items: center; justify-content: space-between; margin: 18px 0 8px; }
+  .cm-h b { font-size: 15px; color: var(--navy); }
+  .cm-h button { background: none; border: 0; color: #0F8F83; font-weight: 800; font-size: 13px; font-family: inherit; }
+  .cm-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .cm-top b { font-size: 15px; color: var(--navy); overflow-wrap: anywhere; }
+  .cm-tag { flex-shrink: 0; font-size: 11.5px; font-weight: 800; padding: 3px 9px; border-radius: 10px; background: var(--paper-alt); color: var(--gray); }
+  .cm-tag.ok { background: #E1F4EE; color: #0B6B61; }
+  .cm-tag.bad { background: #FBE9E4; color: #A3401F; }
+  .cm-tag.go { background: var(--gold-tint); color: #7A5C12; }
+  .cm-sub { font-size: 13px; color: var(--gray); margin: 6px 0 8px; line-height: 1.5; overflow-wrap: anywhere; }
+  .cm-mn { font-size: 15px; font-weight: 600; line-height: 1.55; margin: 8px 0 6px; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); }
+  .cm-by { font-size: 12px; color: var(--gray); align-self: center; }
+  .cm-in { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; border: 1.5px solid var(--border); border-radius: 12px; padding: 11px 12px; font: inherit; font-size: 15px; background: #fff; color: var(--ink); }
+  .cm-res { margin-top: 14px; padding: 14px; border-radius: 14px; background: var(--paper-alt); text-align: center; }
+  .cm-res b { display: block; font-size: 17px; color: var(--navy); }
+  .cm-res span { display: block; font-size: 13px; color: var(--gray); margin-top: 4px; line-height: 1.5; }
+  .cm-res.win { background: #E1F4EE; } .cm-res.lose { background: #FBE9E4; }
+  .rk-box { margin-top: 12px; padding: 12px 14px; border-radius: 12px; background: var(--gold-tint); border-left: 4px solid #D4AF55; font-size: 13.5px; line-height: 1.55; color: #5B4510; }
+  .rk-box b { color: #0F2447; }
+  .rk-box small { display: block; margin-top: 4px; font-size: 11.5px; opacity: .85; }
+  :where(html[data-eff="dark"]) .cm-seg { background: #1B2336; }
+  :where(html[data-eff="dark"]) .cm-in, :where(html[data-eff="dark"]) .cm-join input { background: var(--white); color: var(--ink); }
+  :where(html[data-eff="dark"]) .cm-top b, :where(html[data-eff="dark"]) .cm-h b, :where(html[data-eff="dark"]) .cm-res b { color: var(--ink); }
+  :where(html[data-eff="dark"]) .rk-box { background: #2E2812; color: #F2E3B3; }
+  :where(html[data-eff="dark"]) .rk-box b { color: #fff; }
   .lib-exsw { display: flex; gap: 6px; background: #EEF0F4; padding: 4px; border-radius: 14px; margin-top: 12px; }
   .lib-exsw button { flex: 1; border: 0; background: transparent; color: var(--gray); font-weight: 800; font-size: 14px; font-family: inherit; padding: 11px 8px; border-radius: 11px; display: flex; justify-content: center; align-items: center; gap: 8px; }
   .lib-exsw button b { font-size: 11.5px; background: rgba(0,0,0,.08); border-radius: 10px; padding: 2px 8px; }
@@ -2001,6 +2033,7 @@
       <button class="on" id="vwLib" role="tab">Library</button>
       <button id="vwProg" role="tab">My progress</button>
       <button id="vwNb" role="tab">Notebook</button>
+      <button id="vwCom" role="tab">Play</button>
     </div>
 
     <div class="exp-bar" id="libExpiry" style="display:none;"></div>
@@ -2024,6 +2057,7 @@
 
     <div id="libProgress" style="display:none;"></div>
     <div id="libNotebook" style="display:none;"></div>
+    <div id="libCommunity" style="display:none;"></div>
 
     <p class="lib-foot" id="accessNoteText">Signed in as: &mdash;</p>
     <div class="lib-legal"><a href="/terms" target="_blank" rel="noopener">Terms</a><a href="/privacy" target="_blank" rel="noopener">Privacy</a><a href="/refund" target="_blank" rel="noopener">Refunds</a></div>
@@ -2458,7 +2492,7 @@ onFbReady(() => {
     paymentInfo.latest = null;
     memberInfo = { exists: false, endMs: 0, id: "" };
     memberExpired = false;
-    CARDS.loaded = false; CARDS.loading = null; CARDS.map = {}; NB.loaded = false; NB.loading = null; NB.items = []; NB.gone = []; NB.tests = {}; NB.open = new Set(); PR.index = null; PR.parts = {}; PR.loading = null;
+    CARDS.loaded = false; CARDS.loading = null; CARDS.map = {}; NB.loaded = false; NB.loading = null; NB.items = []; NB.gone = []; NB.tests = {}; NB.open = new Set(); PR.index = null; PR.parts = {}; PR.loading = null; PLAY.duels = null; PLAY.mn = null; PLAY.mnMine = null; PLAY.mnForm = false;
     deviceState = { status: user ? "checking" : "ok", list: [], lastChange: 0 };
     updateView();
     renderJoin();
@@ -2485,6 +2519,7 @@ onFbReady(() => {
       loadNotebook();
       prLoadIndex();
       window.scrollTo(0, 0);
+      setTimeout(duelPending, 600);
     } else if (user && !isPaidMember && memberExpired) {
       showToast("Your membership has ended. Renew below to continue.", true);
       if (signInIntent) goToJoin();
@@ -3916,13 +3951,14 @@ async function trFinish(auto) {
   TR.prev = trSynthetic() ? null : lastAttemptOf(t.id);   // for "last time vs now" on the result screen
   TR.res = trCompute();
   trForget();
-  TR.nbNote = t.practice ? practiceRecord(t, TR.ans) : t.sample ? 0 : trSynthetic() ? nbPracticeDone(t, TR.ans) : 0;
+  TR.nbNote = t.practice ? practiceRecord(t, TR.ans) : (t.sample || t.duel) ? 0 : trSynthetic() ? nbPracticeDone(t, TR.ans) : 0;
   if (!trSynthetic()) nbRecordResult(t, TR.ans);
   Object.keys(TR.why || {}).forEach(k => whyApply(Number(k)));
   TR.first = trSynthetic() ? false : null; TR.firstInfo = null;      // null = still checking
   trRenderResult();
   if (!trSynthetic()) await trCheckFirst();                            // look at the saved results BEFORE saving this one
   if (!trSynthetic() || t.practice) await trSaveAttempt(TR.res);
+  if (t.duel) await duelSubmit(t, TR.res);
 }
 
 // ---------- Score card: only for the FIRST attempt of a test (checked in Firebase, not on the phone) ----------
@@ -4005,13 +4041,14 @@ function trRenderResult() {
       (r.blocks ? '<div class="blk-res">' + r.blocks.map(b => '<div class="row"><b>' + esc(b.name) + ' · ' + b.score + '</b><span>' + b.c + ' right, ' + b.w + ' wrong, ' + b.s + ' skipped</span></div>').join("") + '</div>' : "") +
       trSpeedHTML() +
       (!trSynthetic() && !t.sample ? '<div id="trLb"></div>' : '') +
+      (t.duel ? '<div id="trDuel"></div>' : '') +
       '<div id="trShare">' + trShareHTML() + '</div>' +
       (t.trapMode ? '<div class="tr-cmp">Trap Spotter: you fell for <b>' + r.w + '</b> of <b>' + t.qs.length + '</b> traps' + (r.w === 0 ? ". Sharp eyes!" : ".") + '</div>' : "") +
       (TR.nbNote ? '<div class="tr-cmp">' + TR.nbNote + (TR.nbNote === 1 ? " question" : " questions") + ' mastered and removed from your notebook.</div>' : "") +
       ((!trSynthetic() || t.practice) && r.w > 0 ? '<div class="tr-cmp">Your ' + r.w + (r.w === 1 ? " wrong answer was" : " wrong answers were") + ' added to your Mistake notebook.</div>' : "") +
     (t.sample ? '<div class="tr-cta"><b>Want the full question bank?</b><span>Unlock every test, note and flashcard deck.</span><button class="tr-btn pri" data-act="join">Go Premium</button></div>' : '') +
     '</div></div></div>' +
-    '<div class="tr-foot"><button class="tr-btn sec" data-act="retake">' + (trSynthetic() ? "Practise again" : "Retake") + '</button><button class="tr-btn pri" data-act="review">Review answers</button></div>';
+    '<div class="tr-foot"><button class="tr-btn sec" data-act="retake">' + (t.duel ? "Back to Play" : trSynthetic() ? "Practise again" : "Retake") + '</button><button class="tr-btn pri" data-act="review">Review answers</button></div>';
   trLoadLb();
 }
 
@@ -4098,9 +4135,11 @@ document.getElementById("trOverlay").addEventListener("click", (e) => {
   if (act === "filter") { TR.filter = b.dataset.f; return trRenderReview(); }
   if (act === "join") { trCloseOverlay(); const p = document.getElementById("pricing"); if (p) p.scrollIntoView({ behavior: "smooth" }); return; }
   if (act === "share") return trShareCard();
+  if (act === "duelshare") return duelShare(t.duel.code, myLabel());
   if (act === "gtnew") return gtNewAttempt();
   if (act === "retake") {
     if (t && t.practice) return prStart(t.nPick, t.pmode);
+    if (t && t.duel) { trCloseOverlay(); PLAY.duels = null; PLAY.sec = "duel"; return setLibView("community"); }
     if (t && t.gt) return gtNewAttempt();
     if (!confirm(trSynthetic() ? "Practise these questions again?" : "Start this test again?\n\nThis is practice. The score card and the Top 10 use only your first attempt.")) return;
     trFresh(); TR.phase = trHasBlocks() ? "blocks" : "run"; TR.res = null; TR.nbNote = 0; trStartTimer(); return trRender();
@@ -4211,6 +4250,15 @@ function paintTop10() {
 }
 
 // ---------- Top 10 (anonymous: member ID and score only) ----------
+// Rank predictor: where a score would stand among the members who took the same test.
+// It only compares with our own members (not the real exam), and needs at least 30 students to be fair.
+function rankBox(all, score, d, inList) {
+  const n = all.length;
+  if (n < 30) return '<div class="rk-box"><b>Rank predictor</b><br>Needs at least 30 students on this test to be fair. Now: ' + n + '.</div>';
+  const above = all.filter(x => Number(x.s) > score).length, rank = above + 1;
+  const top = Math.max(1, Math.ceil(rank / n * 100)), beat = Math.round((n - rank) / n * 100);
+  return '<div class="rk-box"><b>Rank predictor</b><br>' + (inList ? "Your score" : "Your latest score") + ' <b>' + esc(String(score)) + '</b> / ' + esc(String(d.max)) + ' ' + (inList ? "is" : "would be") + ' about <b>#' + rank + '</b> of ' + n + ' students (top <b>' + top + '%</b>, ahead of ' + beat + '%).<small>Compared with PPTNEETPGHUB members only, not the real NEET PG rank.</small></div>';
+}
 function lbHTML(d, myId) {
   const all = Array.isArray(d.all) ? d.all : [];
   const mine = myId ? all.findIndex(x => String(x.i) === String(myId)) : -1;
@@ -4219,8 +4267,12 @@ function lbHTML(d, myId) {
     h += '<div class="row' + (String(x.i) === String(myId) ? ' me' : '') + '"><b>#' + (i + 1) + ' \u00B7 ID ' + esc(String(x.i)) + '</b><span>' + esc(String(x.s)) + ' / ' + esc(String(d.max)) + '</span></div>';
   });
   h += '</div>';
-  if (mine >= 0) h += '<div class="tr-cmp">Your rank: <b>#' + (mine + 1) + '</b> (first attempt, ' + esc(String(all[mine].s)) + ' / ' + esc(String(d.max)) + ')</div>';
-  else if (myId) h += '<div class="tr-cmp">' + (MY_ATTEMPTS.some(a => a.testId === d.testId) ? "Your first attempt is not in this list." : "You have not taken this test yet.") + '</div>';
+  if (mine >= 0) h += '<div class="tr-cmp">Your rank: <b>#' + (mine + 1) + '</b> (first attempt, ' + esc(String(all[mine].s)) + ' / ' + esc(String(d.max)) + ')</div>' + rankBox(all, Number(all[mine].s), d, true);
+  else if (myId) {
+    const la = lastAttemptOf(d.testId);
+    h += '<div class="tr-cmp">' + (la ? "Your first attempt is not in this list." : "You have not taken this test yet.") + '</div>';
+    if (la && Number.isFinite(Number(la.score))) h += rankBox(all, Number(la.score), d, false);
+  }
   return h;
 }
 async function trLoadLb() {
@@ -4411,7 +4463,7 @@ async function trShareCard() {
 // ---------- My progress (a student sees only their own results) ----------
 let MY_ATTEMPTS = [];        // this member's attempts, oldest to newest
 let attemptsLoaded = false;
-let libView = "library";     // "library" | "progress"
+let libView = "library";     // "library" | "progress" | "notebook" | "community"
 
 function pctOf(a) { const m = Number(a.maxScore) || 0; return m > 0 ? Number(a.score) / m * 100 : 0; }
 function pctTxt(x) { return Math.round(x) + "%"; }
@@ -5326,6 +5378,7 @@ function renderTiles(box, tabArg) {
 }
 
 function renderHeading() {
+  if (libView === "community") { document.getElementById("libTitle").textContent = "Play"; document.getElementById("libSub").textContent = "Duel a friend \u00B7 Mnemonic Wall"; return; }
   if (libView === "notebook") { document.getElementById("libTitle").textContent = "Mistake notebook"; return; }
   if (libView === "progress") {
     document.getElementById("libTitle").textContent = "My progress";
@@ -5362,13 +5415,15 @@ function renderHeading() {
 }
 
 function render() {
-  const prog = libView === "progress", nbk = libView === "notebook";
+  const prog = libView === "progress", nbk = libView === "notebook", com = libView === "community";
   document.getElementById("libraryView").classList.toggle("v-progress", prog);
-  document.getElementById("libraryView").classList.toggle("v-notebook", nbk);
-  document.getElementById("libBrowse").style.display = prog || nbk ? "none" : "";
+  document.getElementById("libraryView").classList.toggle("v-notebook", nbk || com);
+  document.getElementById("libBrowse").style.display = prog || nbk || com ? "none" : "";
   document.getElementById("libProgress").style.display = prog ? "" : "none";
   document.getElementById("libNotebook").style.display = nbk ? "" : "none";
-  document.getElementById("vwLib").classList.toggle("on", !prog && !nbk);
+  document.getElementById("libCommunity").style.display = com ? "" : "none";
+  document.getElementById("vwCom").classList.toggle("on", com);
+  document.getElementById("vwLib").classList.toggle("on", !prog && !nbk && !com);
   document.getElementById("vwProg").classList.toggle("on", prog);
   document.getElementById("vwNb").classList.toggle("on", nbk);
   renderHeading();
@@ -5377,6 +5432,7 @@ function render() {
   paintTop10();
   paintNbTab();
   if (nbk) { renderNotebook(); return; }
+  if (com) { renderCommunity(); return; }
   if (prog) { renderProgress(); return; }
   renderExam();
   renderChips();
@@ -5386,6 +5442,7 @@ function render() {
 document.getElementById("vwLib").onclick = () => setLibView("library");
 document.getElementById("vwProg").onclick = () => setLibView("progress");
 document.getElementById("vwNb").onclick = () => setLibView("notebook");
+document.getElementById("vwCom").onclick = () => setLibView("community");
 
 // ---------- Right-side filter drawer (phones) ----------
 function openFilter() {
@@ -5968,6 +6025,328 @@ function practiceRecord(t, ans) {
   }
   prSeenAdd(t.refs.map(r => r.k || (r.t + ":" + r.i)));
   return mastered;
+}
+
+// ======================================================================
+// Play tab: 1v1 Duel and Mnemonic Wall
+// ======================================================================
+const PLAY = { sec: "duel", duels: null, duelsLoading: false, mn: null, mnMine: null, mnLoading: false, mnSubject: "All", mnForm: false };
+const DUEL_N = 10, DUEL_HOURS = 48;
+
+function myLabel() {
+  const n = String((currentUser && currentUser.displayName) || "").trim().split(/\s+/)[0];
+  return (n || "A friend").slice(0, 20);
+}
+function myEmail() { return String((currentUser && currentUser.email) || "").toLowerCase(); }
+function tsMs(v) { return v && v.toMillis ? v.toMillis() : (typeof v === "number" ? v : 0); }
+function fmtSecs(x) { x = Math.max(0, Math.round(x || 0)); return Math.floor(x / 60) + ":" + String(x % 60).padStart(2, "0"); }
+
+function renderCommunity() {
+  const box = document.getElementById("libCommunity");
+  if (!box) return;
+  box.innerHTML = "";
+  const seg = libEl("div", "cm-seg");
+  [["duel", "1v1 Duel"], ["mn", "Mnemonic Wall"]].forEach(x => {
+    const b = libEl("button", PLAY.sec === x[0] ? "on" : "", x[1]); b.type = "button";
+    b.onclick = () => { PLAY.sec = x[0]; renderCommunity(); };
+    seg.appendChild(b);
+  });
+  box.appendChild(seg);
+  if (!currentUser || !isPaidMember) { box.appendChild(libEl("div", "lib-empty", "Sign in as a member to play.")); return; }
+  if (PLAY.sec === "duel") paintDuel(box); else paintMnemonics(box);
+}
+
+// ---------------------------------------------------------------- Duel
+function duelCode() {
+  const a = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let s = "";
+  const u = new Uint32Array(6); (window.crypto || {}).getRandomValues ? crypto.getRandomValues(u) : u.forEach((_, i) => { u[i] = Math.floor(Math.random() * 4294967295); });
+  for (let i = 0; i < 6; i++) s += a[u[i] % a.length];
+  return s;
+}
+function duelLink(code) { return location.origin + "/?duel=" + code; }
+function duelOutcome(d, me) {
+  const a = d.ra, b = d.rb;
+  if (!a || !b) return null;
+  const mineIsA = d.ea === me, x = mineIsA ? a : b, y = mineIsA ? b : a;
+  if (x.c !== y.c) return x.c > y.c ? "win" : "lose";
+  if (x.sec !== y.sec) return x.sec < y.sec ? "win" : "lose";
+  return "tie";
+}
+function duelExpired(d) { const c = tsMs(d.createdAt); return !!c && Date.now() - c > DUEL_HOURS * 3600000; }
+
+async function loadDuels(force) {
+  if (PLAY.duelsLoading || !window.__fb || !currentUser) return;
+  if (PLAY.duels && !force) return;
+  PLAY.duelsLoading = true;
+  try {
+    const { db, collection, getDocs, query, where } = window.__fb, me = myEmail();
+    const [s1, s2] = await Promise.all([
+      getDocs(query(collection(db, "duels"), where("ea", "==", me))),
+      getDocs(query(collection(db, "duels"), where("eb", "==", me)))
+    ]);
+    const m = {};
+    [s1, s2].forEach(s => s.forEach(d => { m[d.id] = Object.assign({ id: d.id }, d.data()); }));
+    PLAY.duels = Object.keys(m).map(k => m[k]).sort((p, q) => tsMs(q.createdAt) - tsMs(p.createdAt)).slice(0, 15);
+  } catch (e) { PLAY.duels = PLAY.duels || []; PLAY.duelsErr = true; }
+  PLAY.duelsLoading = false;
+  if (libView === "community" && PLAY.sec === "duel") renderCommunity();
+}
+
+function paintDuel(box) {
+  const me = myEmail();
+  const card = libEl("div", "pr-card");
+  card.appendChild(libEl("h4", null, "Challenge a friend"));
+  card.appendChild(libEl("p", "sub", DUEL_N + " random questions, same for both of you. Play now, send the link on WhatsApp, and your friend plays when free. More correct answers wins; if it is a tie, the faster one wins. The link works for " + DUEL_HOURS + " hours. Your friend must be a Premium member."));
+  const go = libEl("button", "pr-go", "Start a duel"); go.type = "button"; go.onclick = () => duelCreate(go);
+  card.appendChild(go);
+  box.appendChild(card);
+
+  const jc = libEl("div", "pr-card");
+  jc.appendChild(libEl("h4", null, "Got a duel code?"));
+  const row = libEl("div", "cm-join");
+  const inp = document.createElement("input"); inp.type = "text"; inp.placeholder = "Code, e.g. K7MQ2X"; inp.maxLength = 40; inp.autocomplete = "off"; inp.setAttribute("aria-label", "Duel code");
+  const jb = libEl("button", null, "Open"); jb.type = "button";
+  jb.onclick = () => { const c = duelParse(inp.value); if (c) duelOpen(c); else showToast("Type the code from your friend.", true); };
+  row.appendChild(inp); row.appendChild(jb); jc.appendChild(row);
+  box.appendChild(jc);
+
+  const h = libEl("div", "cm-h"); h.appendChild(libEl("b", null, "My duels"));
+  const rf = libEl("button", null, "Refresh"); rf.type = "button"; rf.onclick = () => { PLAY.duels = null; loadDuels(true); };
+  h.appendChild(rf); box.appendChild(h);
+  if (!PLAY.duels) { box.appendChild(libEl("div", "lib-empty", "Loading your duels…")); loadDuels(); return; }
+  if (!PLAY.duels.length) { box.appendChild(libEl("div", "lib-empty", PLAY.duelsErr ? "Could not load your duels. Tap Refresh." : "No duels yet. Start one above.")); return; }
+  PLAY.duels.forEach(d => {
+    const mineA = d.ea === me, opp = mineA ? (d.eb ? d.lb : "") : d.la, mine = mineA ? d.ra : d.rb, theirs = mineA ? d.rb : d.ra;
+    const it = libEl("div", "nb-card");
+    const top = libEl("div", "cm-top");
+    top.appendChild(libEl("b", null, opp ? "vs " + opp : "Waiting for a friend"));
+    const out = duelOutcome(d, me);
+    let tag = "", tcls = "";
+    if (out === "win") { tag = "You won"; tcls = "ok"; } else if (out === "lose") { tag = "You lost"; tcls = "bad"; } else if (out === "tie") { tag = "Tie"; }
+    else if (!mine) { tag = duelExpired(d) ? "Expired" : "Your turn"; tcls = duelExpired(d) ? "" : "go"; }
+    else if (!d.eb) { tag = duelExpired(d) ? "Expired" : "Not accepted yet"; }
+    else tag = "Friend has not finished";
+    top.appendChild(libEl("span", "cm-tag " + tcls, tag));
+    it.appendChild(top);
+    const sc = libEl("div", "cm-sub");
+    sc.textContent = (mine ? "You " + mine.c + "/" + mine.tot + " · " + fmtSecs(mine.sec) : "You: not played") + (theirs ? "   |   " + (opp || "Friend") + " " + theirs.c + "/" + theirs.tot + " · " + fmtSecs(theirs.sec) : "");
+    it.appendChild(sc);
+    const acts = libEl("div", "nb-acts");
+    if (!mine && !duelExpired(d)) { const b = libEl("button", "on", "Play now"); b.type = "button"; b.onclick = () => duelPlay(d, mineA ? "a" : "b"); acts.appendChild(b); }
+    if (mineA && !d.eb && !duelExpired(d)) { const b = libEl("button", null, "Send link"); b.type = "button"; b.onclick = () => duelShare(d.id, d.la); acts.appendChild(b); }
+    if (acts.childNodes.length) it.appendChild(acts);
+    box.appendChild(it);
+  });
+}
+function duelParse(v) {
+  let s = String(v || "").trim();
+  const m = s.match(/duel=([A-Za-z0-9]{4,12})/); if (m) s = m[1];
+  s = s.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  return s.length >= 4 && s.length <= 12 ? s : "";
+}
+function duelShare(code, label) {
+  const text = (label || myLabel()) + " challenged you to a NEET PG duel on PPTNEETPGHUB. 10 questions, who scores more? Open: " + duelLink(code) + "  (code " + code + ")";
+  if (navigator.share) { navigator.share({ text: text }).catch(() => {}); return; }
+  window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank", "noopener");
+}
+
+async function duelPickQuestions() {
+  if (!PR.index) await prLoadIndex();
+  const ix = PR.index; if (!ix || !ix.total) throw new Error("no pool");
+  const ents = ix.subjects, ent = ents.find(x => x.slug === PR.exam) || ents[0], need = [];
+  if (ix.legacy) ents.forEach(sb => { for (let p = 0; p < (Number(sb.parts) || 1); p++) need.push({ s: sb, p: p }); });
+  else if (ent) for (let p = 0; p < (Number(ent.parts) || 1); p++) need.push({ s: ent, p: p });
+  prShuffle(need);
+  const docs = await Promise.all(need.slice(0, 2).map(x => prPart(x.s, x.p)));
+  const pool = [];
+  docs.forEach(d => d.qs.forEach(q => { if (q && q.q && Array.isArray(q.o) && q.o.length >= 2 && Number.isInteger(Number(q.a)) && Number(q.a) < q.o.length) pool.push(q); }));
+  if (pool.length < 5) throw new Error("small pool");
+  prShuffle(pool);
+  return pool.slice(0, DUEL_N).map(q => JSON.parse(JSON.stringify(Object.assign({}, q, { a: Number(q.a) }))));
+}
+async function duelCreate(btn) {
+  if (!window.__fb || !currentUser) return;
+  btn.disabled = true; const old = btn.textContent; btn.textContent = "Getting questions…";
+  try {
+    const qs = await duelPickQuestions();
+    const code = duelCode(), { db, doc, setDoc, serverTimestamp } = window.__fb;
+    await setDoc(doc(db, "duels", code), { ea: myEmail(), la: myLabel(), qs: qs, createdAt: serverTimestamp(), ra: null, eb: "", lb: "", rb: null });
+    PLAY.duels = null;
+    duelPlay({ id: code, qs: qs, la: myLabel(), lb: "" }, "a");
+  } catch (e) { console.error(e); showToast("Could not start the duel. Check your internet and try again.", true); }
+  btn.disabled = false; btn.textContent = old;
+}
+function duelPlay(d, role) {
+  const qs = (d.qs || []).map(q => ({ q: q.q, o: q.o, a: q.a, e: q.e || "", s: q.s, t: q.t, qimg: q.qimg, eimg: q.eimg }));
+  if (!qs.length) { showToast("This duel has no questions.", true); return; }
+  const opp = role === "a" ? (d.lb || "") : (d.la || "");
+  TR.t = { id: "__duel__" + d.id, duel: { code: d.id, role: role, opp: opp }, title: "Duel" + (opp ? " vs " + opp : ""), subject: "Mixed", mode: "instant", duration: 0, plus: 1, minus: 0, qs: qs };
+  TR.phase = "run"; TR.pal = false; TR.filter = "All"; TR.res = null; TR.prev = null; TR.blocks = []; TR.blk = -1;
+  trOverlay().classList.add("on"); document.body.style.overflow = "hidden";
+  trFresh(); trStartTimer(); trRender();
+}
+async function duelOpen(code) {
+  if (!window.__fb || !currentUser) return;
+  const me = myEmail(), { db, doc, getDoc, setDoc } = window.__fb;
+  let d;
+  try {
+    const s = await getDoc(doc(db, "duels", code));
+    if (!s.exists()) { showToast("This duel was not found. Check the code.", true); return; }
+    d = Object.assign({ id: code }, s.data());
+  } catch (e) { showToast("Could not open the duel. Try again.", true); return; }
+  if (d.ea === me) {
+    if (d.ra) { showToast("You already played this duel."); PLAY.duels = null; setLibView("community"); return; }
+    return duelPlay(d, "a");
+  }
+  if (d.eb === me) {
+    if (d.rb) { showToast("You already played this duel."); PLAY.duels = null; setLibView("community"); return; }
+    return duelPlay(d, "b");
+  }
+  if (duelExpired(d)) { showToast("This duel link has expired.", true); return; }
+  if (d.eb) { showToast("Someone else already accepted this duel.", true); return; }
+  if (!confirm(d.la + " challenged you.\n" + (d.qs || []).length + " questions. Start now?")) return;
+  try {
+    await setDoc(doc(db, "duels", code), { eb: me, lb: myLabel() }, { merge: true });
+  } catch (e) { showToast("Could not accept the duel. Someone may have just accepted it.", true); return; }
+  PLAY.duels = null;
+  duelPlay(Object.assign({}, d, { eb: me, lb: myLabel() }), "b");
+}
+async function duelSubmit(t, r) {
+  const el = () => document.getElementById("trDuel");
+  if (el()) el().innerHTML = '<div class="tr-cmp">Saving your duel result…</div>';
+  const { db, doc, getDoc, setDoc } = window.__fb, me = myEmail(), code = t.duel.code;
+  const res = { n: myLabel(), c: r.c, tot: t.qs.length, sec: Math.round(r.seconds || 0), at: Date.now() };
+  try {
+    await setDoc(doc(db, "duels", code), t.duel.role === "a" ? { ra: res } : { rb: res }, { merge: true });
+  } catch (e) {
+    if (el()) el().innerHTML = '<div class="tr-cmp">Could not save your duel result. You may have already played this duel.</div>';
+    return;
+  }
+  PLAY.duels = null;
+  let d = null;
+  try { const s = await getDoc(doc(db, "duels", code)); d = s.exists() ? Object.assign({ id: code }, s.data()) : null; } catch (e) {}
+  if (!el()) return;
+  if (!d) { el().innerHTML = '<div class="tr-cmp">Result saved.</div>'; return; }
+  const out = duelOutcome(d, me), opp = t.duel.role === "a" ? d.lb : d.la, theirs = t.duel.role === "a" ? d.rb : d.ra;
+  if (out) {
+    const line = out === "win" ? "You won the duel!" : out === "lose" ? (opp || "Your friend") + " won this one." : "It is a tie.";
+    el().innerHTML = '<div class="cm-res ' + out + '"><b>' + esc(line) + '</b><span>You ' + res.c + '/' + res.tot + ' · ' + fmtSecs(res.sec) + '  |  ' + esc(opp || "Friend") + ' ' + theirs.c + '/' + theirs.tot + ' · ' + fmtSecs(theirs.sec) + '</span></div>';
+  } else {
+    el().innerHTML = '<div class="cm-res"><b>Your score is saved: ' + res.c + '/' + res.tot + '</b><span>' + (t.duel.role === "a" ? 'Now send the link. The result appears in Play → My duels when your friend finishes.' : 'The challenger has not finished yet. The result appears in Play → My duels.') + '</span>' +
+      (t.duel.role === "a" ? '<button class="tr-btn pri" data-act="duelshare" style="margin-top:10px;width:100%">Send link on WhatsApp</button>' : '') + '</div>';
+  }
+}
+function duelPending() {
+  let c = ""; try { c = localStorage.getItem("pptDuelCode") || ""; localStorage.removeItem("pptDuelCode"); } catch (e) {}
+  if (!c) return;
+  setLibView("community"); PLAY.sec = "duel"; renderCommunity();
+  duelOpen(c);
+}
+(function () {
+  try {
+    const m = location.search.match(/[?&]duel=([A-Za-z0-9]{4,12})/);
+    if (m) { localStorage.setItem("pptDuelCode", m[1].toUpperCase()); history.replaceState(null, "", location.pathname + location.hash); }
+  } catch (e) {}
+})();
+
+// ---------------------------------------------------------------- Mnemonic Wall
+async function loadMnemonics(force) {
+  if (PLAY.mnLoading || !window.__fb || !currentUser) return;
+  if (PLAY.mn && !force) return;
+  PLAY.mnLoading = true;
+  try {
+    const { db, collection, getDocs, query, where } = window.__fb, me = myEmail();
+    const [a, b] = await Promise.all([
+      getDocs(query(collection(db, "mnemonics"), where("status", "==", "approved"))),
+      getDocs(query(collection(db, "mnemonics"), where("email", "==", me)))
+    ]);
+    PLAY.mn = []; PLAY.mnMine = [];
+    a.forEach(d => PLAY.mn.push(Object.assign({ id: d.id }, d.data())));
+    b.forEach(d => PLAY.mnMine.push(Object.assign({ id: d.id }, d.data())));
+    PLAY.mnErr = false;
+  } catch (e) { PLAY.mn = PLAY.mn || []; PLAY.mnMine = PLAY.mnMine || []; PLAY.mnErr = true; }
+  PLAY.mnLoading = false;
+  if (libView === "community" && PLAY.sec === "mn") renderCommunity();
+}
+function mnSorted(list) { return list.slice().sort((p, q) => ((q.voters || []).length - (p.voters || []).length) || (tsMs(q.createdAt) - tsMs(p.createdAt))); }
+
+function paintMnemonics(box) {
+  const add = libEl("button", "pr-go", PLAY.mnForm ? "Close" : "Add your mnemonic"); add.type = "button";
+  add.style.marginTop = "0"; add.onclick = () => { PLAY.mnForm = !PLAY.mnForm; renderCommunity(); };
+  box.appendChild(add);
+  if (PLAY.mnForm) box.appendChild(mnForm());
+  if (!PLAY.mn) { box.appendChild(libEl("div", "lib-empty", "Loading the wall…")); loadMnemonics(); return; }
+  const subs = ["All"]; PLAY.mn.forEach(m => { if (subs.indexOf(m.subject) < 0) subs.push(m.subject); });
+  if (subs.length > 2) {
+    const row = libEl("div", "lib-chips");
+    subs.forEach(s => {
+      const b = libEl("button", "lib-chip" + (PLAY.mnSubject === s ? " on" : ""), s); b.type = "button";
+      b.onclick = () => { PLAY.mnSubject = s; renderCommunity(); }; row.appendChild(b);
+    });
+    box.appendChild(row);
+  }
+  const myId = memberInfo.id;
+  const shown = mnSorted(PLAY.mn.filter(m => PLAY.mnSubject === "All" || m.subject === PLAY.mnSubject));
+  if (!shown.length) box.appendChild(libEl("div", "lib-empty", PLAY.mnErr ? "Could not load the wall. Check your internet." : "No mnemonics yet. Be the first to add one!"));
+  shown.forEach(m => {
+    const c = libEl("div", "nb-card");
+    const top = libEl("div", "cm-top"); top.appendChild(libEl("b", null, m.topic)); top.appendChild(libEl("span", "cm-tag", m.subject)); c.appendChild(top);
+    c.appendChild(libEl("div", "cm-mn", m.text));
+    if (m.meaning) c.appendChild(libEl("div", "cm-sub", m.meaning));
+    const acts = libEl("div", "nb-acts");
+    const voted = !!myId && (m.voters || []).indexOf(myId) > -1;
+    const v = libEl("button", voted ? "on" : "", "▲ " + (m.voters || []).length + (voted ? " voted" : " Useful")); v.type = "button";
+    v.onclick = () => mnVote(m, v);
+    acts.appendChild(v);
+    if (m.mid) acts.appendChild(libEl("span", "cm-by", "by ID " + m.mid));
+    c.appendChild(acts); box.appendChild(c);
+  });
+  if (PLAY.mnMine && PLAY.mnMine.some(m => m.status !== "approved")) {
+    box.appendChild(libEl("div", "cm-h")).appendChild(libEl("b", null, "My submissions"));
+    PLAY.mnMine.filter(m => m.status !== "approved").sort((p, q) => tsMs(q.createdAt) - tsMs(p.createdAt)).forEach(m => {
+      const c = libEl("div", "nb-card"), top = libEl("div", "cm-top");
+      top.appendChild(libEl("b", null, m.topic)); top.appendChild(libEl("span", "cm-tag " + (m.status === "rejected" ? "bad" : "go"), m.status === "rejected" ? "Not approved" : "Waiting for approval"));
+      c.appendChild(top); c.appendChild(libEl("div", "cm-mn", m.text)); box.appendChild(c);
+    });
+  }
+}
+function mnForm() {
+  const f = libEl("div", "pr-card"); f.style.marginTop = "12px";
+  f.appendChild(libEl("h4", null, "Add a mnemonic"));
+  f.appendChild(libEl("p", "sub", "Only your own words, please. It shows on the wall after the admin approves it. Up to 3 a day."));
+  const sel = document.createElement("select"); sel.className = "cm-in"; sel.setAttribute("aria-label", "Subject");
+  KNOWN_SUBJECTS.forEach(s => { const o = document.createElement("option"); o.value = s; o.textContent = s; sel.appendChild(o); });
+  const topic = document.createElement("input"); topic.className = "cm-in"; topic.placeholder = "Topic (e.g. Branches of facial nerve)"; topic.maxLength = 80;
+  const text = document.createElement("textarea"); text.className = "cm-in"; text.rows = 3; text.placeholder = "Your mnemonic"; text.maxLength = 300;
+  const mean = document.createElement("textarea"); mean.className = "cm-in"; mean.rows = 2; mean.placeholder = "What each letter means (optional)"; mean.maxLength = 300;
+  const go = libEl("button", "pr-go", "Send for approval"); go.type = "button";
+  go.onclick = async () => {
+    const t = topic.value.trim(), x = text.value.trim();
+    if (t.length < 2 || x.length < 3) { showToast("Add a topic and the mnemonic.", true); return; }
+    const day = (PLAY.mnMine || []).filter(m => Date.now() - tsMs(m.createdAt) < 86400000).length;
+    if (day >= 3) { showToast("You can send 3 mnemonics a day. Try again tomorrow.", true); return; }
+    go.disabled = true;
+    try {
+      const { db, collection, addDoc, serverTimestamp } = window.__fb;
+      await addDoc(collection(db, "mnemonics"), { email: myEmail(), mid: memberInfo.id || "", subject: sel.value, topic: t, text: x, meaning: mean.value.trim(), status: "pending", voters: [], createdAt: serverTimestamp() });
+      showToast("Sent. It will show after approval.");
+      PLAY.mnForm = false; PLAY.mn = null; PLAY.mnMine = null; renderCommunity();
+    } catch (e) { console.error(e); go.disabled = false; showToast("Could not send. Check your internet.", true); }
+  };
+  [sel, topic, text, mean, go].forEach(n => f.appendChild(n));
+  return f;
+}
+async function mnVote(m, btn) {
+  const myId = memberInfo.id;
+  if (!myId) { showToast("Your Member ID is not ready yet. Ask the admin to give you one, then you can vote.", true); return; }
+  btn.disabled = true;
+  const cur = Array.isArray(m.voters) ? m.voters.slice() : [], i = cur.indexOf(myId);
+  if (i > -1) cur.splice(i, 1); else cur.push(myId);
+  try {
+    const { db, doc, setDoc } = window.__fb;
+    await setDoc(doc(db, "mnemonics", m.id), { voters: cur }, { merge: true });
+    m.voters = cur; renderCommunity();
+  } catch (e) { btn.disabled = false; showToast("Could not save your vote. Try again.", true); }
 }
 
 // ---------- Free sample on the public home page ----------
