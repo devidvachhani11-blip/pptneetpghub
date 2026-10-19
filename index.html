@@ -846,6 +846,18 @@
   .lib-q:focus { outline: 2px solid var(--teal); outline-offset: 1px; }
 
   #libCommunity .pr-go + .nb-card, #libCommunity .pr-go + .lib-chips { margin-top: 12px; }
+  .sk-card { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid var(--border); border-left: 4px solid #E8762B; border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; }
+  .sk-fire { font-size: 30px; line-height: 1; }
+  .sk-t { flex: 1; min-width: 0; }
+  .sk-t b { display: block; font-size: 16px; font-weight: 800; color: var(--navy); }
+  .sk-t span { display: block; font-size: 12.5px; color: var(--gray); margin-top: 2px; line-height: 1.4; }
+  .sk-card button { flex-shrink: 0; background: var(--navy); color: #fff; border-radius: 12px; padding: 10px 14px; font-weight: 800; font-size: 13px; font-family: inherit; }
+  :where(html[data-eff="dark"]) .sk-card { background: var(--white); }
+  :where(html[data-eff="dark"]) .sk-t b { color: var(--ink); }
+  .beat-note { width: 100%; background: #FBF4E0; border-left: 4px solid #D4AF55; border-radius: 10px; padding: 10px 12px; font-size: 14px; color: #5B4510; line-height: 1.5; }
+  .beat-note b { color: #0F2447; }
+  :where(html[data-eff="dark"]) .beat-note { background: #2E2812; color: #F2E3B3; }
+  :where(html[data-eff="dark"]) .beat-note b { color: #fff; }
   .cm-seg { display: flex; gap: 4px; background: #EEF0F4; padding: 4px; border-radius: 14px; margin: 0 0 14px; }
   .cm-seg button { flex: 1; border: 0; background: transparent; color: var(--gray); font-weight: 800; font-size: 14px; font-family: inherit; padding: 11px 6px; border-radius: 11px; }
   .cm-seg button.on { background: var(--navy); color: #fff; }
@@ -1796,6 +1808,7 @@
 <section class="sample-sec" id="sampleSec" style="display:none;">
   <div class="container">
     <div class="sample-box">
+      <div class="beat-note" id="beatNote" style="display:none;"></div>
       <div><h2>Try it free</h2><p>Answer <b id="sampleN">10</b> real questions with full explanations. No sign-in needed.</p></div>
       <button class="btn btn-gold" id="sampleStart" type="button">Start free sample</button>
     </div>
@@ -1863,6 +1876,35 @@
     </div>
 
     <p class="feat-note">One website. Works on your phone like an app. Light and dark mode.</p>
+  </div>
+</section>
+
+<section class="sec white" id="inside">
+  <div class="container">
+    <div class="sec-head" style="--bar:var(--gold-b)">
+      <h2>New inside: play, compete and stay consistent</h2>
+      <p>Made so that studying feels less lonely. All included in the same membership.</p>
+    </div>
+
+    <div class="grp">Play with friends</div>
+    <div class="fgrid two" style="--c:#8E4FE0">
+      <div class="fcard"><span class="em">&#9876;&#65039;</span><div><h4>1v1 Duel</h4><p>Challenge a friend with 10 questions. Send the link on WhatsApp. More correct answers wins, and a tie goes to the faster one.</p></div></div>
+      <div class="fcard"><span class="em">&#129504;</span><div><h4>Mnemonic Wall</h4><p>Share your own mnemonics and vote for the best ones. The most useful ones rise to the top.</p></div></div>
+    </div>
+
+    <div class="grp">Know where you stand</div>
+    <div class="fgrid two" style="--c:var(--teal)">
+      <div class="fcard"><span class="em">&#127919;</span><div><h4>Rank Predictor</h4><p>After a Real Test, see about where your score would stand among our members, with your top % on the Top 10 list.</p></div></div>
+      <div class="fcard"><span class="em">&#127942;</span><div><h4>Anonymous Top 10</h4><p>Member ID and score only. Your name is never shown.</p></div></div>
+    </div>
+
+    <div class="grp">Stay consistent</div>
+    <div class="fgrid two" style="--c:#E8762B">
+      <div class="fcard"><span class="em">&#128293;</span><div><h4>Study streak</h4><p>Practise a little every day and watch your streak grow. Get a share card at 7, 30 and 100 days.</p></div></div>
+      <div class="fcard"><span class="em">&#128211;</span><div><h4>Mistake notebook</h4><p>Your wrong answers wait for you until you get them right twice.</p></div></div>
+    </div>
+
+    <div style="text-align:center;margin-top:26px"><button class="btn btn-gold" type="button" onclick="goToJoin()">Join Premium</button></div>
   </div>
 </section>
 
@@ -2041,6 +2083,7 @@
 
     <div id="libBrowse">
     <button class="inst-bar" id="libInstall2" type="button"><img src="/logo-96.webp" width="26" height="26" alt="" style="border-radius:50%;display:block">Install the app on your phone</button>
+    <div class="sk-card" id="libStreak" style="display:none;"></div>
     <div class="lb-top" id="libTop10" style="display:none;"></div>
     <div class="rs-card" id="libResume" style="display:none;"></div>
     <div class="pr-card" id="libPractice" style="display:none;"></div>
@@ -4042,6 +4085,7 @@ function trRenderResult() {
       trSpeedHTML() +
       (!trSynthetic() && !t.sample ? '<div id="trLb"></div>' : '') +
       (t.duel ? '<div id="trDuel"></div>' : '') +
+      (t.sample ? beatResultHTML(r) : '') +
       '<div id="trShare">' + trShareHTML() + '</div>' +
       (t.trapMode ? '<div class="tr-cmp">Trap Spotter: you fell for <b>' + r.w + '</b> of <b>' + t.qs.length + '</b> traps' + (r.w === 0 ? ". Sharp eyes!" : ".") + '</div>' : "") +
       (TR.nbNote ? '<div class="tr-cmp">' + TR.nbNote + (TR.nbNote === 1 ? " question" : " questions") + ' mastered and removed from your notebook.</div>' : "") +
@@ -4135,6 +4179,8 @@ document.getElementById("trOverlay").addEventListener("click", (e) => {
   if (act === "filter") { TR.filter = b.dataset.f; return trRenderReview(); }
   if (act === "join") { trCloseOverlay(); const p = document.getElementById("pricing"); if (p) p.scrollIntoView({ behavior: "smooth" }); return; }
   if (act === "share") return trShareCard();
+  if (act === "beatshare") return beatShare();
+  if (act === "streakshare") return streakShare();
   if (act === "duelshare") return duelShare(t.duel.code, myLabel());
   if (act === "gtnew") return gtNewAttempt();
   if (act === "retake") {
@@ -5275,6 +5321,7 @@ function clearFilters() {
 function renderList() {
   const box = document.getElementById("libList");
   box.innerHTML = "";
+  paintStreak();
   paintResume();
   paintPractice();
 
@@ -6349,6 +6396,113 @@ async function mnVote(m, btn) {
   } catch (e) { btn.disabled = false; showToast("Could not save your vote. Try again.", true); }
 }
 
+
+// ---------- Beat My Score (home page, for visitors): challenge a friend on the free sample ----------
+const BEAT = { score: null, n: 10 };
+(function () {
+  try {
+    const m = location.search.match(/[?&]beat=(\d{1,3})/), n = location.search.match(/[?&]n=(\d{1,3})/);
+    if (m) { sessionStorage.setItem("pptBeat", m[1] + "," + (n ? n[1] : "10")); history.replaceState(null, "", location.pathname + location.hash); }
+    const v = (sessionStorage.getItem("pptBeat") || "").split(",");
+    if (v[0] !== "" && v.length === 2) { BEAT.score = Math.min(Number(v[0]), Number(v[1]) || 10); BEAT.n = Math.max(1, Number(v[1]) || 10); }
+  } catch (e) {}
+})();
+function paintBeat() {
+  const el = document.getElementById("beatNote");
+  if (!el) return;
+  if (BEAT.score === null || !SMP.data) { el.style.display = "none"; return; }
+  el.innerHTML = "A friend scored <b>" + BEAT.score + " / " + BEAT.n + "</b> on this free sample. Can you beat it?";
+  el.style.display = "";
+}
+function beatResultHTML(r) {
+  const n = TR.t.qs.length;
+  let h = '<div class="cm-res" style="margin-top:14px">';
+  if (BEAT.score !== null) {
+    const d = r.c - BEAT.score;
+    h += '<b>' + (d > 0 ? "You beat your friend!" : d === 0 ? "It is a tie." : "Your friend wins this time.") + '</b><span>You ' + r.c + ' / ' + n + '  |  Friend ' + BEAT.score + ' / ' + BEAT.n + '</span>';
+  } else h += '<b>You scored ' + r.c + ' / ' + n + '</b><span>Can your friend beat that?</span>';
+  h += '<button class="tr-btn pri" data-act="beatshare" style="margin-top:10px;width:100%">Challenge a friend</button></div>';
+  return h;
+}
+function beatShare() {
+  const r = TR.res, t = TR.t; if (!r || !t) return;
+  const link = location.origin + "/?beat=" + r.c + "&n=" + t.qs.length;
+  const text = "I scored " + r.c + "/" + t.qs.length + " on a free NEET PG sample test. Can you beat me? " + link;
+  if (navigator.share) { navigator.share({ text: text }).catch(() => {}); return; }
+  window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank", "noopener");
+}
+
+// ---------- Study streak (worked out from the member's saved results; India time) ----------
+function istDay(ms) { return Math.floor((ms + 19800000) / 86400000); }
+function streakCalc() {
+  const set = new Set();
+  MY_ATTEMPTS.forEach(a => { if (a.t > 0) set.add(istDay(a.t)); });
+  const days = Array.from(set).sort((a, b) => a - b), today = istDay(Date.now());
+  let longest = 0, run = 0, prev = null;
+  days.forEach(d => { run = prev !== null && d === prev + 1 ? run + 1 : 1; if (run > longest) longest = run; prev = d; });
+  let cur = 0, d = set.has(today) ? today : (set.has(today - 1) ? today - 1 : null);
+  while (d !== null && set.has(d)) { cur++; d--; }
+  return { cur: cur, longest: Math.max(longest, cur), doneToday: set.has(today), total: days.length };
+}
+const STREAK_MARKS = [100, 30, 7];
+function paintStreak() {
+  const box = document.getElementById("libStreak");
+  if (!box) return;
+  if (!currentUser || !attemptsLoaded || libView !== "library") { box.style.display = "none"; return; }
+  const k = streakCalc();
+  if (!k.total) { box.style.display = "none"; return; }
+  box.innerHTML = ""; box.style.display = "";
+  box.appendChild(libEl("div", "sk-fire", k.cur > 0 ? "🔥" : "💤"));
+  const t = libEl("div", "sk-t");
+  t.appendChild(libEl("b", null, k.cur > 0 ? k.cur + (k.cur === 1 ? " day streak" : " day streak") : "No streak right now"));
+  const next = STREAK_MARKS.slice().reverse().find(m => m > k.cur);
+  t.appendChild(libEl("span", null, (k.cur > 0 && !k.doneToday ? "Practise today to keep it going. " : k.cur > 0 ? "Done for today. " : "Practise today to start a new one. ") + "Longest " + k.longest + (next && k.cur > 0 ? " · next card at " + next + " days" : "")));
+  box.appendChild(t);
+  if (k.cur >= 3) { const b = libEl("button", null, "Share"); b.type = "button"; b.setAttribute("data-act", "streakshare"); b.onclick = streakShare; box.appendChild(b); }
+}
+async function streakShare() {
+  const k = streakCalc(); if (!k.cur) return;
+  try {
+    const W = 1080, H = 1350, c = document.createElement("canvas"); c.width = W; c.height = H;
+    const x = c.getContext("2d"), F = "Poppins, 'Segoe UI', Arial, sans-serif", GOLD = "#D4AF55", GOLD_L = "#F6E6A8";
+    x.textAlign = "center";
+    const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#07142B"); g.addColorStop(1, "#13264A"); x.fillStyle = g; x.fillRect(0, 0, W, H);
+    const glow = x.createRadialGradient(W / 2, 600, 20, W / 2, 600, 520); glow.addColorStop(0, "rgba(232,118,43,0.38)"); glow.addColorStop(1, "rgba(232,118,43,0)"); x.fillStyle = glow; x.fillRect(0, 0, W, H);
+    x.strokeStyle = GOLD; x.lineWidth = 5; x.strokeRect(30, 30, W - 60, H - 60);
+    x.strokeStyle = "rgba(212,175,85,0.55)"; x.lineWidth = 2; x.strokeRect(48, 48, W - 96, H - 96);
+    let y = 98;
+    try {
+      const img = await new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = "/logo-360.webp"; });
+      x.save(); x.beginPath(); x.arc(W / 2, y + 58, 58, 0, Math.PI * 2); x.clip(); x.drawImage(img, W / 2 - 58, y, 116, 116); x.restore();
+      x.strokeStyle = GOLD; x.lineWidth = 4; x.beginPath(); x.arc(W / 2, y + 58, 58, 0, Math.PI * 2); x.stroke();
+    } catch (e) {}
+    x.fillStyle = "#FFFFFF"; x.font = "800 46px " + F; x.fillText("PPTNEETPGHUB", W / 2, 262);
+    x.fillStyle = GOLD; x.font = "600 24px " + F; x.fillText("PREMIUM  ·  NEET PG 2027", W / 2, 304);
+    x.font = "200px 'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',sans-serif"; x.fillStyle = "#fff"; x.fillText("🔥", W / 2, 560);
+    const sg = x.createLinearGradient(0, 560, 0, 880); sg.addColorStop(0, GOLD_L); sg.addColorStop(1, GOLD);
+    x.fillStyle = sg; x.font = "800 300px " + F; x.fillText(String(k.cur), W / 2, 850);
+    x.fillStyle = "#FFFFFF"; x.font = "800 64px " + F; x.fillText(k.cur === 1 ? "DAY STREAK" : "DAY STREAK", W / 2, 940);
+    const mark = STREAK_MARKS.find(m => k.cur >= m);
+    x.fillStyle = "#A9B8D4"; x.font = "600 34px " + F;
+    x.fillText(mark ? "Milestone: " + mark + " days of daily practice" : "Practising every single day", W / 2, 1010);
+    x.fillText("Longest streak: " + k.longest + (k.longest === 1 ? " day" : " days"), W / 2, 1062);
+    if (memberInfo.id) { x.fillStyle = GOLD_L; x.font = "700 30px " + F; x.fillText("MEMBER ID  " + memberInfo.id, W / 2, 1140); }
+    x.fillStyle = "rgba(212,175,85,0.55)"; x.fillRect(W / 2 - 150, H - 132, 300, 2);
+    x.fillStyle = GOLD; x.font = "700 32px " + F; x.fillText("pptneetpghub.com", W / 2, H - 92);
+    x.fillStyle = "#8C9DBC"; x.font = "500 22px " + F; x.fillText(new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }), W / 2, H - 64);
+    const blob = await new Promise(res => c.toBlob(res, "image/png"));
+    if (!blob) throw new Error("no picture");
+    const file = new File([blob], "my-streak.png", { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: "My study streak", text: k.cur + " day study streak on pptneetpghub.com" }); }
+      catch (e) { if (e && e.name !== "AbortError") throw e; }
+    } else {
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "my-streak.png"; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000); showToast("Streak card saved to your downloads.");
+    }
+  } catch (e) { console.error(e); showToast("Could not make the streak card.", true); }
+}
+
 // ---------- Free sample on the public home page ----------
 const SMP = { data: null };
 async function loadSample() {
@@ -6364,6 +6518,7 @@ async function loadSample() {
   if (!SMP.data) { sec.style.display = "none"; return; }
   document.getElementById("sampleN").textContent = String(SMP.data.qs.length);
   sec.style.display = "";
+  paintBeat();
 }
 function startSample() {
   if (!SMP.data) return;
