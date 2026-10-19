@@ -845,6 +845,12 @@
   }
   .lib-q:focus { outline: 2px solid var(--teal); outline-offset: 1px; }
 
+  .lib-exsw { display: flex; gap: 6px; background: #EEF0F4; padding: 4px; border-radius: 14px; margin-top: 12px; }
+  .lib-exsw button { flex: 1; border: 0; background: transparent; color: var(--gray); font-weight: 800; font-size: 14px; font-family: inherit; padding: 11px 8px; border-radius: 11px; display: flex; justify-content: center; align-items: center; gap: 8px; }
+  .lib-exsw button b { font-size: 11.5px; background: rgba(0,0,0,.08); border-radius: 10px; padding: 2px 8px; }
+  .lib-exsw button.on.neet { background: #0F2447; color: #F2E3B3; }
+  .lib-exsw button.on.ini { background: #6B2FC0; color: #fff; }
+  :where(html[data-eff="dark"]) .lib-exsw { background: #1B2336; }
   .lib-chips { display: flex; gap: 8px; overflow-x: auto; padding: 14px 0 6px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
   .lib-chips::-webkit-scrollbar { display: none; }
   .lib-chip {
@@ -2010,6 +2016,7 @@
       <input class="lib-q" id="libSearch" type="search" placeholder="Search by title or subject" autocomplete="off">
     </div>
 
+    <div class="lib-exsw" id="libExam" style="display:none;"></div>
     <div class="lib-chips" id="libChips"></div>
     <div class="lib-active" id="libActive"></div>
     <div id="libList"></div>
@@ -4461,7 +4468,7 @@ function renderProgress() {
   if (!MY_ATTEMPTS.length) {
     const e = libEl("div", "lib-empty", "No tests taken yet. Take a test and your scores and progress will appear here.");
     const b = libEl("button", null, "Browse tests");
-    b.onclick = () => { lib.tab = "Tests"; lib.subject = "All"; setLibView("library"); };
+    b.onclick = () => { lib.tab = "Tests"; lib.subject = "All"; lib.exam = "NEET PG"; setLibView("library"); };
     e.appendChild(document.createElement("br"));
     e.appendChild(b);
     box.appendChild(e);
@@ -4556,7 +4563,7 @@ function renderProgress() {
       f.style.background = x.p < 50 ? "#D98B54" : x.p < 70 ? "#D4AF55" : "#0F8F83";
       tk.appendChild(f); row.appendChild(tk);
       const acts = libEl("div", "acts");
-      const rb = libEl("button", null, "Resources"); rb.onclick = () => { lib.subject = canonSubject(x.k); lib.tab = "All"; setLibView("library"); };
+      const rb = libEl("button", null, "Resources"); rb.onclick = () => { lib.subject = canonSubject(x.k); lib.tab = "All"; lib.exam = "NEET PG"; setLibView("library"); };
       acts.appendChild(rb);
       row.appendChild(acts);
       sc.appendChild(row);
@@ -4974,7 +4981,7 @@ function nbPractice(list) {
 let ALL = [];
 let libLoaded = false;
 let libError = false;
-const lib = { tab: "All", subject: "All", q: "" };
+const lib = { tab: "All", subject: "All", q: "", exam: "NEET PG" };
 const KNOWN_SUBJECTS = SUBJECTS.concat(OTHER_SUBJECTS);
 
 function subjLabel(s) { return s === "Mixed" ? "Mix subjects" : s; }      // what students see; the stored value stays "Mixed"
@@ -5086,22 +5093,36 @@ function isInicet(it) { return it.exam === "INICET" || (!it.exam && /\binicet\b/
 const INICET_PREFIX = "INICET \u00B7 ";
 function subjectKey(it) { return isInicet(it) ? INICET_PREFIX + it.subject : it.subject; }
 function libMatch(it, f) {
+  if (isInicet(it) !== (f.exam === "INICET")) return false;      // NEET PG and INICET never mix
   if (isCardTab(it.tab)) {                                     // series and card test pictures only show inside their own tab
     if (f.tab !== it.tab) return false;
     return !f.q || (it.series + " " + it.title).toLowerCase().indexOf(f.q) > -1;
   }
   if (f.tab === "New") { if (!(it.t && daysOld(it.t) <= 7)) return false; }
   else if (f.tab !== "All" && it.tab !== f.tab) return false;
-  if (f.subject === "INICET") { if (!isInicet(it)) return false; }
-  else if (f.subject !== "All" && subjectKey(it) !== f.subject) return false;
+  if (f.subject !== "All" && it.subject !== f.subject) return false;
   if (f.q && (it.title + " " + it.subject + " " + it.meta).toLowerCase().indexOf(f.q) === -1) return false;
   return true;
+}
+
+function renderExam() {
+  const box = document.getElementById("libExam");
+  const nIni = ALL.filter(it => !isCardTab(it.tab) && isInicet(it)).length;
+  if (!nIni && lib.exam === "NEET PG") { box.style.display = "none"; box.innerHTML = ""; return; }   // no INICET files: no switch
+  box.style.display = ""; box.innerHTML = "";
+  [["NEET PG", "neet"], ["INICET", "ini"]].forEach(e => {
+    const n = ALL.filter(it => !isCardTab(it.tab) && isInicet(it) === (e[0] === "INICET")).length;
+    const b = libEl("button", (lib.exam === e[0] ? "on " : "") + e[1]); b.type = "button";
+    b.appendChild(document.createTextNode(e[0])); b.appendChild(libEl("b", null, String(n)));
+    b.onclick = () => { if (lib.exam === e[0]) return; lib.exam = e[0]; lib.tab = "All"; lib.subject = "All"; render(); };
+    box.appendChild(b);
+  });
 }
 
 function renderChips() {
   const box = document.getElementById("libChips");
   box.innerHTML = "";
-  const base = { tab: "All", subject: lib.subject, q: lib.q };
+  const base = { tab: "All", subject: lib.subject, q: lib.q, exam: lib.exam };
   const tabs = ["All", "New"].concat(CATEGORIES);
   tabs.forEach(t => {
     const n = isCardTab(t) ? seriesGroups(t, lib.q).length : (t === "All" && lib.subject === "All" ? seriesGroups("Card Test", lib.q).length + seriesGroups("Series", lib.q).length : 0) + ALL.filter(it => libMatch(it, Object.assign({}, base, { tab: t }))).length;
@@ -5116,13 +5137,13 @@ function renderChips() {
 function renderSubjects() {
   const box = document.getElementById("libSubjects");
   box.innerHTML = "";
-  const base = { tab: lib.tab, subject: "All", q: lib.q };
+  const base = { tab: lib.tab, subject: "All", q: lib.q, exam: lib.exam };
   const count = (s) => ALL.filter(it => libMatch(it, Object.assign({}, base, { subject: s }))).length;
   const extra = [], iniSubs = [];
   ALL.forEach(it => {
     if (isCardTab(it.tab)) return;
-    if (isInicet(it)) { if (iniSubs.indexOf(it.subject) === -1) iniSubs.push(it.subject); }
-    else if (KNOWN_SUBJECTS.indexOf(it.subject) === -1 && extra.indexOf(it.subject) === -1) extra.push(it.subject);
+    if (isInicet(it) !== (lib.exam === "INICET")) return;
+    if (KNOWN_SUBJECTS.indexOf(it.subject) === -1 && extra.indexOf(it.subject) === -1) extra.push(it.subject);
   });
 
   const add = (label, value, cls) => {
@@ -5152,15 +5173,6 @@ function renderSubjects() {
     g.list.forEach(s => add(s, s, "g-" + g.k));
   });
   if (extra.length) { head("Other subjects", "", "g-oth"); extra.forEach(s => add(subjLabel(s), s, "g-oth")); }
-
-  // INICET sits after every NEET PG subject, in its own colour
-  if (iniSubs.length || ALL.some(isInicet)) {
-    head("INICET", "Separate exam", "g-ini");
-    add("All INICET", "INICET", "g-ini");
-    const order = SUBJECT_GROUPS.reduce((a, g) => a.concat(g.list), []);
-    iniSubs.sort((x, y) => { const i = order.indexOf(x), j = order.indexOf(y); return (i < 0 ? 99 : i) - (j < 0 ? 99 : j) || x.localeCompare(y); });
-    iniSubs.forEach(s => add(s, INICET_PREFIX + s, "g-ini"));
-  }
 }
 
 function itemEl(it) {
@@ -5251,43 +5263,30 @@ function renderList() {
     return;
   }
 
-  // NEET PG first, INICET in its own section below it (only when the library has INICET files at all)
-  const neetItems = items.filter(it => !isInicet(it)), iniItems = items.filter(isInicet);
-  const split = ALL.some(isInicet);
-  const paintItems = arr => {
-    let current = null, list = null;
-    arr.forEach(it => {
-      const g = groupOf(it.t);
-      if (g !== current) {
-        current = g;
-        box.appendChild(libEl("div", "lib-group", g));
-        list = libEl("div", "lib-list");
-        box.appendChild(list);
-      }
-      list.appendChild(itemEl(it));
-    });
-  };
-  const banner = (cls, title, sub, n) => {
-    const h = libEl("div", "lib-exam " + cls);
-    const l = libEl("div"); l.appendChild(libEl("b", null, title)); l.appendChild(libEl("span", null, sub)); h.appendChild(l);
-    h.appendChild(libEl("em", null, n + (n === 1 ? " file" : " files")));
-    box.appendChild(h);
-  };
-  if (!split) { paintItems(items); return; }
-  if (neetItems.length) { banner("neet", "NEET PG 2027", "Your main resources", neetItems.length); paintItems(neetItems); }
-  if (iniItems.length) { banner("ini", "INICET", "Separate exam \u00B7 bonus resources", iniItems.length); paintItems(iniItems); }
+  let current = null, list = null;
+  items.forEach(it => {
+    const g = groupOf(it.t);
+    if (g !== current) {
+      current = g;
+      box.appendChild(libEl("div", "lib-group", g));
+      list = libEl("div", "lib-list");
+      box.appendChild(list);
+    }
+    list.appendChild(itemEl(it));
+  });
 }
 
 // ---------- Series and Card Test: one tile per set ----------
-function seriesDeck(tab, name) {
+function seriesDeck(tab, name, exam) {
   const key = String(name).toLowerCase();
-  return ALL.filter(x => x.tab === tab && String(x.series).toLowerCase() === key && x.fileUrl && fileKind(x) === "image")
+  return ALL.filter(x => x.tab === tab && (!exam || isInicet(x) === (exam === "INICET")) && String(x.series).toLowerCase() === key && x.fileUrl && fileKind(x) === "image")
     .sort((p, q) => (p.seq - q.seq) || p.title.localeCompare(q.title, undefined, { numeric: true }));
 }
 function seriesGroups(tab, q) {
   const g = {};
   ALL.forEach(x => {
     if (x.tab !== tab || !x.series || !x.fileUrl || fileKind(x) !== "image") return;
+    if (isInicet(x) !== (lib.exam === "INICET")) return;
     if (q && x.series.toLowerCase().indexOf(q) === -1) return;
     const k = x.series.toLowerCase();
     const o = g[k] || (g[k] = { name: x.series, n: 0, t: 0 });
@@ -5303,7 +5302,7 @@ function renderTiles(box, tabArg) {
     return;
   }
   groups.forEach(g => {
-    const deck = seriesDeck(tab, g.name), tile = libEl("div", "sr-tile");
+    const deck = seriesDeck(tab, g.name, lib.exam), tile = libEl("div", "sr-tile");
     const ico = libEl("div", "sr-ico"); ico.innerHTML = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="14" height="14" rx="2.5" stroke="currentColor" stroke-width="2"/><path d="M7 3h12a2 2 0 012 2v12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
     const txt = libEl("div", "sr-txt");
     txt.appendChild(libEl("b", null, g.name));
@@ -5339,7 +5338,7 @@ function renderHeading() {
   const parts = [];
   if (cardTab) parts.push(lib.tab === "Series" ? "Card series" : "Card tests");
   else {
-    parts.push(lib.subject === "All" ? "All resources" : subjLabel(lib.subject));
+    parts.push(lib.subject === "All" ? (lib.exam === "INICET" ? "INICET resources" : "All resources") : subjLabel(lib.subject));
     if (lib.tab !== "All") parts.push(lib.tab === "New" ? "New this week" : lib.tab);
   }
   document.getElementById("libTitle").textContent = parts.join(" · ");
@@ -5379,6 +5378,7 @@ function render() {
   paintNbTab();
   if (nbk) { renderNotebook(); return; }
   if (prog) { renderProgress(); return; }
+  renderExam();
   renderChips();
   renderSubjects();
   renderList();
@@ -5711,11 +5711,12 @@ function paintResume() {
   const fresh = !lib.q && lib.tab === "All" && lib.subject === "All";
   const rows = [];
   if (libLoaded && !libError && currentUser && fresh) {
-    rsTests().forEach(t => rows.push({ k: "test", title: t.item.title, sub: t.sub, go: () => openTest(t.item) }));
+    const inEx = it => !!it && isInicet(it) === (lib.exam === "INICET");
+    rsTests().filter(t => inEx(t.item)).forEach(t => rows.push({ k: "test", title: t.item.title, sub: t.sub, go: () => openTest(t.item) }));
     const r = rsGet();
-    const p = r.pdf && ALL.find(x => x.id === r.pdf.id);
+    const p = r.pdf && ALL.find(x => x.id === r.pdf.id && inEx(x));
     if (p) rows.push({ k: "pdf", title: p.title, sub: "Page " + r.pdf.page + (r.pdf.n ? " of " + r.pdf.n : ""), go: () => openViewer(p) });
-    const d = r.deck && ALL.find(x => x.id === r.deck.id);
+    const d = r.deck && ALL.find(x => x.id === r.deck.id && inEx(x));
     if (d) rows.push({ k: "deck", title: String(r.deck.title || d.title), sub: (d.tab === "Card Test" ? "Card test" : "Series") + " \u00B7 " + (d.series || d.title), go: () => openDeck(deckFor(d), d.id, r.deck.title || d.series || d.title) });
   }
   box.innerHTML = "";
