@@ -846,6 +846,38 @@
   .lib-q:focus { outline: 2px solid var(--teal); outline-offset: 1px; }
 
   #libCommunity .pr-go + .nb-card, #libCommunity .pr-go + .lib-chips { margin-top: 12px; }
+  .dq-box { background: #fff; border: 1.5px solid var(--border); border-left: 4px solid #8E4FE0; border-radius: 16px; padding: 18px 16px; }
+  .dq-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .dq-head h2 { margin: 0; font-size: 20px; font-weight: 800; color: var(--navy); }
+  .dq-tag { font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 12px; background: #F4EDFD; color: #4B1F82; }
+  .dq-sub { margin: 4px 0 12px; font-size: 13.5px; color: var(--gray); line-height: 1.5; }
+  .dq-clues { list-style: none; margin: 0 0 12px; padding: 0; counter-reset: c; }
+  .dq-clues li { position: relative; padding: 10px 12px 10px 42px; margin-bottom: 8px; background: var(--paper-alt); border-radius: 12px; font-size: 14.5px; line-height: 1.55; color: var(--ink); overflow-wrap: anywhere; }
+  .dq-clues li::before { counter-increment: c; content: counter(c); position: absolute; left: 10px; top: 9px; width: 22px; height: 22px; border-radius: 50%; background: #8E4FE0; color: #fff; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+  .dq-clues li.new { animation: dqIn .35s ease; }
+  @keyframes dqIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .dq-wrong { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+  .dq-wrong span { background: #FBE9E4; color: #A3401F; font-size: 12.5px; font-weight: 700; padding: 4px 10px; border-radius: 12px; text-decoration: line-through; }
+  .dq-row { display: flex; gap: 8px; }
+  .dq-row input { flex: 1; min-width: 0; min-height: 46px; border: 1.5px solid var(--border); border-radius: 12px; padding: 0 12px; font: inherit; font-size: 16px; background: #fff; color: var(--ink); }
+  .dq-row button { min-height: 46px; padding: 0 20px; border-radius: 12px; background: var(--navy); color: #fff; font-weight: 800; font-family: inherit; font-size: 15px; }
+  .dq-msg { min-height: 18px; margin: 8px 0 0; font-size: 13px; color: #A3401F; font-weight: 600; }
+  .dq-link { background: none; border: 0; color: var(--gray); font-size: 13px; text-decoration: underline; font-family: inherit; padding: 6px 0; }
+  .dq-res { text-align: center; padding: 14px; border-radius: 14px; margin-top: 4px; }
+  .dq-res.win { background: #E1F4EE; } .dq-res.lose { background: #FBE9E4; }
+  .dq-res small { display: block; font-size: 12px; font-weight: 800; letter-spacing: .08em; color: var(--gray); }
+  .dq-res b.big { display: block; font-size: 22px; color: var(--navy); margin: 4px 0; overflow-wrap: anywhere; }
+  .dq-res .pts { font-size: 14px; font-weight: 700; color: #0B6B61; }
+  .dq-grid { font-size: 26px; letter-spacing: 3px; margin: 8px 0; }
+  .dq-why { font-size: 13.5px; line-height: 1.55; color: var(--ink); margin: 6px 0 0; text-align: left; }
+  .dq-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .dq-btns button { flex: 1 1 140px; min-height: 46px; border-radius: 12px; font-weight: 800; font-family: inherit; font-size: 14.5px; }
+  .dq-next { margin-top: 10px; font-size: 12.5px; color: var(--gray); text-align: center; }
+  :where(html[data-eff="dark"]) .dq-box { background: var(--white); }
+  :where(html[data-eff="dark"]) .dq-head h2, :where(html[data-eff="dark"]) .dq-res b.big { color: var(--ink); }
+  :where(html[data-eff="dark"]) .dq-row input { background: var(--white); color: var(--ink); }
+  :where(html[data-eff="dark"]) .dq-res.win { background: #123A33; } :where(html[data-eff="dark"]) .dq-res.lose { background: #3A1E17; }
+  :where(html[data-eff="dark"]) .dq-tag { background: #2A1D40; color: #D9C4F5; }
   .sk-card { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid var(--border); border-left: 4px solid #E8762B; border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; }
   .sk-fire { font-size: 30px; line-height: 1; }
   .sk-t { flex: 1; min-width: 0; }
@@ -1805,6 +1837,10 @@
   </div>
 </section>
 
+<section class="sample-sec" id="dailySec" style="display:none;">
+  <div class="container"><div class="dq-box" id="dqBox"></div></div>
+</section>
+
 <section class="sample-sec" id="sampleSec" style="display:none;">
   <div class="container">
     <div class="sample-box">
@@ -2523,6 +2559,7 @@ onFbReady(() => {
   const { auth, onAuthStateChanged } = window.__fb;
   loadPricing();
   loadSample();
+  loadDaily();
   loadSampleCards();
   loadRecentDrops();
 
@@ -6501,6 +6538,135 @@ async function streakShare() {
       setTimeout(() => URL.revokeObjectURL(a.href), 4000); showToast("Streak card saved to your downloads.");
     }
   } catch (e) { console.error(e); showToast("Could not make the streak card.", true); }
+}
+
+// ---------- Daily Diagnosis (home page, no sign-in): guess the hidden diagnosis from clues, Wordle style ----------
+// The admin saves a list in "sample/daily": { start: "YYYY-MM-DD", puzzles: [{ a, alt[], t, c[6], w }] }. One puzzle a day (India time).
+const DQ = { data: null, day: 0, no: 1, p: null, st: null, tick: null };
+function dqNorm(x) { return String(x || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]/g, ""); }
+function dqLev(a, b) {
+  if (Math.abs(a.length - b.length) > 1) return 9;
+  const m = a.length, n = b.length, d = [];
+  for (let i = 0; i <= m; i++) { d[i] = [i]; }
+  for (let j = 1; j <= n; j++) d[0][j] = j;
+  for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[m][n];
+}
+function dqMatch(p, guess) {
+  const g = dqNorm(guess); if (!g) return false;
+  return [p.a].concat(p.alt || []).map(dqNorm).filter(Boolean).some(n => n === g || (n.length >= 6 && g.length >= 5 && dqLev(n, g) <= 1));
+}
+function dqKey() { return "pptDaily:" + DQ.day; }
+function dqLoadState() {
+  let st = null; try { st = JSON.parse(localStorage.getItem(dqKey()) || "null"); } catch (e) {}
+  if (!st || !Array.isArray(st.g)) st = { g: [], done: false, win: false };
+  DQ.st = st;
+}
+function dqSave() { try { localStorage.setItem(dqKey(), JSON.stringify(DQ.st)); } catch (e) {} }
+function dqStreak() {
+  try {
+    const o = JSON.parse(localStorage.getItem("pptDailyStreak") || "null") || { last: 0, n: 0 };
+    return o;
+  } catch (e) { return { last: 0, n: 0 }; }
+}
+function dqNoteDone() {
+  let o = dqStreak();
+  if (o.last === DQ.day) return o.n;
+  o = { last: DQ.day, n: o.last === DQ.day - 1 ? o.n + 1 : 1 };
+  try { localStorage.setItem("pptDailyStreak", JSON.stringify(o)); } catch (e) {}
+  return o.n;
+}
+function dqUsed() { return DQ.st.win ? DQ.st.g.length : 6; }       // clues opened when the game ended
+function dqGrid() {
+  const k = DQ.st.g.length;
+  if (!DQ.st.win) return "🟥🟥🟥🟥🟥🟥";
+  return "🟨".repeat(k - 1) + "🟩" + "⬛".repeat(6 - k);
+}
+function dqShare() {
+  const txt = "PPTNEETPGHUB Daily Diagnosis #" + DQ.no + "\n" + dqGrid() + " " + (DQ.st.win ? DQ.st.g.length : "X") + "/6\nCan you beat me? " + location.origin + "/#daily";
+  if (navigator.share) { navigator.share({ text: txt }).catch(() => {}); return; }
+  window.open("https://wa.me/?text=" + encodeURIComponent(txt), "_blank", "noopener");
+}
+function dqLeft() {
+  const next = (DQ.day + 1) * 86400000 - 19800000, ms = Math.max(0, next - Date.now());
+  const h = Math.floor(ms / 3600000), m = Math.floor(ms % 3600000 / 60000);
+  return h + "h " + String(m).padStart(2, "0") + "m";
+}
+function dqFinish(win) {
+  DQ.st.done = true; DQ.st.win = win; dqSave(); dqNoteDone(); dqPaint(true);
+}
+function dqPaint(fresh) {
+  const box = document.getElementById("dqBox"), p = DQ.p;
+  if (!box || !p) return;
+  clearInterval(DQ.tick);
+  box.innerHTML = "";
+  const st = DQ.st, done = st.done;
+  const shown = done ? (st.win ? st.g.length : 6) : Math.min(6, st.g.length + 1);
+  const head = libEl("div", "dq-head"); head.appendChild(libEl("h2", null, "Today's Diagnosis"));
+  head.appendChild(libEl("span", "dq-tag", (p.t || "Diagnosis") + " · #" + DQ.no)); box.appendChild(head);
+  box.appendChild(libEl("p", "dq-sub", done ? "Come back tomorrow for a new one." : "Guess the " + String(p.t || "diagnosis").toLowerCase() + " from the clues. A wrong guess opens the next clue. Fewer clues, more points."));
+  const ul = libEl("ul", "dq-clues");
+  for (let i = 0; i < shown; i++) { const li = libEl("li", i === shown - 1 && fresh ? "new" : "", p.c[i]); ul.appendChild(li); }
+  box.appendChild(ul);
+  if (!done) {
+    if (st.g.length) { const w = libEl("div", "dq-wrong"); st.g.forEach(x => w.appendChild(libEl("span", null, x))); box.appendChild(w); }
+    const row = libEl("div", "dq-row");
+    const inp = document.createElement("input"); inp.type = "text"; inp.placeholder = "Type your answer"; inp.maxLength = 60; inp.autocomplete = "off"; inp.autocapitalize = "none"; inp.spellcheck = false; inp.setAttribute("aria-label", "Your answer");
+    const go = libEl("button", null, "Guess"); go.type = "button";
+    const msg = libEl("div", "dq-msg");
+    const submit = () => {
+      const v = inp.value.trim(); if (!v) { msg.textContent = "Type a name first."; return; }
+      if (dqMatch(p, v)) { st.g.push(v); dqFinish(true); return; }
+      if (st.g.some(x => dqNorm(x) === dqNorm(v))) { msg.textContent = "You already tried that."; return; }
+      st.g.push(v); dqSave();
+      if (st.g.length >= 6) { dqFinish(false); return; }
+      dqPaint(true);
+      const m2 = document.querySelector("#dqBox .dq-msg"); if (m2) m2.textContent = "Not it. A new clue is open.";
+    };
+    go.onclick = submit; inp.addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
+    row.appendChild(inp); row.appendChild(go); box.appendChild(row); box.appendChild(msg);
+    const gu = libEl("button", "dq-link", "I give up, show the answer"); gu.type = "button";
+    gu.onclick = () => { if (confirm("Show today's answer?")) dqFinish(false); };
+    box.appendChild(gu);
+    return;
+  }
+  const r = libEl("div", "dq-res " + (st.win ? "win" : "lose"));
+  r.appendChild(libEl("small", null, st.win ? "YOU GOT IT" : "THE ANSWER WAS"));
+  r.appendChild(libEl("b", "big", p.a));
+  if (st.win) r.appendChild(libEl("div", "pts", "Solved in " + st.g.length + (st.g.length === 1 ? " clue" : " clues") + " · " + (7 - st.g.length) * 100 + " / 600 points"));
+  r.appendChild(libEl("div", "dq-grid", dqGrid()));
+  if (p.w) r.appendChild(libEl("p", "dq-why", p.w));
+  const n = dqStreak().n; if (n >= 2) r.appendChild(libEl("div", "dq-sub", "🔥 You have played " + n + " days in a row."));
+  box.appendChild(r);
+  const bt = libEl("div", "dq-btns");
+  const sh = libEl("button", null, "Challenge a friend"); sh.type = "button"; sh.style.cssText = "background:#25D366;color:#fff"; sh.onclick = dqShare; bt.appendChild(sh);
+  if (SMP.data) { const sm = libEl("button", null, "Try the free sample"); sm.type = "button"; sm.style.cssText = "background:var(--navy);color:#fff"; sm.onclick = () => startSample(); bt.appendChild(sm); }
+  const jn = libEl("button", null, "Join Premium"); jn.type = "button"; jn.className = "btn btn-gold"; jn.onclick = () => goToJoin(); bt.appendChild(jn);
+  box.appendChild(bt);
+  const nx = libEl("div", "dq-next", "Next puzzle in " + dqLeft()); box.appendChild(nx);
+  DQ.tick = setInterval(() => { const e = document.querySelector("#dqBox .dq-next"); if (!e) { clearInterval(DQ.tick); return; } if (dqLeft() === "0h 00m") { loadDaily(); return; } e.textContent = "Next puzzle in " + dqLeft(); }, 30000);
+}
+async function loadDaily() {
+  const sec = document.getElementById("dailySec");
+  if (!sec) return;
+  try {
+    if (!DQ.data) {
+      const { db, doc, getDoc } = window.__fb;
+      const s = await getDoc(doc(db, "sample", "daily"));
+      const d = s.exists() ? s.data() : null;
+      const list = d && Array.isArray(d.puzzles) ? d.puzzles.filter(x => x && x.a && Array.isArray(x.c) && x.c.length === 6 && x.c.every(c => c && String(c).trim())) : [];
+      DQ.data = list.length ? { start: String(d.start || ""), puzzles: list } : { puzzles: [] };
+    }
+  } catch (e) { DQ.data = null; if (!DQ.retried) { DQ.retried = true; setTimeout(loadDaily, 3000); } sec.style.display = "none"; return; }
+  const list = DQ.data.puzzles;
+  if (!list.length) { sec.style.display = "none"; return; }
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(DQ.data.start || ""), startDay = m ? Math.floor(Date.UTC(+m[1], +m[2] - 1, +m[3]) / 86400000) : istDay(Date.now());
+  DQ.day = istDay(Date.now());
+  const off = DQ.day - startDay, idx = ((off % list.length) + list.length) % list.length;
+  DQ.no = Math.max(1, off + 1); DQ.p = list[idx];
+  dqLoadState(); dqPaint(false);
+  sec.style.display = "";
+  if (location.hash === "#daily" && !DQ.scrolled) { DQ.scrolled = true; setTimeout(() => sec.scrollIntoView(), 150); }
 }
 
 // ---------- Free sample on the public home page ----------

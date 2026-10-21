@@ -475,6 +475,7 @@
       <button class="tab-btn" data-panel="newsPanel">News</button>
       <button class="tab-btn" data-panel="counsellingPanel">Counselling</button>
       <button class="tab-btn" data-panel="tipsPanel">Study Tips</button>
+      <button class="tab-btn" data-panel="dailyPanel">Daily puzzle</button>
       <button class="tab-btn" data-panel="mnPanel">Mnemonics<span class="tab-count" id="mnCount" style="display:none;">0</span></button>
       <button class="tab-btn" data-panel="reportsPanel">Reports<span class="tab-count" id="repCount" style="display:none;">0</span></button>
       <button class="tab-btn" data-panel="resultsPanel">Results</button>
@@ -953,6 +954,24 @@
     </div>
 
     <!-- Mistake reports -->
+    <!-- Daily Diagnosis puzzle (home page, no sign-in) -->
+    <div id="dailyPanel" style="display:none;">
+      <div class="card">
+        <h3>Daily Diagnosis puzzle</h3>
+        <p class="hint" style="margin-top:-6px">A guess-the-diagnosis game on the home page for visitors who are not signed in. One puzzle a day, in the order you paste them, then it starts again from the first. Each puzzle has an answer, 6 clues (easy to hard) and a short lesson. Separate puzzles with a line of three dashes (---).</p>
+        <textarea id="dp_text" class="t-area" rows="16" spellcheck="false" placeholder="Answer: Graves disease&#10;Also: Graves' disease, diffuse toxic goitre&#10;Type: Disease&#10;1. First clue (easy, no name in it)&#10;2. Second clue&#10;3. Third clue&#10;4. Fourth clue&#10;5. Fifth clue&#10;6. Sixth clue&#10;Why: One or two lines the player learns.&#10;---&#10;Answer: Next puzzle ..."></textarea>
+        <label for="dp_start">First puzzle shows on this date</label>
+        <input type="date" id="dp_start">
+        <div class="t-actions">
+          <button class="btn" id="dp_save">Save puzzles</button>
+          <button class="btn outline" id="dp_reload">Undo changes</button>
+          <button class="btn outline" id="dp_clear">Remove the game</button>
+        </div>
+        <p class="hint" id="dp_status"></p>
+        <div id="dp_sched"></div>
+      </div>
+    </div>
+
     <!-- Mnemonic Wall: approve what members send -->
     <div id="mnPanel" style="display:none;">
       <div class="card">
@@ -1224,13 +1243,14 @@ window.addEventListener('fbReady', () => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      ['homePanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'gtPanel', 'seriesPanel', 'cardsPanel', 'imgTestPanel', 'dropsPanel', 'samplePanel', 'mnPanel', 'lbPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'launchPanel', 'membersPanel', 'listPanel'].forEach(id => {
+      ['homePanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'gtPanel', 'seriesPanel', 'cardsPanel', 'imgTestPanel', 'dropsPanel', 'samplePanel', 'dailyPanel', 'mnPanel', 'lbPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'launchPanel', 'membersPanel', 'listPanel'].forEach(id => {
         document.getElementById(id).style.display = (id === btn.dataset.panel) ? 'block' : 'none';
       });
       if (btn.dataset.panel === 'homePanel') loadHome();
       if (btn.dataset.panel === 'dropsPanel') loadDrops();
       if (btn.dataset.panel === 'samplePanel') loadSampleAdmin();
       if (btn.dataset.panel === 'mnPanel') loadMnAdmin();
+      if (btn.dataset.panel === 'dailyPanel') loadDailyAdmin();
       if (btn.dataset.panel === 'seriesPanel') loadSeriesAdmin();
       if (btn.dataset.panel === 'cardsPanel') loadCardDecks();
       if (btn.dataset.panel === 'lbPanel') loadLbTests();
@@ -4465,6 +4485,98 @@ async function publishPracticePool(auto) {
   } catch (e) { console.error(e); showToast('Failed: ' + e.message, true); return false; }
   finally { PP.busy = false; btn.disabled = false; btn.textContent = 'Update practice pool'; ppStatus(); }
 }
+
+// ---------- Daily Diagnosis puzzle ----------
+function dpNorm(x) { return String(x || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+function parseDaily(raw) {
+  const blocks = String(raw || '').replace(/\r/g, '').split(/^\s*-{3,}\s*$/m).map(b => b.trim()).filter(Boolean);
+  const out = [], errors = [];
+  blocks.forEach((b, bi) => {
+    const no = bi + 1, o = { a: '', alt: [], t: 'Diagnosis', c: [], w: '' };
+    const clues = {};
+    b.split('\n').forEach(line => {
+      let m;
+      if ((m = /^\s*answer\s*:\s*(.+)$/i.exec(line))) o.a = m[1].trim();
+      else if ((m = /^\s*(?:also|alt|other names?)\s*:\s*(.*)$/i.exec(line))) o.alt = m[1].split(',').map(x => x.trim()).filter(Boolean);
+      else if ((m = /^\s*type\s*:\s*(.+)$/i.exec(line))) o.t = m[1].trim().slice(0, 20);
+      else if ((m = /^\s*why\s*:\s*(.*)$/i.exec(line))) o.w = m[1].trim();
+      else if ((m = /^\s*([1-6])\s*[.)]\s*(.+)$/.exec(line))) clues[m[1]] = m[2].trim();
+    });
+    for (let k = 1; k <= 6; k++) if (clues[k]) o.c.push(clues[k]);
+    if (!o.a) errors.push('Puzzle ' + no + ': the Answer line is missing.');
+    else if (Object.keys(clues).length !== 6) errors.push('Puzzle ' + no + ' (' + o.a + '): it needs exactly 6 clues numbered 1 to 6.');
+    else {
+      const names = [o.a].concat(o.alt).map(dpNorm).filter(n => n.length >= 4);
+      const SKIP = ['disease', 'syndrome', 'acute', 'chronic', 'multiple', 'anaemia', 'anemia', 'deficiency', 'cancer'];
+      const words = o.a.toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length >= 5 && SKIP.indexOf(w) < 0);
+      for (let k = 0; k < 6; k++) {
+        const hit = names.find(n => dpNorm(o.c[k]).indexOf(n) > -1) || words.find(w => o.c[k].toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).indexOf(w) > -1);
+        if (hit) { errors.push('Puzzle ' + no + ' (' + o.a + '): clue ' + (k + 1) + ' gives the answer away (' + hit + ').'); break; }
+      }
+      if (o.w.length > 300) errors.push('Puzzle ' + no + ' (' + o.a + '): the Why line is longer than 300 characters.');
+      if (o.c.some(c => c.length > 300)) errors.push('Puzzle ' + no + ' (' + o.a + '): a clue is longer than 300 characters.');
+    }
+    out.push(o);
+  });
+  return { puzzles: out, errors: errors };
+}
+function dailyToText(list) {
+  return list.map(p => 'Answer: ' + p.a + '\n' + (p.alt && p.alt.length ? 'Also: ' + p.alt.join(', ') + '\n' : '') + 'Type: ' + (p.t || 'Diagnosis') + '\n' + p.c.map((c, i) => (i + 1) + '. ' + c).join('\n') + '\n' + (p.w ? 'Why: ' + p.w + '\n' : '')).join('\n---\n');
+}
+function dpSchedule(list, start) {
+  const box = document.getElementById('dp_sched'); box.innerHTML = '';
+  if (!list.length) return;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(start || '');
+  const startDay = m ? Math.floor(Date.UTC(+m[1], +m[2] - 1, +m[3]) / 86400000) : Math.floor((Date.now() + 19800000) / 86400000);
+  const today = Math.floor((Date.now() + 19800000) / 86400000);
+  box.appendChild(mk('div', 'hint', 'Next 7 days (India time):'));
+  const g = mk('div', 'gt-sum'); g.style.gridTemplateColumns = '1fr';
+  for (let d = 0; d < 7; d++) {
+    const day = today + d, idx = (((day - startDay) % list.length) + list.length) % list.length;
+    const dt = new Date(day * 86400000).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+    g.appendChild(mk('span', null, (d === 0 ? 'Today' : dt) + ' · #' + (day - startDay + 1) + ' · ' + list[idx].a));
+  }
+  box.appendChild(g);
+  box.appendChild(mk('div', 'hint', list.length + ' puzzles saved, so it repeats every ' + list.length + ' days. Add more before it runs out.'));
+}
+async function loadDailyAdmin() {
+  const st = document.getElementById('dp_status');
+  try {
+    const { db, doc, getDoc } = window.__fb;
+    const s = await getDoc(doc(db, 'sample', 'daily'));
+    const d = s.exists() ? s.data() : null;
+    const list = d && Array.isArray(d.puzzles) ? d.puzzles : [];
+    document.getElementById('dp_text').value = dailyToText(list);
+    document.getElementById('dp_start').value = d && d.start ? d.start : new Date(Date.now() + 19800000).toISOString().slice(0, 10);
+    st.textContent = list.length ? 'Saved on the home page: ' + list.length + ' puzzles.' : 'No puzzles saved yet. The game is hidden on the home page.';
+    dpSchedule(list, document.getElementById('dp_start').value);
+  } catch (e) { st.textContent = 'Could not load: ' + e.message; }
+}
+async function saveDaily() {
+  const res = parseDaily(document.getElementById('dp_text').value);
+  if (res.errors.length) { showToast(res.errors[0], true); return; }
+  if (!res.puzzles.length) { showToast('Paste at least one puzzle.', true); return; }
+  if (res.puzzles.length > 200) { showToast('Up to 200 puzzles are allowed.', true); return; }
+  const start = document.getElementById('dp_start').value;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(start)) { showToast('Choose the date the first puzzle shows.', true); return; }
+  const btn = document.getElementById('dp_save'); btn.disabled = true;
+  try {
+    const { db, doc, setDoc, serverTimestamp } = window.__fb;
+    await setDoc(doc(db, 'sample', 'daily'), { start: start, puzzles: res.puzzles, count: res.puzzles.length, updatedAt: serverTimestamp() });
+    showToast('✔ Saved ' + res.puzzles.length + ' puzzles.');
+    loadDailyAdmin();
+  } catch (e) { showToast('Failed: ' + e.message, true); }
+  finally { btn.disabled = false; }
+}
+async function clearDaily() {
+  if (!confirm('Remove the Daily Diagnosis game from the home page? Your saved puzzles will be deleted.')) return;
+  try { const { db, doc, deleteDoc } = window.__fb; await deleteDoc(doc(db, 'sample', 'daily')); document.getElementById('dp_text').value = ''; document.getElementById('dp_sched').innerHTML = ''; document.getElementById('dp_status').textContent = 'Removed. The game is hidden on the home page.'; }
+  catch (e) { showToast('Failed: ' + e.message, true); }
+}
+document.getElementById('dp_save').addEventListener('click', saveDaily);
+document.getElementById('dp_reload').addEventListener('click', loadDailyAdmin);
+document.getElementById('dp_clear').addEventListener('click', clearDaily);
+document.getElementById('dp_start').addEventListener('change', () => { const r = parseDaily(document.getElementById('dp_text').value); dpSchedule(r.puzzles.filter(p => p.a), document.getElementById('dp_start').value); });
 
 // ---------- Mnemonic Wall (members send, you approve) ----------
 async function loadMnAdmin() {
