@@ -271,7 +271,7 @@ function h(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 // ---------- Coming soon mode ----------
-// COMING_SOON = "1" (in wrangler.toml) hides the home page and every page except News and Counselling.
+// COMING_SOON = "1" (in wrangler.toml) hides the home page and every page except News, Counselling and Study tips.
 // Nothing is deleted. Set it to "0" to show the whole website again.
 const isOn = (v) => /^(1|true|on|yes)$/i.test(String(v || '').trim());
 function siteOf(env, url) {
@@ -318,7 +318,7 @@ function soonPage(env, url) {
     '<style>' + css + '</style>' + CF_BEACON + '</head><body><main class="box"><img class="lg" src="/logo-360.webp" width="150" height="150" alt="PPTNEETPGHUB Premium">' +
     '<div class="tag">NEET PG &middot; INICET</div><h1>Coming <span>soon</span></h1>' +
     '<p>Notes, tests and revision tools are getting ready. Until then, read the latest news and counselling updates.</p>' +
-    '<div class="row"><a class="b g" href="/news">Latest news</a><a class="b o" href="/counselling">Counselling updates</a><a class="b o" href="https://t.me/D_V11111" target="_blank" rel="noopener">Message us on Telegram</a></div>' +
+    '<div class="row"><a class="b g" href="/news">Latest news</a><a class="b o" href="/study-tips">Study tips</a><a class="b o" href="/counselling">Counselling updates</a><a class="b o" href="https://t.me/D_V11111" target="_blank" rel="noopener">Message us on Telegram</a></div>' +
     '<div class="f">Pray. Patience. Trust.</div></main></body></html>';
   return new Response(html, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin' } });
 }
@@ -326,8 +326,7 @@ function soonPage(env, url) {
 function soonRoute(request, env, url) {
   const p = url.pathname;
   if (p === '/' || p === '/index.html') return soonPage(env, url);
-  if (p === '/study-tips' || p.startsWith('/study-tips/') || POLICIES[p]) return new Response(null, { status: 302, headers: { Location: url.origin + '/', 'Cache-Control': 'no-store' } });
-  if (p === '/api/study-tips') return new Response('{"items":[]}', { status: 200, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
+  if (POLICIES[p]) return new Response(null, { status: 302, headers: { Location: url.origin + '/', 'Cache-Control': 'no-store' } });
   return null;
 }
 
@@ -456,9 +455,7 @@ function soonify(site, html) {
   if (!site.soon) return html;
   const drop = (s, x) => s.split(x).join('');      // every copy, not just the first
   let out = html;
-  [ '<a class="hide" href="/study-tips">Study tips</a>',
-    '<a href="/study-tips">Study tips</a>',
-    '<a href="/#features">What you get</a>',
+  [ '<a href="/#features">What you get</a>',
     '<a href="/#pricing">Pricing</a>',
     '<a href="/#faq">FAQ</a>',
     '<hr><a href="/" style="color:#D4AF55;font-weight:700">Member sign in</a>'
@@ -793,11 +790,11 @@ async function sitemapXml(env, url) {
   const guide = everything.find(n => n.slug === 'counselling' && n.section === 'counselling');
   const last = (l) => (l.length ? (l[0].updatedAt || '').slice(0, 10) : '');
   const rows = site.soon
-    ? [{ loc: '/news', mod: last(news) }, { loc: '/counselling', mod: guide ? (guide.updatedAt || '').slice(0, 10) : last(coun) }]
+    ? [{ loc: '/news', mod: last(news) }, { loc: '/counselling', mod: guide ? (guide.updatedAt || '').slice(0, 10) : last(coun) }, { loc: '/study-tips', mod: last(tips) }]
     : [{ loc: '/', mod: '' }, { loc: '/terms', mod: '' }, { loc: '/privacy', mod: '' }, { loc: '/refund', mod: '' }, { loc: '/news', mod: last(news) }, { loc: '/counselling', mod: guide ? (guide.updatedAt || '').slice(0, 10) : last(coun) }, { loc: '/study-tips', mod: last(tips) }];
   news.forEach(n => rows.push({ loc: '/news/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
   coun.forEach(n => rows.push({ loc: '/counselling/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
-  if (!site.soon) tips.forEach(n => rows.push({ loc: '/study-tips/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
+  tips.forEach(n => rows.push({ loc: '/study-tips/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
   const xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     rows.map(r => '<url><loc>' + h(site + r.loc) + '</loc>' + (r.mod ? '<lastmod>' + h(r.mod) + '</lastmod>' : '') + '</url>').join('\n') + '\n</urlset>';
   return new Response(xml, { status: 200, headers: { 'Content-Type': 'application/xml; charset=utf-8' } });
