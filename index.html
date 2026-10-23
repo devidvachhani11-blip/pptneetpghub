@@ -4084,6 +4084,7 @@ async function trFinish(auto) {
   TR.phase = "result"; TR.pal = false;
   TR.prev = trSynthetic() ? null : lastAttemptOf(t.id);   // for "last time vs now" on the result screen
   TR.res = trCompute();
+  if (t.sample) statPing("sd", { c: TR.res.c, n: TR.res.n });
   trForget();
   TR.nbNote = t.practice ? practiceRecord(t, TR.ans) : (t.sample || t.duel) ? 0 : trSynthetic() ? nbPracticeDone(t, TR.ans) : 0;
   if (!trSynthetic()) nbRecordResult(t, TR.ans);
@@ -6650,7 +6651,7 @@ function dqLeft() {
   return h + "h " + String(m).padStart(2, "0") + "m";
 }
 function dqFinish(win) {
-  DQ.st.done = true; DQ.st.win = win; dqSave(); dqNoteDone(); dqPaint(true);
+  DQ.st.done = true; DQ.st.win = win; dqSave(); dqNoteDone(); statPing("dq", { w: win ? 1 : 0, g: win ? Math.max(1, Math.min(6, DQ.st.g.length)) : 6, p: DQ.no }); dqPaint(true);
 }
 function dqPaint(fresh) {
   const box = document.getElementById("dqBox"), p = DQ.p;
@@ -6743,8 +6744,19 @@ async function loadSample() {
   sec.style.display = "";
   paintBeat();
 }
+// Anonymous count for the admin Stats tab. No name, no email. Sent once a day per phone for each event.
+function statPing(e, data) {
+  try {
+    if (location.protocol.indexOf("http") !== 0) return;
+    const k = "pptStat:" + e + ":" + istDay(Date.now());
+    if (localStorage.getItem(k)) return;
+    localStorage.setItem(k, "1");
+    fetch("/api/stat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.assign({ e: e }, data || {})), keepalive: true }).catch(() => {});
+  } catch (x) {}
+}
 function startSample() {
   if (!SMP.data) return;
+  statPing("ss");
   TR.t = { id: "__sample__", sample: true, title: "Free sample", subject: "Mixed", mode: "instant", duration: 0, plus: 1, minus: 0,
     qs: SMP.data.qs.map(q => ({ q: q.q, o: q.o, a: q.a, e: q.e || "", s: q.s, t: q.t })) };
   TR.phase = "run"; TR.pal = false; TR.filter = "All"; TR.res = null; TR.prev = null; TR.blocks = []; TR.blk = -1;

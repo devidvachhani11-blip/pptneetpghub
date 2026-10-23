@@ -476,6 +476,7 @@
       <button class="tab-btn" data-panel="counsellingPanel">Counselling</button>
       <button class="tab-btn" data-panel="tipsPanel">Study Tips</button>
       <button class="tab-btn" data-panel="dailyPanel">Daily puzzle</button>
+      <button class="tab-btn" data-panel="statsPanel">Stats</button>
       <button class="tab-btn" data-panel="mnPanel">Mnemonics<span class="tab-count" id="mnCount" style="display:none;">0</span></button>
       <button class="tab-btn" data-panel="reportsPanel">Reports<span class="tab-count" id="repCount" style="display:none;">0</span></button>
       <button class="tab-btn" data-panel="resultsPanel">Results</button>
@@ -972,6 +973,17 @@
       </div>
     </div>
 
+    <!-- Visitor stats -->
+    <div id="statsPanel" style="display:none;">
+      <div class="card">
+        <h3>Visitor stats</h3>
+        <p class="hint" style="margin-top:-6px">Anonymous counts from the home page: the free sample and the Daily Diagnosis. No names or emails. A phone is counted once a day for each event, so these are good estimates, not exact numbers. Counting started when this version went live. Days are in Indian time.</p>
+        <div class="t-actions"><button class="btn outline" id="st_reload">Refresh</button></div>
+        <p class="hint" id="st_status"></p>
+        <div id="st_body"></div>
+      </div>
+    </div>
+
     <!-- Mnemonic Wall: approve what members send -->
     <div id="mnPanel" style="display:none;">
       <div class="card">
@@ -1243,7 +1255,7 @@ window.addEventListener('fbReady', () => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      ['homePanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'gtPanel', 'seriesPanel', 'cardsPanel', 'imgTestPanel', 'dropsPanel', 'samplePanel', 'dailyPanel', 'mnPanel', 'lbPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'launchPanel', 'membersPanel', 'listPanel'].forEach(id => {
+      ['homePanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'gtPanel', 'seriesPanel', 'cardsPanel', 'imgTestPanel', 'dropsPanel', 'samplePanel', 'dailyPanel', 'statsPanel', 'mnPanel', 'lbPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'launchPanel', 'membersPanel', 'listPanel'].forEach(id => {
         document.getElementById(id).style.display = (id === btn.dataset.panel) ? 'block' : 'none';
       });
       if (btn.dataset.panel === 'homePanel') loadHome();
@@ -1251,6 +1263,7 @@ window.addEventListener('fbReady', () => {
       if (btn.dataset.panel === 'samplePanel') loadSampleAdmin();
       if (btn.dataset.panel === 'mnPanel') loadMnAdmin();
       if (btn.dataset.panel === 'dailyPanel') loadDailyAdmin();
+      if (btn.dataset.panel === 'statsPanel') loadStatsAdmin();
       if (btn.dataset.panel === 'seriesPanel') loadSeriesAdmin();
       if (btn.dataset.panel === 'cardsPanel') loadCardDecks();
       if (btn.dataset.panel === 'lbPanel') loadLbTests();
@@ -3920,6 +3933,55 @@ async function downloadBackup() {
 // ---------- Backups kept in your private cloud storage ----------
 let CLOUD_LAST = 0;
 async function adminToken() { return await window.__fb.auth.currentUser.getIdToken(); }
+
+// ---------- Visitor stats tab ----------
+function stSum(days, keys) {
+  const t = { ss: 0, sd: 0, sc: 0, sn: 0, sg: 0, dq: 0, dw: 0, c: 0, cn: 0 };
+  keys.forEach(k => {
+    const d = days[k]; if (!d) return;
+    ['ss', 'sd', 'sc', 'sn', 'sg', 'dq', 'dw'].forEach(f => { t[f] += Number(d[f]) || 0; });
+    (d.dc || []).forEach((v, i) => { if (i > 0) { t.c += i * (Number(v) || 0); t.cn += Number(v) || 0; } });
+  });
+  return t;
+}
+function stPct(a, b) { return b ? Math.round(a / b * 100) + '%' : '-'; }
+function stAvg(a, b) { return b ? (a / b).toFixed(1) : '-'; }
+async function loadStatsAdmin() {
+  const status = document.getElementById('st_status'), body = document.getElementById('st_body');
+  status.textContent = 'Loading...'; body.innerHTML = '';
+  let st;
+  try {
+    const res = await fetch('/api/stats', { headers: { Authorization: 'Bearer ' + await adminToken() } });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    st = await res.json();
+  } catch (e) { status.textContent = 'Could not load the stats. Is the new worker.js uploaded? (' + (e && e.message) + ')'; return; }
+  const days = st.days || {};
+  const all = Object.keys(days).filter(k => /^\d{4}-\d\d-\d\d$/.test(k)).sort();
+  if (!all.length) { status.textContent = 'No visits counted yet. Counts appear after visitors play the free sample or the Daily Diagnosis.'; return; }
+  status.textContent = 'Last update: ' + all[all.length - 1] + ' (Indian date). Showing the last ' + Math.min(all.length, 90) + ' days kept.';
+  const sets = [['Latest day (' + all[all.length - 1].slice(5) + ')', all.slice(-1)], ['Last 7 days', all.slice(-7)], ['All days kept', all]];
+  let h = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="text-align:left;border-bottom:1px solid #D9CFB8"><th style="padding:6px 4px">&nbsp;</th><th>Sample started</th><th>Finished</th><th>Avg score</th><th>70%+</th><th>Diagnosis played</th><th>Solved</th><th>Avg clues (solved)</th></tr>';
+  sets.forEach(s => {
+    const t = stSum(days, s[1]);
+    h += '<tr style="border-bottom:1px solid #EEE6D2"><td style="padding:6px 4px"><b>' + s[0] + '</b></td><td>' + t.ss + '</td><td>' + t.sd + '</td><td>' + stPct(t.sc, t.sn) + '</td><td>' + stPct(t.sg, t.sd) + '</td><td>' + t.dq + '</td><td>' + t.dw + ' (' + stPct(t.dw, t.dq) + ')</td><td>' + stAvg(t.c, t.cn) + '</td></tr>';
+  });
+  h += '</table></div>';
+  h += '<h4 style="margin:16px 0 6px">By day (last 14)</h4><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="text-align:left;border-bottom:1px solid #D9CFB8"><th style="padding:6px 4px">Date</th><th>Sample started</th><th>Finished</th><th>Avg score</th><th>Diagnosis played</th><th>Solved</th></tr>';
+  all.slice(-14).reverse().forEach(k => {
+    const t = stSum(days, [k]);
+    h += '<tr style="border-bottom:1px solid #EEE6D2"><td style="padding:6px 4px">' + k + '</td><td>' + t.ss + '</td><td>' + t.sd + '</td><td>' + stPct(t.sc, t.sn) + '</td><td>' + t.dq + '</td><td>' + t.dw + ' (' + stPct(t.dw, t.dq) + ')</td></tr>';
+  });
+  h += '</table></div>';
+  const pz = st.puz || {};
+  const pk = Object.keys(pz).map(Number).filter(n => n > 0).sort((a, b) => b - a).slice(0, 15);
+  if (pk.length) {
+    h += '<h4 style="margin:16px 0 6px">Daily Diagnosis by puzzle (latest 15)</h4><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="text-align:left;border-bottom:1px solid #D9CFB8"><th style="padding:6px 4px">Puzzle</th><th>Played</th><th>Solved</th></tr>';
+    pk.forEach(n => { const p = pz[n] || {}; const a = Number(p.n) || 0, w = Number(p.w) || 0; h += '<tr style="border-bottom:1px solid #EEE6D2"><td style="padding:6px 4px">#' + n + '</td><td>' + a + '</td><td>' + w + ' (' + stPct(w, a) + ')</td></tr>'; });
+    h += '</table></div><p class="hint">A puzzle with a low solved % is hard. Consider moving it later or making its clues clearer.</p>';
+  }
+  body.innerHTML = h;
+}
+document.getElementById('st_reload').addEventListener('click', loadStatsAdmin);
 async function cloudBackup() {
   const btn = document.getElementById('bk_cloud'), st = document.getElementById('bk_status');
   btn.disabled = true;

@@ -1193,6 +1193,50 @@ async function handleSampleCard(env, url) {
   return new Response(obj.body, { headers: { 'Content-Type': MIME[ext], 'Cache-Control': 'public, max-age=300', 'X-Content-Type-Options': 'nosniff' } });
 }
 
+// ---------- Visitor stats: anonymous counts for the free sample and Daily Diagnosis ----------
+// No names, emails or devices. Counts only, kept for 90 days in one small file.
+const STAT_KEY = 'system/stats.json';
+const statByIp = new Map(); let statGlobal = [];
+function istDate(ms) { return new Date(ms + 19800000).toISOString().slice(0, 10); }
+async function handleStat(request, env) {
+  const ok = json({ ok: true });
+  const ip = request.headers.get('CF-Connecting-IP') || 'x', now = Date.now(), hour = 3600000;
+  const mine = (statByIp.get(ip) || []).filter(t => now - t < hour);
+  statGlobal = statGlobal.filter(t => now - t < hour);
+  if (mine.length >= 30 || statGlobal.length >= 3000) return ok;      // quietly ignore floods
+  mine.push(now); statGlobal.push(now); statByIp.set(ip, mine); trimMap(statByIp, 500);
+  let b; try { const txt = await request.text(); if (txt.length > 300) return ok; b = JSON.parse(txt); } catch (e) { return ok; }
+  if (!b || typeof b !== 'object') return ok;
+  const int = (v, lo, hi) => { v = Number(v); return Number.isInteger(v) && v >= lo && v <= hi ? v : null; };
+  let st = { days: {}, puz: {} };
+  try { const o = await env.FILES.get(STAT_KEY); if (o) st = JSON.parse(await o.text()); } catch (e) {}
+  st.days = st.days || {}; st.puz = st.puz || {};
+  const day = istDate(now);
+  const d = st.days[day] = st.days[day] || { ss: 0, sd: 0, sc: 0, sn: 0, sg: 0, dq: 0, dw: 0, dc: [0, 0, 0, 0, 0, 0, 0] };
+  if (b.e === 'ss') d.ss++;
+  else if (b.e === 'sd') {
+    const n = int(b.n, 1, 50), c = int(b.c, 0, 50);
+    if (n === null || c === null || c > n) return ok;
+    d.sd++; d.sc += c; d.sn += n; if (c * 100 >= n * 70) d.sg++;
+  } else if (b.e === 'dq') {
+    const w = int(b.w, 0, 1), g = int(b.g, 1, 6), p = int(b.p, 1, 9999);
+    if (w === null || g === null || p === null) return ok;
+    d.dq++; if (w) { d.dw++; d.dc[g]++; } else d.dc[0]++;     // dc[0] = not solved, dc[k] = solved with k clues
+    const pz = st.puz[p] = st.puz[p] || { n: 0, w: 0 }; pz.n++; if (w) pz.w++;
+  } else return ok;
+  const keys = Object.keys(st.days).sort(); while (keys.length > 90) delete st.days[keys.shift()];
+  const pk = Object.keys(st.puz).map(Number).sort((x, y) => x - y); while (pk.length > 400) delete st.puz[pk.shift()];
+  await env.FILES.put(STAT_KEY, JSON.stringify(st), { httpMetadata: { contentType: 'application/json' } });
+  return ok;
+}
+async function handleStats(request, env) {
+  const user = await requireUser(request, env);
+  if (!user.isAdmin) throw new HttpError(403, 'Admin only');
+  let st = { days: {}, puz: {} };
+  try { const o = await env.FILES.get(STAT_KEY); if (o) st = JSON.parse(await o.text()); } catch (e) {}
+  return json(st);
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -1212,6 +1256,8 @@ export default {
       if (pub) return pub;
     }
     try {
+      if (url.pathname === '/api/stat' && request.method === 'POST') return await handleStat(request, env);
+      if (url.pathname === '/api/stats' && request.method === 'GET') return await handleStats(request, env);
       if (url.pathname === '/api/sample-card' && request.method === 'GET') return await handleSampleCard(env, url);
       if (url.pathname === '/api/file' && request.method === 'GET') return await handleGet(request, env, url);
       if (url.pathname === '/api/file' && request.method === 'DELETE') return await handleDelete(request, env, url);
