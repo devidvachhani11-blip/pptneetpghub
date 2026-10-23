@@ -318,7 +318,7 @@ function soonPage(env, url) {
     '<style>' + css + '</style>' + CF_BEACON + '</head><body><main class="box"><img class="lg" src="/logo-360.webp" width="150" height="150" alt="PPTNEETPGHUB Premium">' +
     '<div class="tag">NEET PG &middot; INICET</div><h1>Coming <span>soon</span></h1>' +
     '<p>Notes, tests and revision tools are getting ready. Until then, read the latest news and counselling updates.</p>' +
-    '<div class="row"><a class="b g" href="/news">Latest news</a><a class="b o" href="/study-tips">Study tips</a><a class="b o" href="/counselling">Counselling updates</a><a class="b o" href="https://t.me/D_V11111" target="_blank" rel="noopener">Message us on Telegram</a></div>' +
+    '<div class="row"><a class="b g" href="/news">Latest news</a><a class="b o" href="/study-tips">Study tips</a><a class="b o" href="/counselling">Counselling updates</a><a class="b o" href="mailto:neetpghub111@gmail.com">Email us</a></div>' +
     '<div class="f">Pray. Patience. Trust.</div></main></body></html>';
   return new Response(html, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin' } });
 }
@@ -551,7 +551,7 @@ async function articlePage(env, url, slug) {
 
 // ---------- Terms, Privacy and Refund pages ----------
 const POLICY_UPDATED = '3 October 2026';
-const POLICY_CONTACT = '<p><b>Contact:</b> <a href="https://t.me/D_V11111" target="_blank" rel="noopener">Telegram @D_V11111</a> or <a href="https://wa.me/916355895222" target="_blank" rel="noopener">WhatsApp +91 63558 95222</a>.</p>';
+const POLICY_CONTACT = '<p><b>Contact:</b> <a href="mailto:neetpghub111@gmail.com">neetpghub111@gmail.com</a></p>';
 const POLICIES = {
   '/terms': {
     title: 'Terms of Use',

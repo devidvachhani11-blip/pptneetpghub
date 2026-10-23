@@ -16,7 +16,7 @@ PROJECT_ID = "pptneetpghub"
 ADMIN_EMAIL = "devid.vachhani11@gmail.com"
 SITE_URL = "https://pptneetpghub.com"
 # "1" = show only Coming soon, News and Counselling. "0" = the whole website. Nothing is deleted either way.
-COMING_SOON = "1"
+COMING_SOON = "0"
 
 [triggers]
 crons = ["*/10 * * * *"]
