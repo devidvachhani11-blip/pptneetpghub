@@ -3132,7 +3132,7 @@ async function openDeck(list, startId, title, mode) {
   FC.mode = mode === "revise" ? "revise" : "browse"; FC.session = { rated: 0, again: 0, seen: new Set() }; FC.requeue = {};
   FC.order = list.map((_, i) => i);
   FC.pos = Math.max(0, FC.order.findIndex(i => list[i].id === startId));
-  document.getElementById("fcOverlay").classList.add("on");
+  document.getElementById("fcOverlay").classList.add("on"); navPush("deck", { close: closeDeck });
   document.body.style.overflow = "hidden";
   if (FC.mode === "revise" && !CARDS.loaded) {
     document.getElementById("fcOverlay").innerHTML = '<div class="fc-top"><div class="fc-title">' + esc(FC.title) + '</div><button class="fc-x" data-fc="close" aria-label="Close">&times;</button></div><div class="fc-stage"><div class="fc-msg">Getting your revision list…</div></div>';
@@ -3146,6 +3146,7 @@ async function openDeck(list, startId, title, mode) {
 }
 
 function closeDeck() {
+  navDone("deck");
   FC.open = false; FC.tok++;
   if (CARDS.timer) saveCards();
   FC.cache.forEach(u => { if (String(u).indexOf("blob:") === 0) URL.revokeObjectURL(u); });
@@ -3411,9 +3412,10 @@ function openHelp(topic) {
   });
   helpPick(topic || "other");
   document.getElementById("helpScrim").classList.add("on");
-  document.getElementById("helpSheet").classList.add("on");
+  document.getElementById("helpSheet").classList.add("on"); navPush("help", { close: closeHelp });
 }
 function closeHelp() {
+  navDone("help");
   document.getElementById("helpScrim").classList.remove("on");
   document.getElementById("helpSheet").classList.remove("on");
 }
@@ -3491,10 +3493,11 @@ function openReport(ctx) {
   const wa = "Mistake in " + where + ". What is wrong: \n\n" + helpWho();
   document.getElementById("rpWa").href = waLink(wa);
   document.getElementById("rpScrim").classList.add("on");
-  document.getElementById("rpSheet").classList.add("on");
+  document.getElementById("rpSheet").classList.add("on"); navPush("report", { close: closeReport });
   setTimeout(() => document.getElementById("rpMsg").focus(), 80);
 }
 function closeReport() {
+  navDone("report");
   document.getElementById("rpScrim").classList.remove("on");
   document.getElementById("rpSheet").classList.remove("on");
 }
@@ -3612,9 +3615,9 @@ function trFreeImages() {
 function openLightbox(src) {
   const lb = document.getElementById("lightbox");
   lb.innerHTML = '<button class="lb-x" data-lb="close" aria-label="Close picture">&times;</button><img alt="Picture" src="' + src + '">';
-  lb.classList.add("on"); lb.scrollTop = 0;
+  lb.classList.add("on"); lb.scrollTop = 0; navPush("lightbox", { close: closeLightbox });
 }
-function closeLightbox() { const lb = document.getElementById("lightbox"); lb.classList.remove("on"); lb.innerHTML = ""; }
+function closeLightbox() { navDone("lightbox"); const lb = document.getElementById("lightbox"); lb.classList.remove("on"); lb.innerHTML = ""; }
 document.getElementById("lightbox").addEventListener("click", closeLightbox);
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeLightbox(); });
 
@@ -3763,6 +3766,55 @@ function trClock(sec) {
   return (h ? h + ":" : "") + pad(m) + ":" + pad(s);
 }
 
+// ---------- Back button (phones): go one step back inside the site instead of leaving it ----------
+const NAV = { stack: [], q: [], busy: false, wait: null, armed: 0, guarded: false };
+function navRun() {
+  if (NAV.busy) return;
+  const op = NAV.q.shift(); if (!op) return;
+  if (op.k === "push") { try { history.pushState({ ppt: 1, id: op.id }, ""); } catch (e) {} navRun(); }
+  else { NAV.busy = true; NAV.wait = setTimeout(navAck, 800); try { history.go(-op.n); } catch (e) { navAck(); } }
+}
+function navAck() { clearTimeout(NAV.wait); NAV.busy = false; navRun(); }
+function navEnsureGuard() {                        // one extra history step at the start, so the first Back press stays on the site
+  if (NAV.guarded || !currentUser) return;
+  NAV.guarded = true;
+  try { history.replaceState({ ppt: 1, id: "base" }, ""); history.pushState({ ppt: 1, id: "guard" }, ""); } catch (e) {}
+}
+function navPush(id, spec) {                       // a screen opened on top: Back should close it
+  if (NAV.stack.some(l => l.id === id)) return;
+  navEnsureGuard();
+  NAV.stack.push(Object.assign({ id: id }, spec)); NAV.q.push({ k: "push", id: id }); navRun();
+}
+function navDone(id) {                             // the screen was closed by the app itself
+  const i = NAV.stack.findIndex(l => l.id === id); if (i < 0) return;
+  const n = NAV.stack.length - i; NAV.stack.splice(i); NAV.q.push({ k: "back", n: n }); navRun();
+}
+window.addEventListener("popstate", (e) => {
+  if (NAV.busy) { navAck(); return; }
+  const l = NAV.stack[NAV.stack.length - 1];
+  if (l) {
+    const msg = l.ask ? l.ask() : "";
+    if (msg) { try { history.pushState({ ppt: 1, id: l.id }, ""); } catch (x) {} if (confirm(msg)) l.close(); return; }
+    NAV.stack.pop(); l.close(); return;
+  }
+  if (!(e.state && e.state.ppt)) return;          // a normal link jump inside the page
+  if (!currentUser) { history.back(); return; }
+  const now = Date.now();
+  if (now < NAV.armed) { NAV.armed = now + 2500; history.back(); return; }
+  NAV.armed = now + 2500;
+  try { history.pushState({ ppt: 1, id: "guard" }, ""); } catch (x) {}
+  showToast("Press back again to exit");
+});
+document.addEventListener("pointerdown", navEnsureGuard, { capture: true, passive: true });
+function trCloseNow() {
+  if (TR.t && TR.phase === "run") { trLap(true); trPersist(); }
+  trCloseOverlay();
+}
+const NAV_TEST = {
+  ask: () => { const t = TR.t; if (t && (TR.phase === "run" || TR.phase === "blocks")) return t.mode === "exam" ? "Leave the test? Your answers are saved and the timer keeps running." : "Leave this test?"; return ""; },
+  close: () => trCloseNow()
+};
+
 function trOverlay() { return document.getElementById("trOverlay"); }
 function trLoading(msg) {
   trOverlay().innerHTML = '<div class="tr-top"><div class="tr-title">Test</div><button class="tr-x" data-act="close" aria-label="Close">&times;</button></div><div class="tr-load">' + esc(msg) + '</div>';
@@ -3772,7 +3824,7 @@ async function openTest(item) {
   trackOpen(item && item.id);
   if (!window.__fb) { showToast("Still loading. Try again in a moment.", true); return; }
   const ov = trOverlay();
-  ov.classList.add("on");
+  ov.classList.add("on"); navPush("test", NAV_TEST);
   document.body.style.overflow = "hidden";
   trLoading("Loading test…");
   try {
@@ -3865,6 +3917,7 @@ function trStartTimer() {
 }
 
 function trCloseOverlay() {
+  navDone("test");
   clearInterval(TR.timer);
   trOverlay().classList.remove("on");
   trOverlay().innerHTML = "";
@@ -4172,8 +4225,7 @@ document.getElementById("trOverlay").addEventListener("click", (e) => {
   const act = b.dataset.act, t = TR.t;
   if (act === "close") {
     if (t && (TR.phase === "run" || TR.phase === "blocks") && t.mode === "exam" && !confirm("Leave the test? Your answers are saved and the timer keeps running.")) return;
-    if (t && TR.phase === "run") { trLap(true); trPersist(); }
-    trCloseOverlay(); return;
+    trCloseNow(); return;
   }
   if (act === "why") {
     const qi = Number(b.dataset.i), w = b.dataset.w; TR.why = TR.why || {};
@@ -4382,10 +4434,10 @@ async function lbOpen(testId, title) {
     let ov = document.getElementById("lbOv");
     if (!ov) {
       ov = document.createElement("div"); ov.id = "lbOv"; ov.className = "lb-ov"; document.body.appendChild(ov);
-      ov.addEventListener("click", (e) => { if (e.target === ov || e.target.closest("[data-lb-close]")) ov.classList.remove("on"); });
+      ov.addEventListener("click", (e) => { if (e.target === ov || e.target.closest("[data-lb-close]")) { ov.classList.remove("on"); navDone("top10"); } });
     }
     ov.innerHTML = '<div class="lb-card"><div class="lb-h"><b>' + esc(title || d.title || "Top 10") + '</b><button data-lb-close aria-label="Close">&times;</button></div>' + lbHTML(d, memberInfo.id) + '<p class="lb-note">Only member IDs and scores are shown.</p></div>';
-    ov.classList.add("on");
+    ov.classList.add("on"); navPush("top10", { close: () => ov.classList.remove("on") });
   } catch (e) { showToast("Could not load the Top 10. Try again.", true); }
 }
 
@@ -4570,6 +4622,7 @@ function lastAttemptOf(testId) {
 
 function setLibView(v) {
   libView = v;
+  if (v === "library") navDone("view"); else navPush("view", { close: () => setLibView("library") });
   render();
   window.scrollTo({ top: 0 });
 }
@@ -4604,7 +4657,7 @@ function renderProgress() {
   if (!MY_ATTEMPTS.length) {
     const e = libEl("div", "lib-empty", "No tests taken yet. Take a test and your scores and progress will appear here.");
     const b = libEl("button", null, "Browse tests");
-    b.onclick = () => { lib.tab = "Tests"; lib.subject = "All"; lib.exam = "NEET PG"; setLibView("library"); };
+    b.onclick = () => { lib.tab = "Tests"; lib.subject = "All"; navDone("exam"); lib.exam = "NEET PG"; setLibView("library"); };
     e.appendChild(document.createElement("br"));
     e.appendChild(b);
     box.appendChild(e);
@@ -4699,7 +4752,7 @@ function renderProgress() {
       f.style.background = x.p < 50 ? "#D98B54" : x.p < 70 ? "#D4AF55" : "#0F8F83";
       tk.appendChild(f); row.appendChild(tk);
       const acts = libEl("div", "acts");
-      const rb = libEl("button", null, "Resources"); rb.onclick = () => { lib.subject = canonSubject(x.k); lib.tab = "All"; lib.exam = "NEET PG"; setLibView("library"); };
+      const rb = libEl("button", null, "Resources"); rb.onclick = () => { lib.subject = canonSubject(x.k); lib.tab = "All"; navDone("exam"); lib.exam = "NEET PG"; setLibView("library"); };
       acts.appendChild(rb);
       row.appendChild(acts);
       sc.appendChild(row);
@@ -5107,7 +5160,7 @@ function nbPractice(list) {
   const qs = items.map(x => nbQ(x));
   TR.t = { id: "__notebook__", title: "Mistake notebook", subject: "Mixed", mode: "instant", duration: 0, plus: 1, minus: 0, qs, refs: items.map(x => ({ t: x.t, i: x.i })) };
   TR.phase = "run"; TR.pal = false; TR.filter = "All"; TR.res = null; TR.prev = null; TR.blocks = []; TR.blk = -1;
-  trOverlay().classList.add("on"); document.body.style.overflow = "hidden";
+  trOverlay().classList.add("on"); navPush("test", NAV_TEST); document.body.style.overflow = "hidden";
   trFresh(); trStartTimer(); trRender();
 }
 
@@ -5250,7 +5303,7 @@ function renderExam() {
     const n = ALL.filter(it => !isCardTab(it.tab) && isInicet(it) === (e[0] === "INICET")).length;
     const b = libEl("button", (lib.exam === e[0] ? "on " : "") + e[1]); b.type = "button";
     b.appendChild(document.createTextNode(e[0])); b.appendChild(libEl("b", null, String(n)));
-    b.onclick = () => { if (lib.exam === e[0]) return; lib.exam = e[0]; lib.tab = "All"; lib.subject = "All"; render(); };
+    b.onclick = () => { if (lib.exam === e[0]) return; lib.exam = e[0]; lib.tab = "All"; lib.subject = "All"; if (e[0] === "INICET") navPush("exam", { close: () => { lib.exam = "NEET PG"; lib.tab = "All"; lib.subject = "All"; render(); } }); else navDone("exam"); render(); };
     box.appendChild(b);
   });
 }
@@ -5532,9 +5585,10 @@ document.getElementById("vwCom").onclick = () => setLibView("community");
 // ---------- Right-side filter drawer (phones) ----------
 function openFilter() {
   document.getElementById("libSide").classList.add("open");
-  document.getElementById("libScrim").classList.add("on");
+  document.getElementById("libScrim").classList.add("on"); navPush("filter", { close: closeFilter });
 }
 function closeFilter() {
+  navDone("filter");
   document.getElementById("libSide").classList.remove("open");
   document.getElementById("libScrim").classList.remove("on");
 }
@@ -5571,9 +5625,11 @@ if (window.visualViewport) { window.visualViewport.addEventListener("resize", ()
 function viewerShow() {
   document.documentElement.classList.add("viewer-lock");
   document.getElementById("viewerOverlay").classList.add("open");
+  navPush("viewer", { close: () => { viewerHide(); currentPdfDoc = null; paintResume(); } });
   syncViewerHeight();
 }
 function viewerHide() {
+  navDone("viewer");
   document.getElementById("viewerOverlay").classList.remove("open");
   document.documentElement.classList.remove("viewer-lock");
 }
@@ -6069,7 +6125,7 @@ async function prStart(n, mode) {
   if (leftNow <= 0) { showToast("You finished today's practice limit. Come back tomorrow.", true); paintPractice(); return; }
   n = Math.min(n, leftNow);
   prShuffle(need);
-  trOverlay().classList.add("on"); document.body.style.overflow = "hidden";
+  trOverlay().classList.add("on"); navPush("test", NAV_TEST); document.body.style.overflow = "hidden";
   trLoading("Getting your questions\u2026");
   try {
     const docs = await Promise.all(need.slice(0, 4).map(x => prPart(x.s, x.p)));
@@ -6267,7 +6323,7 @@ function duelPlay(d, role) {
   const opp = role === "a" ? (d.lb || "") : (d.la || "");
   TR.t = { id: "__duel__" + d.id, duel: { code: d.id, role: role, opp: opp }, title: "Duel" + (opp ? " vs " + opp : ""), subject: "Mixed", mode: "instant", duration: 0, plus: 1, minus: 0, qs: qs };
   TR.phase = "run"; TR.pal = false; TR.filter = "All"; TR.res = null; TR.prev = null; TR.blocks = []; TR.blk = -1;
-  trOverlay().classList.add("on"); document.body.style.overflow = "hidden";
+  trOverlay().classList.add("on"); navPush("test", NAV_TEST); document.body.style.overflow = "hidden";
   trFresh(); trStartTimer(); trRender();
 }
 async function duelOpen(code) {
@@ -6692,7 +6748,7 @@ function startSample() {
   TR.t = { id: "__sample__", sample: true, title: "Free sample", subject: "Mixed", mode: "instant", duration: 0, plus: 1, minus: 0,
     qs: SMP.data.qs.map(q => ({ q: q.q, o: q.o, a: q.a, e: q.e || "", s: q.s, t: q.t })) };
   TR.phase = "run"; TR.pal = false; TR.filter = "All"; TR.res = null; TR.prev = null; TR.blocks = []; TR.blk = -1;
-  trOverlay().classList.add("on"); document.body.style.overflow = "hidden";
+  trOverlay().classList.add("on"); navPush("test", NAV_TEST); document.body.style.overflow = "hidden";
   trFresh(); trStartTimer(); trRender();
 }
 document.getElementById("sampleStart").onclick = startSample;
