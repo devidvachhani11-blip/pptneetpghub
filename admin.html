@@ -1023,6 +1023,7 @@
         <div class="seg">
           <button class="on" id="resTests">By test</button>
           <button id="resStudents">By student</button>
+          <button id="resPractice">Practice</button>
         </div>
         <div class="t-actions">
           <button class="btn outline" id="resRefresh">Refresh</button>
@@ -1250,6 +1251,7 @@ window.addEventListener('fbReady', () => {
   document.getElementById('rd_reload').addEventListener('click', loadDrops);
   document.getElementById('resTests').addEventListener('click', () => { RESULTS.view = 'tests'; renderResults(); });
   document.getElementById('resStudents').addEventListener('click', () => { RESULTS.view = 'students'; renderResults(); });
+  document.getElementById('resPractice').addEventListener('click', () => { RESULTS.view = 'practice'; renderResults(); });
   document.getElementById('resRefresh').addEventListener('click', loadResults);
   document.getElementById('resCsv').addEventListener('click', downloadResultsCsv);
   document.getElementById('addMemberBtn').addEventListener('click', addMember);
@@ -2782,10 +2784,11 @@ function renderResults() {
   document.getElementById('resNote').textContent = rows.length >= 500 ? 'Showing the latest 500 attempts.' : '';
   document.getElementById('resTests').classList.toggle('on', RESULTS.view === 'tests');
   document.getElementById('resStudents').classList.toggle('on', RESULTS.view === 'students');
+  document.getElementById('resPractice').classList.toggle('on', RESULTS.view === 'practice');
   const body = document.getElementById('resBody');
   body.innerHTML = '';
   if (!rows.length) { body.appendChild(mk('div', 'empty', 'No attempts yet. Results appear here as students take tests.')); return; }
-  if (RESULTS.view === 'tests') renderByTest(body); else renderByStudent(body);
+  if (RESULTS.view === 'tests') renderByTest(body); else if (RESULTS.view === 'practice') renderPractice(body); else renderByStudent(body);
 }
 
 function metric(val, label) { const m = mk('div', 'rs-m'); m.appendChild(mk('b', null, val)); m.appendChild(mk('span', null, label)); return m; }
@@ -2868,6 +2871,60 @@ async function fillTestDetail(detail, testId, list) {
   } catch (e) {
     detail.appendChild(mk('div', 'rs-meta', 'Could not load the questions: ' + e.message));
   }
+}
+
+// Member Practice: attempts whose testId starts with "practice:". Counted from the latest 500 attempts loaded above.
+function renderPractice(body) {
+  const list = RESULTS.rows.filter(r => String(r.testId || '').indexOf('practice:') === 0);
+  if (!list.length) { body.appendChild(mk('div', 'empty', 'No practice attempts yet in the latest ' + RESULTS.rows.length + ' attempts.')); return; }
+  const mails = new Set(list.map(x => x.email));
+  let right = 0, wrong = 0, skipped = 0;
+  list.forEach(x => { right += Number(x.correct) || 0; wrong += Number(x.wrong) || 0; skipped += Number(x.skipped) || 0; });
+  const done = right + wrong;
+  const card = mk('div', 'rs-card');
+  card.appendChild(mk('div', 'rs-title', 'Member practice'));
+  card.appendChild(mk('div', 'rs-meta', 'From the latest ' + RESULTS.rows.length + ' attempts of all kinds'));
+  const grid = mk('div', 'rs-grid');
+  grid.appendChild(metric(String(list.length), 'Attempts'));
+  grid.appendChild(metric(String(mails.size), 'Students'));
+  grid.appendChild(metric(String(right + wrong + skipped), 'Questions'));
+  grid.appendChild(metric(done ? r1(right / done * 100) + '%' : '–', 'Accuracy'));
+  card.appendChild(grid);
+  body.appendChild(card);
+  // by subject
+  const sub = {};
+  list.forEach(x => {
+    const b = x.bySubject && typeof x.bySubject === 'object' ? x.bySubject : null;
+    if (!b) return;
+    Object.keys(b).forEach(k => { const o = sub[k] || (sub[k] = { c: 0, w: 0, s: 0 }); o.c += Number(b[k].c) || 0; o.w += Number(b[k].w) || 0; o.s += Number(b[k].s) || 0; });
+  });
+  const sk = Object.keys(sub).sort((p, q) => (sub[q].c + sub[q].w + sub[q].s) - (sub[p].c + sub[p].w + sub[p].s));
+  const sc = mk('div', 'rs-card');
+  sc.appendChild(mk('div', 'rs-title', 'By subject'));
+  sc.appendChild(mk('div', 'rs-meta', 'Most practised first. Low accuracy means students find it hard.'));
+  if (!sk.length) sc.appendChild(mk('div', 'empty', 'No subject data in these attempts.'));
+  sk.forEach(k => {
+    const o = sub[k], d = o.c + o.w, row = mk('div', 'rs-row'), l = mk('span', 'l');
+    l.appendChild(mk('div', null, k)); l.appendChild(mk('div', 'rs-meta', (o.c + o.w + o.s) + ' questions · ' + o.c + ' right, ' + o.w + ' wrong, ' + o.s + ' skipped'));
+    row.appendChild(l);
+    const pc = d ? Math.round(o.c / d * 1000) / 10 : 0;
+    row.appendChild(mk('span', 'r' + (!d ? '' : pc >= 60 ? ' good' : pc < 40 ? ' bad' : ''), d ? pc + '%' : '–'));
+    sc.appendChild(row);
+  });
+  body.appendChild(sc);
+  // by student
+  const st = {};
+  list.forEach(x => { (st[x.email] = st[x.email] || []).push(x); });
+  const stc = mk('div', 'rs-card');
+  stc.appendChild(mk('div', 'rs-title', 'By student'));
+  Object.keys(st).sort((p, q) => st[q].length - st[p].length).forEach(e => {
+    const l2 = st[e], row = mk('div', 'rs-row'), l = mk('span', 'l');
+    let q2 = 0; l2.forEach(x => { q2 += Number(x.total) || ((Number(x.correct) || 0) + (Number(x.wrong) || 0) + (Number(x.skipped) || 0)); });
+    l.appendChild(mk('div', null, e)); l.appendChild(mk('div', 'rs-meta', l2.length + (l2.length === 1 ? ' attempt' : ' attempts') + ' · ' + q2 + ' questions · last ' + resDate(l2[0].t)));
+    row.appendChild(l); row.appendChild(mk('span', 'r', r1(resAvg(l2, x => x.pct)) + '%'));
+    stc.appendChild(row);
+  });
+  body.appendChild(stc);
 }
 
 function renderByStudent(body) {
