@@ -1281,7 +1281,7 @@ window.addEventListener('fbReady', () => {
       if (btn.dataset.panel === 'cardsPanel') loadCardDecks();
       if (btn.dataset.panel === 'lbPanel') loadLbTests();
       if (btn.dataset.panel === 'bankPanel') { loadBank(); }
-      if (btn.dataset.panel === 'resultsPanel' && !RESULTS.loaded) loadResults();
+      if (btn.dataset.panel === 'resultsPanel' && (!RESULTS.loaded || Date.now() - (RESULTS.at || 0) > 30000)) loadResults();
       if (['newsPanel', 'counsellingPanel', 'tipsPanel'].indexOf(btn.dataset.panel) > -1 && !NEWS.loaded) loadNews();
       if (btn.dataset.panel === 'reportsPanel') loadReports();
       if (btn.dataset.panel === 'backupPanel') cloudList();
@@ -2765,7 +2765,7 @@ async function loadResults() {
       rows.push(x);
     });
     RESULTS.rows = rows;
-    RESULTS.loaded = true;
+    RESULTS.loaded = true; RESULTS.at = Date.now();
     renderResults();
   } catch (e) {
     body.innerHTML = '';
@@ -2781,7 +2781,7 @@ function renderResults() {
   [[rows.length, 'Attempts'], [students.size, 'Students'], [rows.length ? r1(resAvg(rows, r => r.pct)) + '%' : '–', 'Average score']].forEach(x => {
     const c = mk('div', 'res-stat'); c.appendChild(mk('b', null, String(x[0]))); c.appendChild(mk('span', null, x[1])); stats.appendChild(c);
   });
-  document.getElementById('resNote').textContent = rows.length >= 500 ? 'Showing the latest 500 attempts.' : '';
+  document.getElementById('resNote').textContent = (rows.length >= 500 ? 'Showing the latest 500 attempts. ' : '') + 'Loaded ' + rows.length + ' from the database at ' + new Date(RESULTS.at || Date.now()).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + '. Press Refresh for the newest.';
   document.getElementById('resTests').classList.toggle('on', RESULTS.view === 'tests');
   document.getElementById('resStudents').classList.toggle('on', RESULTS.view === 'students');
   document.getElementById('resPractice').classList.toggle('on', RESULTS.view === 'practice');
