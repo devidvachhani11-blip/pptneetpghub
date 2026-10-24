@@ -1421,6 +1421,7 @@
   .lib-head-r { flex-shrink: 0; }
   .lib-brand { min-width: 0; }
   .inst-bar { width: 100%; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(135deg, #C9A24B, #EACF85); color: var(--navy); border-radius: 12px; padding: 11px 14px; font-size: 14px; font-weight: 800; font-family: inherit; margin: 0 0 14px; }
+  .inst-safe { flex-basis: 100%; margin: 4px 0 0; font-size: 12px; line-height: 1.5; opacity: .75; }
   #libInstall2 { display: none !important; }
   @media (max-width: 600px) {
     #libInstall { display: none !important; }
@@ -1848,6 +1849,16 @@
       <div class="beat-note" id="beatNote" style="display:none;"></div>
       <div><h2>Try it free</h2><p>Answer <b id="sampleN">10</b> real questions with full explanations. No sign-in needed.</p></div>
       <button class="btn btn-gold" id="sampleStart" type="button">Start free sample</button>
+    </div>
+  </div>
+</section>
+
+<section class="sample-sec" id="homeInstallSec" style="display:none;">
+  <div class="container">
+    <div class="sample-box">
+      <div><h2>Get the free app</h2><p>Keep the Daily Diagnosis and the free sample on your phone, one tap away.</p></div>
+      <button class="btn btn-gold" id="homeInstallBtn" type="button">Install free app</button>
+      <p class="inst-safe">This is a safe web app, not a Play Store app. It installs straight from our website, takes almost no space and needs no extra permissions. We never ask for your contacts, photos or location.</p>
     </div>
   </div>
 </section>
@@ -2576,6 +2587,7 @@ onFbReady(() => {
     CARDS.loaded = false; CARDS.loading = null; CARDS.map = {}; NB.loaded = false; NB.loading = null; NB.items = []; NB.gone = []; NB.tests = {}; NB.open = new Set(); PR.index = null; PR.parts = {}; PR.loading = null; PLAY.duels = null; PLAY.mn = null; PLAY.mnMine = null; PLAY.mnForm = false;
     deviceState = { status: user ? "checking" : "ok", list: [], lastChange: 0 };
     updateView();
+    try { paintHomeInstall(); } catch (e) {}
     renderJoin();
     renderDeviceGate();
 
@@ -5950,19 +5962,41 @@ function openIosHelp() {
   const ol = document.createElement("ol");
   ["Open this page in Safari (not inside Instagram or another app).", "Tap the Share button, the square with an arrow.", "Scroll and tap Add to Home Screen.", "Tap Add. The app icon appears on your home screen."].forEach(t => ol.appendChild(libEl("li", null, t)));
   sh.appendChild(ol);
+  sh.appendChild(libEl("p", "inst-safe", "This is a safe web app, not a Play Store app. It needs no extra permissions."));
   const ok = libEl("button", null, "Got it"); ok.onclick = () => sc.remove(); sh.appendChild(ok);
   sc.appendChild(sh); sc.addEventListener("click", (e) => { if (e.target === sc) sc.remove(); });
   document.body.appendChild(sc);
+}
+function openAndroidHelp() {
+  const old = document.getElementById("iosHelp"); if (old) old.remove();
+  const sc = libEl("div", "ios-scrim"); sc.id = "iosHelp";
+  const sh = libEl("div", "ios-sheet");
+  sh.appendChild(libEl("h4", null, "Install the free app"));
+  const ol = document.createElement("ol");
+  ["Open this page in Chrome (not inside Instagram or another app).", "Tap the three dots at the top right.", "Tap Install app, or Add to Home screen.", "Tap Install. The app icon appears on your home screen."].forEach(t => ol.appendChild(libEl("li", null, t)));
+  sh.appendChild(ol);
+  sh.appendChild(libEl("p", "inst-safe", "This is a safe web app, not a Play Store app. It needs no extra permissions."));
+  const ok = libEl("button", null, "Got it"); ok.onclick = () => sc.remove(); sh.appendChild(ok);
+  sc.appendChild(sh); sc.addEventListener("click", (e) => { if (e.target === sc) sc.remove(); });
+  document.body.appendChild(sc);
+}
+function paintHomeInstall() {
+  const sec = document.getElementById("homeInstallSec"); if (!sec) return;
+  const home = !currentUser && !isStandalone();
+  sec.style.display = home ? "" : "none";
 }
 window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferredInstall = e; paintInstall(); });
 window.addEventListener("appinstalled", () => { deferredInstall = null; paintInstall(); showToast("App installed"); });
 async function doInstall() {
   if (deferredInstall) { const p = deferredInstall; deferredInstall = null; try { p.prompt(); await p.userChoice; } catch (e) {} paintInstall(); return; }
-  if (isIOS()) openIosHelp();
+  if (isIOS()) openIosHelp(); else openAndroidHelp();
 }
 document.getElementById("libInstall").onclick = doInstall;
 document.getElementById("libInstall2").onclick = doInstall;
+document.getElementById("homeInstallBtn").onclick = doInstall;
 paintInstall();
+paintHomeInstall();
+setTimeout(paintHomeInstall, 1500); setTimeout(paintHomeInstall, 4000);
 if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
   window.addEventListener("load", () => { navigator.serviceWorker.register("/sw.js").catch(() => {}); });
 }
