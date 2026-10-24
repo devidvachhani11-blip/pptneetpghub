@@ -4221,6 +4221,13 @@ async function loadHome() {
         if (!never.length) fileEl.appendChild(mk('div', 'empty', 'Every file has been opened at least once.'));
         never.slice(0, 30).forEach(x => { const row = mk('div', 'hm-row'), tx = mk('div', 'tx'); tx.appendChild(mk('b', null, x.title || '—')); tx.appendChild(mk('span', null, (x.subject || '') + ' · ' + (x.tab || ''))); row.appendChild(tx); row.appendChild(mk('div', 'rt', '0 opens')); fileEl.appendChild(row); });
         if (never.length > 30) fileEl.appendChild(mk('p', 'hint', '+ ' + (never.length - 30) + ' more. Check All Resources.'));
+        // most opened: every file in the list, including new ones, flashcard decks and scheduled files
+        const titleOf = {}; res.forEach(d => { titleOf[d.id] = d.data(); });
+        const most = Object.keys(op).filter(id => titleOf[id]).sort((x, y) => op[y].s - op[x].s || op[y].n - op[x].n).slice(0, 8);
+        if (most.length) {
+          fileEl.appendChild(mk('div', 'hm-sub', 'Most opened'));
+          most.forEach(id => { const x = titleOf[id], row = mk('div', 'hm-row'), tx = mk('div', 'tx'); tx.appendChild(mk('b', null, x.title || '—')); tx.appendChild(mk('span', null, (x.subject || '') + ' · ' + (x.tab || ''))); row.appendChild(tx); row.appendChild(mk('div', 'rt', op[id].s + ' student' + (op[id].s === 1 ? '' : 's') + ' · ' + op[id].n + ' opens')); fileEl.appendChild(row); });
+        }
         if (least.length) {
           fileEl.appendChild(mk('div', 'hm-sub', 'Least opened'));
           least.forEach(x => { const row = mk('div', 'hm-row'), tx = mk('div', 'tx'); tx.appendChild(mk('b', null, x.title || '—')); tx.appendChild(mk('span', null, (x.subject || '') + ' · ' + (x.tab || ''))); row.appendChild(tx); row.appendChild(mk('div', 'rt', op[x.id].s + ' student' + (op[x.id].s === 1 ? '' : 's') + ' · ' + op[x.id].n + ' opens')); fileEl.appendChild(row); });
