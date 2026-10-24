@@ -806,6 +806,17 @@
         <p class="hint" id="sm_status"></p>
       </div>
       <div class="card">
+        <h3>Daily 10: free question pool</h3>
+        <p class="hint" style="margin-top:-6px">Paste a pool of free questions (10 to 400). The home page shows 10 new ones every day, in order, and starts again from the first when the pool ends. Everything you save here is public, so keep your premium questions out. If this is empty, the fixed 10-question sample above is used. No pictures. Same format as Add Test.</p>
+        <textarea id="dl_text" class="t-area" rows="14" spellcheck="false" placeholder="Q1. Question text&#10;A. Option&#10;B. Option&#10;C. Option&#10;D. Option&#10;Answer: B&#10;Explanation: Why B is right&#10;Subject: Pathology"></textarea>
+        <div class="t-actions">
+          <button class="btn" id="dl_save">Save pool</button>
+          <button class="btn outline" id="dl_reload">Undo changes</button>
+          <button class="btn outline" id="dl_remove">Remove pool</button>
+        </div>
+        <p class="hint" id="dl_status"></p>
+      </div>
+      <div class="card">
         <h3>Home sample: card slider (up to 5 cards)</h3>
         <p class="hint" style="margin-top:-6px">Pick 1 card from each of up to 5 different series. Visitors who are not signed in swipe through them, and the last slide asks them to join Premium. Only these picked pictures (and their answers) become public. Everything else stays private.</p>
         <div id="sm_slots"></div>
@@ -4687,6 +4698,12 @@ async function loadSampleAdmin() {
     st.textContent = d && Array.isArray(d.qs) && d.qs.length ? 'Saved on the home page: ' + d.qs.length + ' questions.' : 'No sample saved yet. The sample box is hidden on the home page.';
   } catch (e) { st.textContent = 'Could not load: ' + e.message; }
   try {
+    const dl = await getDoc(doc(db, 'sample', 'daily10'));
+    const dd = dl.exists() ? dl.data() : null, ds = document.getElementById('dl_status');
+    document.getElementById('dl_text').value = dd && Array.isArray(dd.qs) ? questionsToText(dd.qs) : '';
+    ds.textContent = dd && Array.isArray(dd.qs) && dd.qs.length ? 'Saved: ' + dd.qs.length + ' questions, enough for ' + Math.floor(dd.qs.length / 10) + ' days before it repeats.' : 'No pool saved yet. The fixed 10-question sample is used.';
+  } catch (e) { document.getElementById('dl_status').textContent = 'Could not load: ' + e.message; }
+  try {
     const rows = (await readCardDocs()).filter(x => String(x.fileUrl || '').indexOf('r2:') === 0 && /\.(png|jpe?g|webp)$/i.test(String(x.fileUrl)));
     rows.sort((p, q) => natCompare(seriesNameOf(p), seriesNameOf(q)) || ((Number(p.seq) || 0) - (Number(q.seq) || 0)));
     SM.cards = rows;
@@ -4725,6 +4742,26 @@ async function saveSampleQs() {
     showToast('✔ Home sample saved');
   } catch (e) { showToast('Failed: ' + e.message, true); } finally { btn.disabled = false; }
 }
+async function saveDailyPool() {
+  const res = parseQuestions(document.getElementById('dl_text').value);
+  if (res.errors.length) { showToast(res.errors[0], true); return; }
+  if (res.questions.length < 10) { showToast('You pasted ' + res.questions.length + ' questions. The pool needs at least 10.', true); return; }
+  if (res.questions.length > 400) { showToast('Too many (' + res.questions.length + '). The pool can have up to 400.', true); return; }
+  if (res.questions.some(q => q.img || q.eimg)) { showToast('The pool cannot have pictures. Remove the Image lines.', true); return; }
+  const qs = res.questions.map(q => { const o = { q: q.q, o: q.o, a: q.a, e: q.e || '' }; if (q.s) o.s = q.s; if (q.t) o.t = q.t; return o; });
+  const btn = document.getElementById('dl_save'); btn.disabled = true;
+  try {
+    const { db, doc, setDoc, serverTimestamp } = window.__fb;
+    await setDoc(doc(db, 'sample', 'daily10'), { qs: qs, count: qs.length, updatedAt: serverTimestamp() });
+    document.getElementById('dl_status').textContent = 'Saved: ' + qs.length + ' questions, enough for ' + Math.floor(qs.length / 10) + ' days before it repeats. Live on the home page.';
+    showToast('✔ Daily 10 pool saved');
+  } catch (e) { showToast('Failed: ' + e.message, true); } finally { btn.disabled = false; }
+}
+async function removeDailyPool() {
+  if (!confirm('Remove the daily pool? The home page goes back to the fixed 10-question sample.')) return;
+  try { const { db, doc, deleteDoc } = window.__fb; await deleteDoc(doc(db, 'sample', 'daily10')); document.getElementById('dl_text').value = ''; document.getElementById('dl_status').textContent = 'Removed. The fixed sample is used.'; showToast('Removed'); }
+  catch (e) { showToast('Failed: ' + e.message, true); }
+}
 async function removeSampleQs() {
   if (!confirm('Remove the free sample from the home page?')) return;
   try { const { db, doc, deleteDoc } = window.__fb; await deleteDoc(doc(db, 'sample', 'main')); document.getElementById('sm_text').value = ''; document.getElementById('sm_status').textContent = 'Removed. The sample box is hidden now.'; showToast('Removed'); }
@@ -4753,6 +4790,9 @@ async function removeSampleCards() {
 document.getElementById('sm_save').addEventListener('click', saveSampleQs);
 document.getElementById('sm_reload').addEventListener('click', loadSampleAdmin);
 document.getElementById('sm_remove').addEventListener('click', removeSampleQs);
+document.getElementById('dl_save').addEventListener('click', saveDailyPool);
+document.getElementById('dl_reload').addEventListener('click', loadSampleAdmin);
+document.getElementById('dl_remove').addEventListener('click', removeDailyPool);
 document.getElementById('sm_csave').addEventListener('click', saveSampleCards);
 document.getElementById('sm_creload').addEventListener('click', loadSampleAdmin);
 document.getElementById('sm_cremove').addEventListener('click', removeSampleCards);

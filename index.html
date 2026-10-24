@@ -1847,7 +1847,7 @@
   <div class="container">
     <div class="sample-box">
       <div class="beat-note" id="beatNote" style="display:none;"></div>
-      <div><h2>Try it free</h2><p>Answer <b id="sampleN">10</b> real questions with full explanations. No sign-in needed.</p></div>
+      <div><h2 id="sampleH">Try it free</h2><p>Answer <b id="sampleN">10</b> real questions with full explanations. No sign-in needed.<span id="sampleX"></span></p></div>
       <button class="btn btn-gold" id="sampleStart" type="button">Start free sample</button>
     </div>
   </div>
@@ -6527,26 +6527,28 @@ async function mnVote(m, btn) {
 
 
 // ---------- Beat My Score (home page, for visitors): challenge a friend on the free sample ----------
-const BEAT = { score: null, n: 10 };
+const BEAT = { score: null, n: 10, d: null };
 (function () {
   try {
-    const m = location.search.match(/[?&]beat=(\d{1,3})/), n = location.search.match(/[?&]n=(\d{1,3})/);
-    if (m) { sessionStorage.setItem("pptBeat", m[1] + "," + (n ? n[1] : "10")); history.replaceState(null, "", location.pathname + location.hash); }
+    const m = location.search.match(/[?&]beat=(\d{1,3})/), n = location.search.match(/[?&]n=(\d{1,3})/), dd = location.search.match(/[?&]d=(\d{1,6})/);
+    if (m) { sessionStorage.setItem("pptBeat", m[1] + "," + (n ? n[1] : "10") + "," + (dd ? dd[1] : "")); history.replaceState(null, "", location.pathname + location.hash); }
     const v = (sessionStorage.getItem("pptBeat") || "").split(",");
-    if (v[0] !== "" && v.length === 2) { BEAT.score = Math.min(Number(v[0]), Number(v[1]) || 10); BEAT.n = Math.max(1, Number(v[1]) || 10); }
+    if (v[0] !== "" && v.length >= 2) { BEAT.score = Math.min(Number(v[0]), Number(v[1]) || 10); BEAT.n = Math.max(1, Number(v[1]) || 10); BEAT.d = v[2] ? Number(v[2]) : null; }
   } catch (e) {}
 })();
+// With the daily 10, a friend's score only counts if it was for the same day's questions.
+function beatSameSet() { return !SMP.daily || BEAT.d === istDay(Date.now()); }
 function paintBeat() {
   const el = document.getElementById("beatNote");
   if (!el) return;
-  if (BEAT.score === null || !SMP.data) { el.style.display = "none"; return; }
+  if (BEAT.score === null || !SMP.data || !beatSameSet()) { el.style.display = "none"; return; }
   el.innerHTML = "A friend scored <b>" + BEAT.score + " / " + BEAT.n + "</b> on this free sample. Can you beat it?";
   el.style.display = "";
 }
 function beatResultHTML(r) {
   const n = TR.t.qs.length;
   let h = '<div class="cm-res" style="margin-top:14px">';
-  if (BEAT.score !== null) {
+  if (BEAT.score !== null && beatSameSet()) {
     const d = r.c - BEAT.score;
     h += '<b>' + (d > 0 ? "You beat your friend!" : d === 0 ? "It is a tie." : "Your friend wins this time.") + '</b><span>You ' + r.c + ' / ' + n + '  |  Friend ' + BEAT.score + ' / ' + BEAT.n + '</span>';
   } else h += '<b>You scored ' + r.c + ' / ' + n + '</b><span>Can your friend beat that?</span>';
@@ -6555,7 +6557,7 @@ function beatResultHTML(r) {
 }
 function beatShare() {
   const r = TR.res, t = TR.t; if (!r || !t) return;
-  const link = location.origin + "/?beat=" + r.c + "&n=" + t.qs.length;
+  const link = location.origin + "/?beat=" + r.c + "&n=" + t.qs.length + (SMP.daily ? "&d=" + istDay(Date.now()) : "");
   const text = "I scored " + r.c + "/" + t.qs.length + " on a free NEET PG sample test. Can you beat me? " + link;
   if (navigator.share) { navigator.share({ text: text }).catch(() => {}); return; }
   window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank", "noopener");
@@ -6762,19 +6764,39 @@ async function loadDaily() {
 }
 
 // ---------- Free sample on the public home page ----------
-const SMP = { data: null };
+const SMP = { data: null, daily: false };
 async function loadSample() {
   try {
     const { db, doc, getDoc } = window.__fb;
-    const s = await getDoc(doc(db, "sample", "main"));
-    const d = s.exists() ? s.data() : null;
-    const good = d && Array.isArray(d.qs) ? d.qs.filter(q => q && q.q && Array.isArray(q.o) && q.o.length >= 2 && Number.isInteger(Number(q.a)) && Number(q.a) < q.o.length).slice(0, 10).map(q => Object.assign({}, q, { a: Number(q.a) })) : [];
-    SMP.data = good.length ? { qs: good } : null;
+    const okQ = q => q && q.q && Array.isArray(q.o) && q.o.length >= 2 && Number.isInteger(Number(q.a)) && Number(q.a) < q.o.length;
+    // Daily 10: a pool of questions, 10 new ones every day (India time). Falls back to the fixed sample.
+    let daily = null;
+    try {
+      const ds = await getDoc(doc(db, "sample", "daily10"));
+      const dd = ds.exists() ? ds.data() : null;
+      const pool = dd && Array.isArray(dd.qs) ? dd.qs.filter(okQ) : [];
+      if (pool.length >= 10) {
+        const day = istDay(Date.now()), pick = [];
+        for (let i = 0; i < 10; i++) pick.push(pool[(day * 10 + i) % pool.length]);
+        daily = pick.map(q => Object.assign({}, q, { a: Number(q.a) }));
+      }
+    } catch (e) { daily = null; }
+    if (daily) { SMP.data = { qs: daily }; SMP.daily = true; }
+    else {
+      SMP.daily = false;
+      const s = await getDoc(doc(db, "sample", "main"));
+      const d = s.exists() ? s.data() : null;
+      const good = d && Array.isArray(d.qs) ? d.qs.filter(okQ).slice(0, 10).map(q => Object.assign({}, q, { a: Number(q.a) })) : [];
+      SMP.data = good.length ? { qs: good } : null;
+    }
   } catch (e) { SMP.data = null; if (!SMP.retried) { SMP.retried = true; setTimeout(loadSample, 3000); } }
   const sec = document.getElementById("sampleSec");
   if (!sec) return;
   if (!SMP.data) { sec.style.display = "none"; return; }
   document.getElementById("sampleN").textContent = String(SMP.data.qs.length);
+  const sh2 = document.getElementById("sampleH"), sx = document.getElementById("sampleX");
+  if (sh2) sh2.textContent = SMP.daily ? "Today's 10 free questions" : "Try it free";
+  if (sx) sx.textContent = SMP.daily ? " New questions every day. Come back tomorrow." : "";
   sec.style.display = "";
   paintBeat();
 }
@@ -6791,7 +6813,7 @@ function statPing(e, data) {
 function startSample() {
   if (!SMP.data) return;
   statPing("ss");
-  TR.t = { id: "__sample__", sample: true, title: "Free sample", subject: "Mixed", mode: "instant", duration: 0, plus: 1, minus: 0,
+  TR.t = { id: "__sample__", sample: true, title: SMP.daily ? "Today's 10 free questions" : "Free sample", subject: "Mixed", mode: "instant", duration: 0, plus: 1, minus: 0,
     qs: SMP.data.qs.map(q => ({ q: q.q, o: q.o, a: q.a, e: q.e || "", s: q.s, t: q.t })) };
   TR.phase = "run"; TR.pal = false; TR.filter = "All"; TR.res = null; TR.prev = null; TR.blocks = []; TR.blk = -1;
   trOverlay().classList.add("on"); navPush("test", NAV_TEST); document.body.style.overflow = "hidden";
