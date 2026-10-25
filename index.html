@@ -1500,6 +1500,14 @@
   .pg-weak .acts { display: flex; gap: 8px; margin-top: 10px; }
   .pg-weak .acts button { flex: 1; min-height: 40px; border-radius: 10px; font-family: inherit; font-size: 13.5px; font-weight: 700; border: 1.5px solid var(--border); background: #fff; color: var(--navy); }
   .pg-weak .acts button.pri { background: #0F8F83; border-color: #0F8F83; color: #fff; }
+  .sg-box { background:#fff; border:1.5px solid var(--border); border-left:4px solid #C9A24B; border-radius:16px; padding:18px; }
+  .sg-k { font-size:11px; letter-spacing:1.4px; font-weight:800; color:#9A7410; }
+  .sg-box h2 { margin:4px 0 2px; font-size:22px; font-weight:800; color:var(--navy); }
+  .sg-d { font-size:14px; font-weight:700; color:var(--teal); margin:0 0 6px; }
+  .sg-m { margin:0 0 12px; font-size:14.5px; line-height:1.5; color:var(--ink); }
+  .sg-box .btn { width:100%; }
+  .st-note { display:none; margin:6px 0 0; font-size:13.5px; font-weight:700; color:#B45309; }
+  :where(html[data-eff="dark"]) .sg-box { background: var(--white); }
   .sample-sec { background: #FBF8F1; padding: 18px 0 6px; }
   .sample-box { display: flex; align-items: center; gap: 16px; justify-content: space-between; flex-wrap: wrap; background: #fff; border: 1.5px solid var(--border); border-left: 4px solid #0F8F83; border-radius: 16px; padding: 18px; }
   .sample-box h2 { margin: 0 0 4px; font-size: 20px; font-weight: 800; color: var(--navy); }
@@ -1862,8 +1870,24 @@
   <div class="container">
     <div class="sample-box">
       <div class="beat-note" id="beatNote" style="display:none;"></div>
-      <div><h2 id="sampleH">Try it free</h2><p>Answer <b id="sampleN">10</b> real questions with full explanations. No sign-in needed.<span id="sampleX"></span></p></div>
+      <div><h2 id="sampleH">Try it free</h2><p>Answer <b id="sampleN">10</b> real questions with full explanations. No sign-in needed.<span id="sampleX"></span></p><p class="st-note" id="stNote"></p></div>
       <button class="btn btn-gold" id="sampleStart" type="button">Start free sample</button>
+    </div>
+  </div>
+</section>
+
+<section class="sample-sec" id="freeExtraSec">
+  <div class="container">
+    <div class="sg-box">
+      <div class="sg-k">TODAY'S SIGN</div>
+      <h2 id="sgName"></h2>
+      <p class="sg-d" id="sgDis"></p>
+      <p class="sg-m" id="sgMean"></p>
+      <button class="btn btn-gold" id="sgMore" type="button">Get the full Signs PDF with Premium</button>
+    </div>
+    <div class="sample-box" style="margin-top:14px;">
+      <div><h2>Free sample PDF</h2><p>Read the first 4 pages of our NEET PG 2027 Medicine PYT sheet (Cardiology &amp; Hypertension). Made for phone reading.</p></div>
+      <a class="btn btn-gold" href="/sample-PYT-Medicine-Part1.pdf" target="_blank" rel="noopener">Open free sample PDF</a>
     </div>
   </div>
 </section>
@@ -6808,7 +6832,7 @@ async function loadSample() {
   if (sh2) sh2.textContent = SMP.daily ? "Today's 10 free questions" : "Try it free";
   if (sx) sx.textContent = SMP.daily ? " New questions every day. Come back tomorrow." : "";
   sec.style.display = "";
-  paintBeat();
+  paintBeat(); paintStreak();
 }
 // Anonymous count for the admin Stats tab. No name, no email. Sent once a day per phone for each event.
 function statPing(e, data) {
@@ -6820,9 +6844,39 @@ function statPing(e, data) {
     fetch("/api/stat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.assign({ e: e }, data || {})), keepalive: true }).catch(() => {});
   } catch (x) {}
 }
+
+// ---------- Today's Sign (30 signs, one per day, India time) ----------
+const SIGNS = [["Cullen sign", "Acute haemorrhagic pancreatitis", "Bluish discolouration around the umbilicus from retroperitoneal bleeding."], ["Grey Turner sign", "Acute haemorrhagic pancreatitis", "Bruising over the flanks from retroperitoneal bleeding."], ["Murphy sign", "Acute cholecystitis", "Breath stops on deep inspiration while the RUQ is pressed."], ["Courvoisier law", "Carcinoma head of pancreas / periampullary", "Palpable non-tender gallbladder with painless jaundice. Stones are unlikely."], ["Charcot triad", "Ascending cholangitis", "Fever, jaundice and RUQ pain."], ["Reynolds pentad", "Severe ascending cholangitis", "Charcot triad plus hypotension and altered mental status."], ["Rovsing sign", "Acute appendicitis", "Pain in the right iliac fossa when the left iliac fossa is pressed."], ["Psoas sign", "Retrocaecal appendicitis", "Pain on extending the right hip."], ["Obturator sign", "Pelvic appendicitis", "Pain on internal rotation of the flexed hip."], ["Kehr sign", "Splenic rupture", "Left shoulder tip pain from diaphragmatic irritation."], ["Trousseau sign (latent tetany)", "Hypocalcaemia", "Carpal spasm after inflating a BP cuff above systolic pressure for 3 minutes."], ["Chvostek sign", "Hypocalcaemia", "Facial twitch on tapping the facial nerve in front of the ear."], ["Kussmaul sign", "Constrictive pericarditis", "JVP rises instead of falling on inspiration."], ["Pulsus paradoxus", "Cardiac tamponade", "Systolic BP falls by more than 10 mmHg on inspiration."], ["Beck triad", "Cardiac tamponade", "Hypotension, raised JVP and muffled heart sounds."], ["Argyll Robertson pupil", "Neurosyphilis", "Pupil accommodates but does not react to light."], ["Cushing triad", "Raised intracranial pressure", "Hypertension, bradycardia and irregular breathing."], ["Babinski sign", "Upper motor neuron lesion", "Great toe goes up on stroking the sole."], ["Kernig sign", "Meningitis", "Cannot fully extend the knee when the hip is flexed."], ["Brudzinski sign", "Meningitis", "Bending the neck makes the hips and knees flex."], ["Romberg sign", "Sensory (dorsal column) ataxia", "Loses balance with eyes closed, but not with eyes open."], ["Gowers sign", "Duchenne muscular dystrophy", "Child climbs up his own legs to stand, from proximal muscle weakness."], ["Homan sign", "Deep vein thrombosis", "Calf pain on dorsiflexion of the foot. Not a reliable sign."], ["Hutchinson sign", "Herpes zoster ophthalmicus", "Vesicles on the tip of the nose show nasociliary nerve involvement."], ["Koplik spots", "Measles", "Small white spots on the buccal mucosa before the rash."], ["Auspitz sign", "Psoriasis", "Pinpoint bleeding when a scale is scraped off."], ["Nikolsky sign", "Pemphigus vulgaris", "Top layer of skin slips off with sideways pressure."], ["Lhermitte sign", "Multiple sclerosis", "Electric shock down the spine on bending the neck."], ["Trendelenburg sign", "Weak gluteus medius (superior gluteal nerve) or hip disease", "Pelvis drops on the opposite side when standing on the affected leg."], ["Dalrymple sign", "Graves disease (thyroid eye disease)", "Upper eyelid retraction that shows the white above the iris."]];
+(function () {
+  const g = SIGNS[((istDay(Date.now()) % SIGNS.length) + SIGNS.length) % SIGNS.length];
+  document.getElementById("sgName").textContent = g[0];
+  document.getElementById("sgDis").textContent = "Seen in: " + g[1];
+  document.getElementById("sgMean").textContent = g[2];
+  document.getElementById("sgMore").onclick = () => goToJoin();
+})();
+// ---------- Daily 10 streak (only on this phone) ----------
+function paintStreak() {
+  const el = document.getElementById("stNote"); if (!el) return;
+  try {
+    const st = JSON.parse(localStorage.getItem("pptStreak") || "null"), t = istDay(Date.now());
+    if (!st || !(st.n > 0) || st.last < t - 1) { el.style.display = "none"; return; }
+    el.textContent = "\uD83D\uDD25 " + st.n + "-day streak" + (st.last === t ? ". Done for today." : ". Do today's 10 to keep it going.");
+    el.style.display = "block";
+  } catch (e) { el.style.display = "none"; }
+}
+function bumpStreak() {
+  try {
+    const t = istDay(Date.now()); let st = null;
+    try { st = JSON.parse(localStorage.getItem("pptStreak") || "null"); } catch (e) {}
+    if (st && st.last === t) return;
+    const n = st && st.last === t - 1 ? (st.n || 0) + 1 : 1;
+    localStorage.setItem("pptStreak", JSON.stringify({ last: t, n: n }));
+  } catch (e) {}
+  paintStreak();
+}
 function startSample() {
   if (!SMP.data) return;
-  statPing("ss");
+  statPing("ss"); if (SMP.daily) bumpStreak();
   TR.t = { id: "__sample__", sample: true, title: SMP.daily ? "Today's 10 free questions" : "Free sample", subject: "Mixed", mode: "instant", duration: 0, plus: 1, minus: 0,
     qs: SMP.data.qs.map(q => ({ q: q.q, o: q.o, a: q.a, e: q.e || "", s: q.s, t: q.t })) };
   TR.phase = "run"; TR.pal = false; TR.filter = "All"; TR.res = null; TR.prev = null; TR.blocks = []; TR.blk = -1;
