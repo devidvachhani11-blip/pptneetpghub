@@ -1506,6 +1506,16 @@
   .sample-box p { margin: 0; font-size: 14px; color: var(--gray); line-height: 1.5; }
   .sample-box .btn { flex-shrink: 0; }
   @media (max-width: 560px) { .sample-box .btn { width: 100%; } }
+  .pm-box { background:#fff; border:1.5px solid var(--border); border-left:4px solid var(--gold-b); border-radius:16px; padding:18px; overflow:hidden; }
+  .pm-box h2 { margin:0 0 4px; font-size:20px; font-weight:800; color:var(--navy); }
+  .pm-box > p { margin:0 0 12px; font-size:14px; color:var(--gray); line-height:1.5; }
+  .pm-track { display:flex; gap:12px; overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  .pm-track::-webkit-scrollbar { display:none; }
+  .pm-slide { flex:0 0 100%; max-width:420px; margin:0 auto; scroll-snap-align:center; }
+  .pm-slide img { display:block; width:100%; height:auto; border-radius:14px; background:#0A1830; }
+  .pm-dots { display:flex; justify-content:center; gap:7px; margin-top:12px; }
+  .pm-dots i { width:8px; height:8px; border-radius:50%; background:var(--border); transition:background .2s, transform .2s; }
+  .pm-dots i.on { background:var(--gold-b); transform:scale(1.25); }
   .cs-box { background: #fff; border: 1.5px solid var(--border); border-left: 4px solid var(--gold-b); border-radius: 16px; padding: 18px; overflow: hidden; }
   .cs-box h2 { margin: 0 0 4px; font-size: 20px; font-weight: 800; color: var(--navy); }
   .cs-box > p { margin: 0 0 12px; font-size: 14px; color: var(--gray); line-height: 1.5; }
@@ -2003,42 +2013,26 @@
   </div>
 </section>
 
-<section class="sec dark" id="tests">
+<section class="sec cream" id="tests" style="padding:36px 0 8px;">
   <div class="container">
-    <div class="sec-head" style="--bar:var(--teal)">
-      <h2>Practise like it's exam day.</h2>
-      <p>Online tests with a working timer and clear explanations. Nothing to install.</p>
+    <div class="pm-box">
+      <h2>What you get in Premium</h2>
+      <p>Swipe to see the roadmap, library, tests and tools.</p>
+      <div class="pm-track" id="pmTrack">
+        <div class="pm-slide"><img src="/premium-1.jpg" alt="NEET PG 2027 Premium: one payment, all 3 phases" width="864" height="1080" loading="lazy"></div>
+        <div class="pm-slide"><img src="/premium-2.jpg" alt="Three phases to exam day" width="864" height="1080" loading="lazy"></div>
+        <div class="pm-slide"><img src="/premium-3.jpg" alt="Subject-wise resources in the library" width="864" height="1080" loading="lazy"></div>
+        <div class="pm-slide"><img src="/premium-4.jpg" alt="Practice and test modes" width="864" height="1080" loading="lazy"></div>
+        <div class="pm-slide"><img src="/premium-5.jpg" alt="Smart tools inside Premium" width="864" height="1080" loading="lazy"></div>
+      </div>
+      <div class="pm-dots" id="pmDots"><i></i><i></i><i></i><i></i><i></i></div>
     </div>
-    <div class="mini-steps">
-      <div><b>1</b>Pick a test</div>
-      <div><b>2</b>Answer it</div>
-      <div><b>3</b>Review explanations</div>
-    </div>
-    <div class="tgrid">
-      <div class="tcard" style="--c:#2BB5A6"><div class="te">&#9201;&#65039;</div><h4>Instant Answer Test</h4><div class="tl2">For quick revision</div>
-        <ul><li>See the correct answer instantly</li><li>Explanation after every question</li><li>Learn while you test</li></ul></div>
-      <div class="tcard" style="--c:#5AA0F0"><div class="te">&#127919;</div><h4>Mock Test</h4><div class="tl2">For practice</div>
-        <ul><li>Practise topics as you finish them</li><li>Build speed and accuracy</li><li>Find weak areas early</li></ul></div>
-      <div class="tcard" style="--c:var(--gold-b)"><div class="te">&#127942;</div><h4>Grand Test</h4><div class="tl2">For the real exam feel</div>
-        <ul><li>Full-length timed test</li><li>Strict built-in time limit</li><li>Real exam-pattern pressure</li></ul></div>
-    </div>
-    <div class="why"><b>Why online tests?</b> They run right here with a working timer, so you practise under real time pressure, and every attempt shows your score and explanations.</div>
   </div>
 </section>
 
 <section class="sec cream" id="journey">
   <div class="container">
-    <div class="sec-head" style="--bar:#6F4CC9">
-      <h2>Three phases to exam day.</h2>
-      <p>Each phase builds on the last. Fresh content, released step by step.</p>
-    </div>
-    <ol class="tl">
-      <li style="--c:#E07B2E"><span class="dot">0</span><div class="box"><h4>Warm-Up Test Series</h4><p>From 28 Sep 2026 &middot; mixed-subject tests, image-based question PDFs, weekly flash cards</p></div></li>
-      <li style="--c:#0F8F83"><span class="dot">1</span><div class="box"><h4>Phase 1 &middot; Foundation</h4><p>15 Nov 2026 &ndash; 14 Mar 2027 &middot; all 19 subjects, PYQ bank, Grand Tests</p></div></li>
-      <li style="--c:#C4456B"><span class="dot">2</span><div class="box"><h4>Phase 2 &middot; Advanced</h4><p>Moderate-to-hard questions, integrated vignettes, image-based practice, most-forgotten topics</p></div></li>
-      <li style="--c:#6F4CC9"><span class="dot">3</span><div class="box"><h4>Phase 3 &middot; Final</h4><p>Clinical vignette practice, Final Fire files, new updates, final Grand Tests</p></div></li>
-    </ol>
-    <div class="note-rose"><b>Timeline note:</b> Phase 1 is planned to finish on <b>14 March 2027</b>. If a file is ever delayed for a genuine reason, don't worry. It will be released as soon as possible. Our firm aim is to complete Phase 1 before <b>1 April 2027</b>.</div>
+        <div class="note-rose"><b>Timeline note:</b> Phase 1 is planned to finish on <b>14 March 2027</b>. If a file is ever delayed for a genuine reason, don't worry. It will be released as soon as possible. Our firm aim is to complete Phase 1 before <b>1 April 2027</b>.</div>
 
     <div class="grp" style="margin-top:38px">Your access</div>
     <div class="access-main">
@@ -6836,6 +6830,28 @@ function startSample() {
   trFresh(); trStartTimer(); trRender();
 }
 document.getElementById("sampleStart").onclick = startSample;
+
+
+// ---------- Premium images slider (home page) ----------
+(function () {
+  const tr = document.getElementById("pmTrack"), dt = document.getElementById("pmDots");
+  if (!tr || !dt) return;
+  let touched = false, cur = 0;
+  const mark = () => {
+    const k = tr.children; let best = 0, bd = 1e9;
+    for (let i = 0; i < k.length; i++) { const d = Math.abs(k[i].offsetLeft - tr.offsetLeft - tr.scrollLeft); if (d < bd) { bd = d; best = i; } }
+    cur = best; Array.prototype.forEach.call(dt.children, (d, i) => d.classList.toggle("on", i === best));
+  };
+  tr.addEventListener("scroll", () => { clearTimeout(tr._t); tr._t = setTimeout(mark, 40); });
+  ["touchstart", "mousedown", "wheel"].forEach(ev => tr.addEventListener(ev, () => { touched = true; }, { passive: true }));
+  Array.prototype.forEach.call(dt.children, (d, i) => d.addEventListener("click", () => { touched = true; tr.children[i].scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" }); }));
+  setInterval(() => {
+    if (touched || document.hidden) return;
+    const r = tr.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) return;
+    cur = (cur + 1) % tr.children.length; tr.scrollTo({ left: tr.children[cur].offsetLeft - tr.offsetLeft, behavior: "smooth" });
+  }, 4500);
+  mark();
+})();
 
 // ---------- Flash card slider on the public home page (up to 5 cards, picked by the admin) ----------
 async function loadSampleCards() {
