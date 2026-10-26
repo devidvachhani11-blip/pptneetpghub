@@ -1257,6 +1257,14 @@
   .lb-x { position: fixed; top: calc(10px + env(safe-area-inset-top, 0px)); right: 12px; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.18); color: #fff; font-size: 24px; line-height: 1; z-index: 2; }
 
   /* ---------- Latest updates strip + news links ---------- */
+  .tkr { background:#0A1830; border-bottom:1px solid rgba(201,162,75,.4); overflow:hidden; white-space:nowrap; display:none; }
+  .tkr-track { display:inline-flex; gap:0; will-change:transform; animation: tkrMove var(--tkd,40s) linear infinite; }
+  .tkr:hover .tkr-track, .tkr:active .tkr-track, .tkr:focus-within .tkr-track { animation-play-state: paused; }
+  .tkr a { display:inline-flex; align-items:center; gap:8px; padding:9px 22px; color:#E8EEF9; font-size:13.5px; font-weight:600; text-decoration:none; }
+  .tkr a b { background:#C9A24B; color:#0A1830; border-radius:6px; padding:2px 8px; font-size:10.5px; letter-spacing:.08em; font-weight:800; }
+  .tkr a + a { border-left:1px solid rgba(255,255,255,.14); }
+  @keyframes tkrMove { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce) { .tkr { overflow-x:auto; } .tkr-track { animation:none; } }
   .upd-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
   .upd { display: block; background: #fff; border: 1px solid #E7E0CF; border-radius: 14px; padding: 16px; text-decoration: none; color: inherit; box-shadow: 0 1px 2px rgba(10,24,48,0.05), 0 8px 22px rgba(10,24,48,0.04); }
   .upd:hover { border-color: var(--teal); }
@@ -1809,6 +1817,10 @@
 <div class="inapp" id="inappBar" hidden></div>
 <div class="renew-bar" id="renewBar" hidden></div>
 
+<section class="tkr" id="tkr" aria-label="Latest from PPTNEETPGHUB">
+  <div class="tkr-track" id="tkrTrack"></div>
+</section>
+
 <section class="hero" id="top">
   <div class="container">
     <img class="hero-logo" src="/logo-360.webp" width="360" height="360" alt="PPT Premium NEET PG logo: Pray, Patience, Trust">
@@ -1834,17 +1846,6 @@
     </div>
     <div class="offer" id="offerBand"></div>
     <div class="hero-end"></div>
-  </div>
-</section>
-
-<section class="sec white" id="drops" style="display:none;padding:40px 0 8px;">
-  <div class="container">
-    <div class="sec-head" style="--bar:var(--gold-b)">
-      <h2>Recent drops.</h2>
-      <p>Just dropped for NEET PG 2027</p>
-    </div>
-    <div class="upd-grid" id="dropsList"></div>
-    <a class="upd-more" href="#pricing">See pricing &rarr;</a>
   </div>
 </section>
 
@@ -1910,17 +1911,6 @@
       <div class="cs-track" id="csTrack"></div>
       <div class="cs-dots" id="csDots"></div>
     </div>
-  </div>
-</section>
-
-<section class="sec white" id="updates" style="display:none;padding:44px 0 36px;">
-  <div class="container">
-    <div class="sec-head" style="--bar:var(--teal)">
-      <h2>Latest updates.</h2>
-      <p>Counselling, seat matrix and exam notices, summarised from official sources.</p>
-    </div>
-    <div class="upd-grid" id="updatesList"></div>
-    <a class="upd-more" href="/news">See all updates &rarr;</a>
   </div>
 </section>
 
@@ -2955,6 +2945,22 @@ function dropAgo(d) {
   if (days < 7) return days + ' days ago';
   return b.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
+const TK = { drops: [], news: [] };
+function paintTicker() {
+  const sec = document.getElementById('tkr'), tr = document.getElementById('tkrTrack');
+  if (!sec || !tr) return;
+  const L = [];
+  TK.drops.forEach(n => L.push(['NEW', n.t, '#pricing']));
+  try { if (typeof SIGNS !== 'undefined') { const g = SIGNS[((istDay(Date.now()) % SIGNS.length) + SIGNS.length) % SIGNS.length]; L.push(["TODAY'S SIGN", g[0] + ' · ' + g[1], '#freeExtraSec']); } } catch (e) {}
+  L.push(['FREE', 'Daily 10 questions, Daily Diagnosis and a sample PDF', '#sampleSec']);
+  TK.news.forEach(n => L.push([String(n.category || 'UPDATE').toUpperCase().slice(0, 14), n.title, '/news/' + encodeURIComponent(n.slug)]));
+  L.push(['MORE', 'See all news and counselling updates', '/news']);
+  const build = () => { const f = document.createDocumentFragment(); L.forEach(x => { const a = document.createElement('a'); a.href = x[2]; const b = document.createElement('b'); b.textContent = x[0]; a.appendChild(b); a.appendChild(document.createTextNode(x[1])); f.appendChild(a); }); return f; };
+  tr.innerHTML = ''; tr.appendChild(build()); tr.appendChild(build());
+  const w = L.reduce((t, x) => t + (x[0].length + x[1].length) * 8 + 90, 0);
+  tr.style.setProperty('--tkd', Math.max(25, Math.round(w / 45)) + 's');
+  sec.style.display = 'block';
+}
 async function loadRecentDrops() {
   if (!window.__fb) return;
   let items = [];
@@ -2966,21 +2972,10 @@ async function loadRecentDrops() {
   items = items.filter(x => x && typeof x.t === 'string' && x.t.trim() && x.t.length <= 140 && /^\d{4}-\d{2}-\d{2}$/.test(String(x.d || '')))
     .map((x, i) => ({ s: typeof x.s === 'string' ? x.s.slice(0, 40) : '', t: x.t.trim(), d: x.d, i }))
     .sort((p, q) => (q.d < p.d ? -1 : q.d > p.d ? 1 : p.i - q.i)).slice(0, 3);
-  const sec = document.getElementById('drops'), list = document.getElementById('dropsList');
-  if (!sec || !list) return;
-  list.innerHTML = '';
-  if (!items.length) { sec.style.display = 'none'; return; }
-  items.forEach(n => {
-    const a = document.createElement('a'); a.className = 'upd'; a.href = '#pricing';
-    const p = document.createElement('span'); p.className = 'pill'; p.textContent = n.s || 'New';
-    const d = document.createElement('span'); d.className = 'dt'; d.textContent = dropAgo(n.d);
-    const b = document.createElement('b'); b.textContent = n.t;
-    a.appendChild(p); a.appendChild(d); a.appendChild(b); list.appendChild(a);
-  });
-  sec.style.display = '';
+  TK.drops = items; paintTicker();
 }
 
-// ---------- Latest updates (from the public news pages) ----------
+// ---------- Latest updates (from the public news pages), shown in the top ticker ----------
 let NEWS_LATEST = [];
 function newsDate(d) { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || ''); return m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'UTC' }) : ''; }
 async function loadLatestUpdates() {
@@ -2989,18 +2984,7 @@ async function loadLatestUpdates() {
     if (!res.ok) return;
     NEWS_LATEST = ((await res.json()).items || []).filter(x => x && x.slug && x.title);
   } catch (e) { return; }
-  const sec = document.getElementById('updates'), list = document.getElementById('updatesList');
-  if (sec && list && NEWS_LATEST.length) {
-    list.innerHTML = '';
-    NEWS_LATEST.forEach(n => {
-      const a = document.createElement('a'); a.className = 'upd'; a.href = '/news/' + encodeURIComponent(n.slug);
-      const p = document.createElement('span'); p.className = 'pill'; p.textContent = n.category || 'Update';
-      const d = document.createElement('span'); d.className = 'dt'; d.textContent = newsDate(n.date);
-      const b = document.createElement('b'); b.textContent = n.title;
-      a.appendChild(p); a.appendChild(d); a.appendChild(b); list.appendChild(a);
-    });
-    sec.style.display = '';
-  }
+  TK.news = NEWS_LATEST.slice(0, 3); paintTicker();
 }
 async function loadStudyTips() {
   let items = [];
@@ -6853,6 +6837,7 @@ const SIGNS = [["Cullen sign", "Acute haemorrhagic pancreatitis", "Bluish discol
   document.getElementById("sgDis").textContent = "Seen in: " + g[1];
   document.getElementById("sgMean").textContent = g[2];
   document.getElementById("sgMore").onclick = () => goToJoin();
+  paintTicker();
 })();
 // ---------- Daily 10 streak (only on this phone) ----------
 function paintStreak() {
