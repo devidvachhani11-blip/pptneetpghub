@@ -1758,7 +1758,8 @@
 .sr-txt { min-width: 0; }
 .sr-txt b { display: block; font-size: 16px; font-weight: 800; color: var(--navy); overflow-wrap: anywhere; }
 .sr-txt span { font-size: 12.5px; color: var(--gray); }
-.sr-btns { grid-column: 1 / -1; display: flex; gap: 8px; margin-top: 8px; }
+.sr-btns { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.sr-btns button.alt:last-child:nth-child(3) { flex: 1 1 100%; }
 .sr-btns button { flex: 1; border-radius: 12px; padding: 11px 10px; font-size: 14px; font-weight: 800; font-family: inherit; cursor: pointer; border: 1.5px solid var(--navy); background: #fff; color: var(--navy); }
 .sr-btns button.pri { background: var(--navy); color: #fff; }
 .sr-btns button:disabled { opacity: .45; cursor: default; }
@@ -5541,6 +5542,15 @@ function renderTiles(box, tabArg) {
     } else loadCards().then(() => { if (libView === "library" && (lib.tab === tab || lib.tab === "All")) renderList(); });
     rv.onclick = () => openDeck(deck, deck[0].id, g.name, "revise");
     btns.appendChild(go); btns.appendChild(rv);
+    if (!ct && deck.some(x => String(x.fileUrl || "").indexOf("r2:") === 0)) {
+      const dl = libEl("button", "alt", "Download all");
+      dl.onclick = async () => {
+        if (zipState.busy) { showToast("Another download is running. Please wait.", true); return; }
+        const iv = setInterval(() => { dl.textContent = zipState.busy ? "Preparing " + zipState.done + "/" + zipState.total : "Download all"; dl.disabled = zipState.busy; }, 300);
+        try { await downloadZip(deck, g.name); } finally { clearInterval(iv); dl.textContent = "Download all"; dl.disabled = false; }
+      };
+      btns.appendChild(dl);
+    }
     tile.appendChild(ico); tile.appendChild(txt); tile.appendChild(btns);
     box.appendChild(tile);
   });
