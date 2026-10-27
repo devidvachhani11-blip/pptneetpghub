@@ -371,7 +371,7 @@
     padding: 16px 22px;
     display: flex; justify-content: space-between; align-items: center;
   }
-  .viewer-bar .title { font-weight: 600; font-size: 15.5px; }
+  .viewer-bar .title { font-weight: 600; font-size: 14.5px; min-width: 0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .viewer-bar .close-btn { background: transparent; color: #AEB6C0; font-size: 20px; }
   .viewer-body {
     background: #EEF1F4;
@@ -5929,10 +5929,12 @@ function viewerShow() {
   document.documentElement.classList.add("viewer-lock");
   document.getElementById("viewerOverlay").classList.add("open");
   navPush("viewer", { close: () => { viewerHide(); currentPdfDoc = null; paintResume(); } });
+  try { const de = document.documentElement; if (!document.fullscreenElement && de.requestFullscreen) { const r = de.requestFullscreen({ navigationUI: "hide" }); if (r && r.catch) r.catch(() => {}); } } catch (e) {}      // the PDF opens full screen where the phone allows it
   syncViewerHeight();
 }
 function viewerHide() {
   navDone("viewer");
+  try { if (document.fullscreenElement && document.exitFullscreen) { const r = document.exitFullscreen(); if (r && r.catch) r.catch(() => {}); } } catch (e) {}
   document.getElementById("viewerOverlay").classList.remove("open");
   document.documentElement.classList.remove("viewer-lock");
 }
