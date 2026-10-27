@@ -1182,6 +1182,10 @@
   #libraryView.hp-decks #libList .sr-ico { width: 38px; height: 38px; border-radius: 11px; }
   #libraryView.hp-decks #libList .sr-btns { flex-direction: column; }
   #libraryView.hp-decks #libList .lib-empty { grid-column: 1 / -1; }
+  .hb-soon { text-align: center; border: 1.5px dashed var(--border); border-radius: 18px; padding: 28px 18px; color: var(--gray); font-size: 13px; line-height: 1.5; margin-top: 10px; }
+  .hb-soon .ib { width: 52px; height: 52px; border-radius: 16px; background: #E4F2EE; color: #0F8F83; margin: 0 auto 12px; display: grid; place-items: center; }
+  .hb-soon b { display: block; color: var(--navy); font-size: 16px; margin-bottom: 4px; }
+  :where(html[data-eff="dark"]) .hb-soon b { color: var(--ink); }
   @media (min-width: 700px) { .hb-grid { grid-template-columns: repeat(4, 1fr); } }
 
   /* ---------- My progress ---------- */
@@ -4806,18 +4810,19 @@ function renderProgress() {
   box.innerHTML = "";
   if (!attemptsLoaded) { box.appendChild(libEl("div", "lib-empty", "Loading your progress…")); return; }
   if (memberInfo.id) { const idl = libEl("p", "pg-id"); idl.innerHTML = 'Your member ID: <b>' + esc(memberInfo.id) + '</b> \u00B7 shown instead of your name in Top 10 lists'; box.appendChild(idl); }
-  if (LB_LIST.length) { const tc = libEl("div", "lb-top"); top10Fill(tc); box.appendChild(tc); }
-  if (!MY_ATTEMPTS.length) {
-    const e = libEl("div", "lib-empty", "No tests taken yet. Take a test and your scores and progress will appear here.");
+  const MYA = MY_ATTEMPTS.filter(attInEx);
+  { const svL = LB_LIST; LB_LIST = svL.filter(x => exOf(x.t) === lib.exam); if (LB_LIST.length) { const tc = libEl("div", "lb-top"); top10Fill(tc); box.appendChild(tc); } LB_LIST = svL; }
+  if (!MYA.length) {
+    const e = libEl("div", "lib-empty", "No " + lib.exam + " tests taken yet. Take a test and your scores and progress will appear here.");
     const b = libEl("button", null, "Browse tests");
-    b.onclick = () => { lib.exam = "NEET PG"; hubGo("tests"); };
+    b.onclick = () => { hubGo("tests"); };
     e.appendChild(document.createElement("br"));
     e.appendChild(b);
     box.appendChild(e);
     return;
   }
 
-  const all = MY_ATTEMPTS;
+  const all = MYA;
   const byTest = {};
   all.forEach(a => { (byTest[a.testId] = byTest[a.testId] || []).push(a); });
   const pcts = all.map(pctOf);
@@ -4850,7 +4855,7 @@ function renderProgress() {
   // why mistakes happen (from the reasons the student tapped; only the student sees this)
   if (NB.loaded) {
     const cnt = { dk: 0, silly: 0, trap: 0, guess: 0 }; let tot = 0;
-    NB.items.forEach(x => { if (x.r && cnt[x.r] !== undefined) { cnt[x.r]++; tot++; } });
+    NB.items.filter(nbInEx).forEach(x => { if (x.r && cnt[x.r] !== undefined) { cnt[x.r]++; tot++; } });
     if (tot >= 3) {
       const wc = libEl("div", "pg-card");
       wc.appendChild(libEl("h3", null, "Why you get questions wrong"));
@@ -4905,7 +4910,7 @@ function renderProgress() {
       f.style.background = x.p < 50 ? "#D98B54" : x.p < 70 ? "#D4AF55" : "#0F8F83";
       tk.appendChild(f); row.appendChild(tk);
       const acts = libEl("div", "acts");
-      const rb = libEl("button", null, "Resources"); rb.onclick = () => { lib.exam = "NEET PG"; hubGo("resources"); lib.subject = canonSubject(x.k); render(); };
+      const rb = libEl("button", null, "Resources"); rb.onclick = () => { hubGo("resources"); lib.subject = canonSubject(x.k); render(); };
       acts.appendChild(rb);
       row.appendChild(acts);
       sc.appendChild(row);
@@ -5239,7 +5244,7 @@ function nbQ(x) { const T = NB.tests[x.t]; return T && T.qs[x.i] ? T.qs[x.i] : n
 function nbSubject(x) { const T = NB.tests[x.t], q = nbQ(x); const raw = (q && q.s) || (T && T.subject && T.subject.toLowerCase() !== "mixed" ? T.subject : ""); return raw ? canonSubject(raw) : "Other"; }
 
 function nbVisible() {
-  return NB.items.filter(x => nbQ(x)).filter(x => (NB.filter === "all" || (NB.filter === "mistakes" ? x.n > 0 : x.saved)) && (NB.subject === "All" || nbSubject(x) === NB.subject))
+  return NB.items.filter(nbInEx).filter(x => nbQ(x)).filter(x => (NB.filter === "all" || (NB.filter === "mistakes" ? x.n > 0 : x.saved)) && (NB.subject === "All" || nbSubject(x) === NB.subject))
     .sort((a, b) => (b.last || 0) - (a.last || 0));
 }
 
@@ -5257,7 +5262,8 @@ async function renderNotebook() {
   if (libView !== "notebook") return;
   box.innerHTML = "";
   const shown = nbVisible();
-  const all = NB.items.filter(x => nbQ(x));
+  const all = NB.items.filter(nbInEx).filter(x => nbQ(x));
+  document.getElementById("libTitle").textContent = lib.exam + " \u00B7 Mistake Notebook";
   document.getElementById("libSub").textContent = all.length ? all.length + (all.length === 1 ? " question" : " questions") + " · only you can see this" : "Only you can see this";
   if (!all.length) {
     box.appendChild(libEl("div", "lib-empty", "Your notebook is empty. Questions you get wrong in a test appear here by themselves. You can also tap Save on any question to add it."));
@@ -5680,8 +5686,10 @@ function renderHeading() {
   if (libView === "notebook") { document.getElementById("libTitle").textContent = "Mistake notebook"; return; }
   if (libView === "progress") {
     document.getElementById("libTitle").textContent = "My progress";
-    document.getElementById("libSub").textContent = attemptsLoaded && MY_ATTEMPTS.length
-      ? "Only you can see this \u00B7 " + MY_ATTEMPTS.length + (MY_ATTEMPTS.length === 1 ? " attempt" : " attempts")
+    const nAtt = MY_ATTEMPTS.filter(attInEx).length;
+    document.getElementById("libTitle").textContent = lib.exam + " \u00B7 Progress Report";
+    document.getElementById("libSub").textContent = attemptsLoaded && nAtt
+      ? "Only you can see this \u00B7 " + nAtt + (nAtt === 1 ? " attempt" : " attempts")
       : "Only you can see this";
     return;
   }
@@ -5714,6 +5722,18 @@ function renderHeading() {
 
 // ---------- Member hub: home with boxes, one exam at a time ----------
 const HUB = { page: null, tgOpen: false };
+// Which exam does a test (or a practice pool) belong to? Used so INICET has its own progress report and notebook.
+function exOf(id, title) {
+  id = String(id || "");
+  const it = ALL.find(x => x.testId === id);
+  if (it) return isInicet(it) ? "INICET" : "NEET PG";
+  if (id.indexOf("practice:") === 0 && PR.index && PR.index.subjects) { const e = PR.index.subjects.find(x => "practice:" + x.slug === id); if (e) return /inicet/i.test(e.subject || "") ? "INICET" : "NEET PG"; }
+  if (/inicet/i.test(id) || /inicet/i.test(String(title || ""))) return "INICET";
+  const T = NB.tests && NB.tests[id]; if (T && /inicet/i.test(String(T.title || "") + " " + String(T.subject || ""))) return "INICET";
+  return "NEET PG";
+}
+function nbInEx(x) { return exOf(x.t) === lib.exam; }
+function attInEx(a) { return exOf(a.testId, a.title) === lib.exam; }
 const HB_ICON = {
   target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>',
   book: '<path d="M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h10"/>',
@@ -5768,31 +5788,29 @@ function renderHub() {
   document.getElementById("hubTIb").style.display = libLoaded && !hasIni ? "" : "none";
   const box = document.getElementById("hubTiles"); box.innerHTML = "";
   const L = libLoaded && !libError, c = L ? hubCounts() : { res: 0, resNew: 0, tests: 0, decks: 0 };
-  let pb = "", ps = "Pool, games, duels";
+  let pb = "", ps = ini ? "Coming soon" : "Pool, games, duels";
   if (PR.index && PR.index.daily > 0) { try { pb = "Today " + (PR.index.daily - prLeft()) + "/" + PR.index.daily; } catch (e) {} }
-  if (!(PR.index && PR.index.total)) { pb = ini && L ? "Soon" : ""; }
+  if (ini) pb = "Soon"; else if (!(PR.index && PR.index.total)) pb = "";
   hbTile(box, { icon: "target", title: "Daily Practice", sub: ps, badge: pb, exam: 1, go: () => hubGo("practice") });
   hbTile(box, { icon: "book", title: "Resources", sub: !L ? "Opening…" : c.res ? c.res + (c.res === 1 ? " file" : " files") : "Coming soon", badge: L && c.resNew ? c.resNew + " new" : (L && !c.res ? "Soon" : ""), exam: 1, go: () => hubGo("resources") });
   hbTile(box, { icon: "cards", title: "Card Decks", sub: !L ? "Opening…" : c.decks ? c.decks + (c.decks === 1 ? " deck" : " decks") : "Coming soon", badge: L && !c.decks ? "Soon" : "", exam: 1, go: () => hubGo("decks") });
   hbTile(box, { icon: "clip", title: "Tests", sub: !L ? "Opening…" : c.tests ? "Mock · GT · Image" : "Coming soon", badge: L && c.tests ? c.tests + (c.tests === 1 ? " test" : " tests") : (L ? "Soon" : ""), soft: !!c.tests, exam: 1, go: () => hubGo("tests") });
   const sp = document.getElementById("hubSpace"); sp.innerHTML = "";
-  const nbn = NB.loaded && NB.items.length ? String(NB.items.length) : "";
-  const save = lib.exam; lib.exam = "NEET PG";           // My Space is shared by both exams: always the navy style
-  hbTile(sp, { icon: "chart", title: "Progress Report", sub: "Scores · weak areas", go: () => setLibView("progress") });
-  hbTile(sp, { icon: "note", title: "Mistake Notebook", sub: "Wrong answers saved", badge: nbn, go: () => setLibView("notebook") });
-  lib.exam = save;
+  const nbn = NB.loaded && NB.items.filter(nbInEx).length ? String(NB.items.filter(nbInEx).length) : "";
+  hbTile(sp, { icon: "chart", title: "Progress Report", sub: "Scores \u00B7 weak areas", exam: 1, go: () => setLibView("progress") });
+  hbTile(sp, { icon: "note", title: "Mistake Notebook", sub: "Wrong answers saved", badge: nbn, exam: 1, go: () => setLibView("notebook") });
   paintResume(); paintHubNew();
 }
 function paintHubNew() {
   const box = document.getElementById("hubNew"); if (!box) return;
   if (!libLoaded || libError) { box.style.display = "none"; return; }
-  const list = ALL.filter(it => !isCardTab(it.tab) && it.t && daysOld(it.t) <= 7).sort((a, b) => b.t - a.t);
+  const list = ALL.filter(it => !isCardTab(it.tab) && isInicet(it) === (lib.exam === "INICET") && it.t && daysOld(it.t) <= 7).sort((a, b) => b.t - a.t);
   if (!list.length) { box.style.display = "none"; return; }
   const it = list[0];
   box.innerHTML = ""; box.style.display = "";
   box.appendChild(libEl("h4", null, "New drops" + (list.length > 1 ? " · " + list.length + " this week" : "")));
   const row = libEl("div", "rs-row"), tx = libEl("div", "tx");
-  tx.appendChild(libEl("b", null, it.title)); tx.appendChild(libEl("span", null, (isInicet(it) ? "INICET" : "NEET PG") + " · " + agoText(it.t)));
+  tx.appendChild(libEl("b", null, it.title)); tx.appendChild(libEl("span", null, subjLabel(it.subject) + " \u00B7 " + agoText(it.t)));
   row.appendChild(tx);
   const go = libEl("button", "go", it.type === "test" ? "Start" : "View"); go.onclick = () => hubOpenItem(it); row.appendChild(go);
   box.appendChild(row);
@@ -5800,6 +5818,7 @@ function paintHubNew() {
 function paintHubPlay() {
   const box = document.getElementById("hubPlay"); if (!box) return;
   box.innerHTML = "";
+  if (lib.exam === "INICET") { const c = libEl("div", "hb-soon"); c.innerHTML = '<div class="ib">' + hbIcon("target", 26) + "</div><b>INICET practice pool</b>Coming soon. It will have its own questions, separate from NEET PG."; box.appendChild(c); return; }
   box.appendChild(libEl("div", "hb-sec", "DAILY GAMES"));
   const g = libEl("div", "hb-grid");
   const mini = (icon, t, p, fn, dis) => { const b = document.createElement("button"); b.type = "button"; b.className = "hb-mini"; b.disabled = !!dis; b.innerHTML = '<div class="ib">' + hbIcon(icon, 20) + "</div><div><h5>" + esc(t) + "</h5><p>" + esc(p) + "</p></div>"; b.onclick = fn; g.appendChild(b); };
@@ -5822,7 +5841,7 @@ renderHeading = function () {
   if (libView !== "library") return;
   const nm = { practice: "Daily Practice", resources: "Resources", decks: "Card Decks", tests: "Tests" }[HUB.page];
   T.textContent = lib.exam + " · " + nm + ((HUB.page === "resources" || HUB.page === "tests") && lib.subject !== "All" ? " · " + subjLabel(lib.subject) : "");
-  if (HUB.page === "practice") { S.textContent = "Questions, games and duels"; paintHubPlay(); }
+  if (HUB.page === "practice") { S.textContent = lib.exam === "INICET" ? "Coming soon" : "Questions, games and duels"; paintHubPlay(); }
   else if (HUB.page === "decks") { const n = seriesGroups("Series", lib.q).length + seriesGroups("Card Test", lib.q).length; S.textContent = libLoaded ? n + (n === 1 ? " deck" : " decks") : "Opening…"; }
 };
 
@@ -6191,7 +6210,7 @@ function paintResume() {
   const fresh = hubHome || (!lib.q && lib.tab === "All" && lib.subject === "All");
   const rows = [];
   if (libLoaded && !libError && currentUser && fresh) {
-    const inEx = it => !!it && (hubHome || isInicet(it) === (lib.exam === "INICET"));
+    const inEx = it => !!it && isInicet(it) === (lib.exam === "INICET");
     rsTests().filter(t => inEx(t.item)).forEach(t => rows.push({ k: "test", title: t.item.title, sub: t.sub, go: () => openTest(t.item) }));
     const r = rsGet();
     const p = r.pdf && ALL.find(x => x.id === r.pdf.id && inEx(x));
@@ -6368,7 +6387,7 @@ function paintPractice() {
   const box = document.getElementById("libPractice");
   if (!box) return;
   const ix = PR.index;
-  if (!ix || !ix.total || !libLoaded || libError || !currentUser || lib.q) { box.style.display = "none"; return; }
+  if (lib.exam === "INICET" || !ix || !ix.total || !libLoaded || libError || !currentUser || lib.q) { box.style.display = "none"; return; }
   box.innerHTML = ""; box.style.display = "";
   box.appendChild(libEl("h4", null, "Practice"));
   box.appendChild(libEl("p", "sub", "Random questions from our whole question bank, new ones first. Your wrong answers go to the Mistake notebook."));
