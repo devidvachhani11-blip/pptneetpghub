@@ -682,6 +682,9 @@
   .tl p { margin: 0; font-size: 13.5px; color: var(--gray); line-height: 1.55; }
   .note-rose { margin-top: 6px; background: #FAECF0; border-left: 3px solid #C4456B; border-radius: 12px; padding: 15px 18px; font-size: 13.5px; color: #4A3340; line-height: 1.65; }
   .note-rose b { color: #C4456B; }
+  .note-blue { margin: 0 0 18px; background: var(--white); border: 1.5px solid #2A78D6; border-radius: 14px; padding: 14px 16px; font-size: 13.5px; line-height: 1.55; color: var(--ink); }
+  .note-blue b { color: var(--navy); font-weight: 800; }
+  :where(html[data-eff="dark"]) .note-blue b { color: #8fb8f0; }
   .agrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
   .acard { background: var(--navy); color: #fff; border-radius: 14px; padding: 20px 14px; text-align: center; border-top: 3px solid var(--c); }
   .acard .ae { font-size: 26px; }
@@ -1937,7 +1940,6 @@
     <nav class="l-nav">
       <a href="#freeHub">Free today</a>
       <a href="#features">What you get</a>
-      <a href="#journey">Journey</a>
       <a href="#pricing">Pricing</a>
       <a href="/news">News</a>
       <a href="/study-tips">Study tips</a>
@@ -1954,7 +1956,6 @@
         <div class="l-menu-panel" id="lMenuPanel" hidden>
           <a href="#freeHub">Free today</a>
           <a href="#features">What you get</a>
-          <a href="#journey">Journey</a>
           <a href="#pricing">Pricing</a>
           <a href="/news">News</a>
           <a href="/study-tips">Study tips</a>
@@ -2234,18 +2235,6 @@
         <p>If you find a mistake in any resource, drop it in the discussion group and I'll fix it. If you're stuck anywhere, ask. I'll help you.</p>
       </div>
     </div>
-    <div class="cta-row">
-      <h3>Ready to follow a plan?</h3>
-      <p>Join in a few minutes. Pay by UPI, no card needed.</p>
-      <button class="btn-gold big" data-go="join">Go Premium &middot; <span data-price>&#8377;500</span></button>
-    </div>
-  </div>
-</section>
-
-<section class="sec cream" id="journey">
-  <div class="container">
-        <div class="note-rose"><b>Timeline note:</b> Phase 1 is planned to finish on <b>14 March 2027</b>. If a file is ever delayed for a genuine reason, don't worry. It will be released as soon as possible. Our firm aim is to complete Phase 1 before <b>1 April 2027</b>.</div>
-
   </div>
 </section>
 
@@ -2255,6 +2244,7 @@
       <h2>Join early, pay less.</h2>
       <p>One-time payment. The price only goes up as the course moves forward.</p>
     </div>
+    <div class="note-blue"><b>Timeline note:</b> Phase 1 is planned to finish on <b>14 March 2027</b>. If a file is ever delayed for a genuine reason, don't worry. It will be released as soon as possible. Our firm aim is to complete Phase 1 before <b>1 April 2027</b>.</div>
     <div class="tiers" id="tiers"></div>
     <div class="rise">Price rises as phases move forward</div>
     <div class="cta-dark">
