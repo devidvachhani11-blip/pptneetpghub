@@ -1516,6 +1516,30 @@
   .sg-box .btn { width:100%; }
   .st-note { display:none; margin:6px 0 0; font-size:13.5px; font-weight:700; color:#B45309; }
   :where(html[data-eff="dark"]) .sg-box { background: var(--white); }
+  .mt-ov { position:fixed; inset:0; z-index:130; background:var(--paper); display:none; flex-direction:column; }
+  .mt-ov.on { display:flex; }
+  .mt-top { display:flex; align-items:center; gap:10px; padding:12px 14px; border-bottom:1px solid var(--border); background:var(--white,#fff); }
+  .mt-top b { font-size:16px; font-weight:800; color:var(--navy); flex:1; }
+  .mt-time { font-variant-numeric:tabular-nums; font-weight:800; font-size:16px; color:#0F8F83; min-width:58px; text-align:right; }
+  .mt-x { border:1.5px solid var(--border); background:transparent; border-radius:10px; width:38px; height:38px; font-size:18px; cursor:pointer; color:var(--ink); }
+  .mt-hint { margin:10px 14px 4px; font-size:13px; color:var(--gray); }
+  .mt-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:8px 14px 14px; overflow-y:auto; align-content:start; }
+  .mt-col { display:flex; flex-direction:column; gap:8px; }
+  .mt-it { text-align:left; border:1.5px solid var(--border); background:#fff; color:var(--ink); border-radius:12px; padding:10px 10px; font-family:inherit; font-size:13.5px; line-height:1.3; font-weight:700; cursor:pointer; min-height:54px; }
+  .mt-it small { display:block; font-size:10px; letter-spacing:.1em; font-weight:800; color:#0F8F83; margin-bottom:2px; text-transform:uppercase; }
+  .mt-it.sel { border-color:#C9A24B; background:#FFF6DC; box-shadow:0 0 0 2px rgba(201,162,75,.4); }
+  .mt-it.ok { border-color:#16A34A; background:#E6F7EC; color:#14532D; opacity:.75; cursor:default; }
+  .mt-it.bad { border-color:#DC2626; background:#FDECEA; animation:mtShake .35s; }
+  @keyframes mtShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+  .mt-res { display:none; padding:22px 18px; text-align:center; overflow-y:auto; }
+  .mt-res h2 { margin:6px 0 4px; font-size:26px; font-weight:800; color:var(--navy); }
+  .mt-res p { margin:0 0 14px; font-size:14.5px; color:var(--gray); line-height:1.5; }
+  .mt-res .big { font-size:44px; font-weight:800; color:#0F8F83; margin:4px 0; }
+  .mt-res .btn { width:100%; margin-top:10px; }
+  :where(html[data-eff="dark"]) .mt-it { background:var(--white); }
+  :where(html[data-eff="dark"]) .mt-it.sel { background:rgba(201,162,75,.18); }
+  :where(html[data-eff="dark"]) .mt-it.ok { background:rgba(22,163,74,.2); color:#BBF7D0; }
+  :where(html[data-eff="dark"]) .mt-it.bad { background:rgba(220,38,38,.2); }
   .sample-sec { background: #FBF8F1; padding: 18px 0 6px; }
   .sample-box { display: flex; align-items: center; gap: 16px; justify-content: space-between; flex-wrap: wrap; background: #fff; border: 1.5px solid var(--border); border-left: 4px solid #0F8F83; border-radius: 16px; padding: 18px; }
   .sample-box h2 { margin: 0 0 4px; font-size: 20px; font-weight: 800; color: var(--navy); }
@@ -1867,6 +1891,30 @@
 <section class="sample-sec" id="dailySec" style="display:none;">
   <div class="container"><div class="dq-box" id="dqBox"></div></div>
 </section>
+
+<section class="sample-sec" id="matchSec" style="display:none;">
+  <div class="container">
+    <div class="sample-box">
+      <div><h2>Daily Match</h2><p>Match <b>8 pairs</b> as fast as you can: drugs, diseases and signs. One free round every day.</p><p class="st-note" id="mtNote"></p></div>
+      <button class="btn btn-gold" id="mtStart" type="button">Play today's round</button>
+    </div>
+  </div>
+</section>
+
+<div class="mt-ov" id="mtOv" role="dialog" aria-label="Daily Match">
+  <div class="mt-top"><b>Daily Match</b><span class="mt-time" id="mtTime">0.0s</span><button class="mt-x" id="mtClose" type="button" aria-label="Close">&times;</button></div>
+  <p class="mt-hint" id="mtHint">Tap one on the left, then its match on the right. A wrong tap adds 3 seconds.</p>
+  <div class="mt-grid" id="mtGrid"><div class="mt-col" id="mtL"></div><div class="mt-col" id="mtR"></div></div>
+  <div class="mt-res" id="mtRes">
+    <div style="font-size:34px">&#127942;</div>
+    <h2 id="mtResT">Round complete</h2>
+    <div class="big" id="mtResS"></div>
+    <p id="mtResN"></p>
+    <button class="btn btn-gold" id="mtShare" type="button">Share my time</button>
+    <button class="btn" id="mtJoin" type="button">Get all premium resources</button>
+    <p style="margin-top:14px">New pairs come tomorrow.</p>
+  </div>
+</div>
 
 <section class="sample-sec" id="sampleSec" style="display:none;">
   <div class="container">
@@ -2596,6 +2644,7 @@ onFbReady(() => {
   const { auth, onAuthStateChanged } = window.__fb;
   loadPricing();
   loadSample();
+  loadMatch();
   loadDaily();
   loadSampleCards();
   loadRecentDrops();
@@ -6887,6 +6936,97 @@ function startSample() {
 }
 document.getElementById("sampleStart").onclick = startSample;
 
+
+
+// ---------- Daily Match: 8 pairs a day, tap to match, fastest time wins ----------
+const MT = { pairs: [], round: [], rights: [], sel: -1, ok: 0, wrong: 0, t0: 0, iv: null, run: false };
+function mtSeed(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function mtSaved() { try { const o = JSON.parse(localStorage.getItem("pptMatch") || "null"); return o && o.d === istDay(Date.now()) ? o : null; } catch (e) { return null; } }
+async function loadMatch() {
+  const sec = document.getElementById("matchSec"); if (!sec) return;
+  try {
+    const { db, doc, getDoc } = window.__fb;
+    const s = await getDoc(doc(db, "sample", "pairs")), d = s.exists() ? s.data() : null;
+    MT.pairs = d && Array.isArray(d.ps) ? d.ps.filter(p => p && typeof p.l === "string" && typeof p.r === "string" && p.l && p.r && /^[DSF]$/.test(p.t)) : [];
+  } catch (e) { MT.pairs = []; if (!MT.retried) { MT.retried = true; setTimeout(loadMatch, 3000); } }
+  if (MT.pairs.length < 8) { sec.style.display = "none"; return; }
+  sec.style.display = ""; mtPaintHome();
+}
+function mtPaintHome() {
+  const sv = mtSaved(), n = document.getElementById("mtNote"), b = document.getElementById("mtStart");
+  if (!n || !b) return;
+  if (sv) { n.textContent = "\u2705 Done today: " + sv.s + "s. New pairs tomorrow."; n.style.display = "block"; b.textContent = "See my result"; }
+  else { n.style.display = "none"; b.textContent = "Play today's round"; }
+}
+function mtBuild() {
+  const day = istDay(Date.now()), n = MT.pairs.length, st = (day * 8) % n;
+  MT.round = []; for (let i = 0; i < 8; i++) MT.round.push(MT.pairs[(st + i) % n]);
+  const rnd = mtSeed(day * 7919 + 13), idx = MT.round.map((_, i) => i);
+  for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); const t = idx[i]; idx[i] = idx[j]; idx[j] = t; }
+  MT.rights = idx.map(i => MT.round[i].r);
+  const L = document.getElementById("mtL"), R = document.getElementById("mtR"); L.innerHTML = ""; R.innerHTML = "";
+  const tag = { D: "Drug", S: "Disease", F: "Finding" };
+  MT.round.forEach((p, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "mt-it"; b.dataset.i = i;
+    const sm = document.createElement("small"); sm.textContent = tag[p.t]; b.appendChild(sm); b.appendChild(document.createTextNode(p.l));
+    b.onclick = () => mtPickL(i, b); L.appendChild(b);
+  });
+  MT.rights.forEach((r) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "mt-it"; b.textContent = r; b.dataset.r = r;
+    b.onclick = () => mtPickR(b); R.appendChild(b);
+  });
+}
+function mtTick() { const t = (Date.now() - MT.t0) / 1000 + MT.wrong * 3; document.getElementById("mtTime").textContent = t.toFixed(1) + "s"; }
+function mtOpen() {
+  if (MT.pairs.length < 8) return;
+  const ov = document.getElementById("mtOv"), sv = mtSaved();
+  ov.classList.add("on"); document.body.style.overflow = "hidden"; navPush("match", { close: mtClose });
+  if (sv) { mtShowRes(sv.s, sv.w); return; }
+  document.getElementById("mtRes").style.display = "none"; document.getElementById("mtGrid").style.display = ""; document.getElementById("mtHint").style.display = "";
+  mtBuild(); MT.sel = -1; MT.ok = 0; MT.wrong = 0; MT.t0 = Date.now(); MT.run = true;
+  clearInterval(MT.iv); MT.iv = setInterval(mtTick, 100); mtTick();
+}
+function mtClose(fromApp) {
+  clearInterval(MT.iv); MT.run = false;
+  document.getElementById("mtOv").classList.remove("on"); document.body.style.overflow = "";
+  if (fromApp !== true) navDone("match");
+  mtPaintHome();
+}
+function mtPickL(i, b) {
+  if (!MT.run || b.classList.contains("ok")) return;
+  document.querySelectorAll("#mtL .mt-it.sel").forEach(x => x.classList.remove("sel"));
+  MT.sel = i; b.classList.add("sel");
+}
+function mtPickR(b) {
+  if (!MT.run || MT.sel < 0 || b.classList.contains("ok")) return;
+  const lb = document.querySelector('#mtL .mt-it[data-i="' + MT.sel + '"]');
+  if (MT.round[MT.sel].r === b.dataset.r) {
+    lb.classList.remove("sel"); lb.classList.add("ok"); b.classList.add("ok"); MT.sel = -1; MT.ok++;
+    if (MT.ok >= 8) mtFinish();
+  } else {
+    MT.wrong++; b.classList.add("bad"); lb.classList.add("bad"); setTimeout(() => { b.classList.remove("bad"); lb.classList.remove("bad"); }, 380); mtTick();
+  }
+}
+function mtFinish() {
+  clearInterval(MT.iv); MT.run = false;
+  const secs = Math.round(((Date.now() - MT.t0) / 1000 + MT.wrong * 3) * 10) / 10;
+  try { localStorage.setItem("pptMatch", JSON.stringify({ d: istDay(Date.now()), s: secs, w: MT.wrong })); } catch (e) {}
+  mtShowRes(secs, MT.wrong); mtPaintHome();
+}
+function mtShowRes(secs, wrong) {
+  document.getElementById("mtGrid").style.display = "none"; document.getElementById("mtHint").style.display = "none";
+  document.getElementById("mtTime").textContent = secs + "s";
+  document.getElementById("mtResS").textContent = secs + " seconds";
+  document.getElementById("mtResN").textContent = wrong ? "8 of 8 matched, with " + wrong + " wrong " + (wrong === 1 ? "tap" : "taps") + " (+" + wrong * 3 + "s). Try for zero wrong taps tomorrow." : "8 of 8 matched with no wrong taps. Perfect round.";
+  document.getElementById("mtRes").style.display = "block";
+  document.getElementById("mtShare").onclick = () => {
+    const txt = "I matched 8 NEET PG pairs in " + secs + " seconds on today's Daily Match. Can you beat me? " + location.origin + "/";
+    if (navigator.share) navigator.share({ text: txt }).catch(() => {}); else window.open("https://wa.me/?text=" + encodeURIComponent(txt), "_blank", "noopener");
+  };
+  document.getElementById("mtJoin").onclick = () => { mtClose(); goToJoin(); };
+}
+document.getElementById("mtStart").onclick = mtOpen;
+document.getElementById("mtClose").onclick = () => mtClose();
 
 // ---------- Premium images slider (home page) ----------
 (function () {

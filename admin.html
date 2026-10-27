@@ -817,6 +817,17 @@
         <p class="hint" id="dl_status"></p>
       </div>
       <div class="card">
+        <h3>Daily Match: free pairs pool</h3>
+        <p class="hint" style="margin-top:-6px">One pair per line: <b>Type | Left | Right</b>. Type is <b>D</b> (Drug | Mechanism), <b>S</b> (Disease | Feature) or <b>F</b> (Finding | Associated condition). The home page shows 8 new pairs every day, in order, and starts again from the first when the pool ends. Keep each side short (left up to 34 letters, right up to 52). Use only pairs with one clear right answer. Everything saved here is public.</p>
+        <textarea id="pm_text" class="t-area" rows="14" spellcheck="false" placeholder="D | Atenolol | β1-selective blocker&#10;S | Wilson disease | Kayser-Fleischer ring&#10;F | Koplik spots | Measles"></textarea>
+        <div class="t-actions">
+          <button class="btn" id="pm_save">Save pairs</button>
+          <button class="btn outline" id="pm_reload">Undo changes</button>
+          <button class="btn outline" id="pm_remove">Remove pairs</button>
+        </div>
+        <p class="hint" id="pm_status"></p>
+      </div>
+      <div class="card">
         <h3>Home sample: card slider (up to 5 cards)</h3>
         <p class="hint" style="margin-top:-6px">Pick 1 card from each of up to 5 different series. Visitors who are not signed in swipe through them, and the last slide asks them to join Premium. Only these picked pictures (and their answers) become public. Everything else stays private.</p>
         <div id="sm_slots"></div>
@@ -4771,6 +4782,7 @@ async function loadSampleAdmin() {
     document.getElementById('sm_text').value = d && Array.isArray(d.qs) ? questionsToText(d.qs) : '';
     st.textContent = d && Array.isArray(d.qs) && d.qs.length ? 'Saved on the home page: ' + d.qs.length + ' questions.' : 'No sample saved yet. The sample box is hidden on the home page.';
   } catch (e) { st.textContent = 'Could not load: ' + e.message; }
+  loadPairsAdmin();
   try {
     const dl = await getDoc(doc(db, 'sample', 'daily10'));
     const dd = dl.exists() ? dl.data() : null, ds = document.getElementById('dl_status');
@@ -4836,6 +4848,54 @@ async function removeDailyPool() {
   try { const { db, doc, deleteDoc } = window.__fb; await deleteDoc(doc(db, 'sample', 'daily10')); document.getElementById('dl_text').value = ''; document.getElementById('dl_status').textContent = 'Removed. The fixed sample is used.'; showToast('Removed'); }
   catch (e) { showToast('Failed: ' + e.message, true); }
 }
+
+// ---------- Daily Match pairs pool ----------
+function pairsToText(ps) { return (ps || []).map(p => p.t + ' | ' + p.l + ' | ' + p.r).join('\n'); }
+function parsePairs(text) {
+  const out = [], errs = [], seen = {};
+  String(text || '').split(/\r?\n/).forEach((ln, i) => {
+    const line = ln.trim(); if (!line) return;
+    const p = line.split('|').map(x => x.trim());
+    if (p.length !== 3) { errs.push('Line ' + (i + 1) + ': use Type | Left | Right'); return; }
+    const t = p[0].toUpperCase();
+    if (!/^[DSF]$/.test(t)) { errs.push('Line ' + (i + 1) + ': type must be D, S or F'); return; }
+    if (!p[1] || p[1].length > 34) { errs.push('Line ' + (i + 1) + ': left side must be 1 to 34 letters'); return; }
+    if (!p[2] || p[2].length > 52) { errs.push('Line ' + (i + 1) + ': right side must be 1 to 52 letters'); return; }
+    const k = p[1].toLowerCase();
+    if (seen[k]) { errs.push('Line ' + (i + 1) + ': "' + p[1] + '" is repeated'); return; }
+    seen[k] = 1; out.push({ t: t, l: p[1], r: p[2] });
+  });
+  return { ps: out, errs: errs };
+}
+async function loadPairsAdmin() {
+  const st = document.getElementById('pm_status'); if (!st) return;
+  try {
+    const { db, doc, getDoc } = window.__fb;
+    const s = await getDoc(doc(db, 'sample', 'pairs')), d = s.exists() ? s.data() : null;
+    document.getElementById('pm_text').value = d && Array.isArray(d.ps) ? pairsToText(d.ps) : '';
+    st.textContent = d && Array.isArray(d.ps) && d.ps.length ? 'Saved: ' + d.ps.length + ' pairs, enough for ' + Math.floor(d.ps.length / 8) + ' days before it repeats.' : 'No pairs saved yet. The Daily Match card is hidden on the home page.';
+  } catch (e) { st.textContent = 'Could not load: ' + e.message; }
+}
+async function savePairs() {
+  const r = parsePairs(document.getElementById('pm_text').value), st = document.getElementById('pm_status');
+  if (r.errs.length) { st.textContent = r.errs.slice(0, 6).join(' | ') + (r.errs.length > 6 ? ' ... and ' + (r.errs.length - 6) + ' more' : ''); showToast('Fix the lines first', true); return; }
+  if (r.ps.length < 8 || r.ps.length > 400) { st.textContent = 'Add between 8 and 400 pairs. Now: ' + r.ps.length + '.'; showToast('Need 8 to 400 pairs', true); return; }
+  const btn = document.getElementById('pm_save'); btn.disabled = true;
+  try {
+    const { db, doc, setDoc, serverTimestamp } = window.__fb;
+    await setDoc(doc(db, 'sample', 'pairs'), { ps: r.ps, count: r.ps.length, updatedAt: serverTimestamp() });
+    st.textContent = 'Saved: ' + r.ps.length + ' pairs, enough for ' + Math.floor(r.ps.length / 8) + ' days before it repeats. Live on the home page.';
+    showToast('\u2714 Pairs saved');
+  } catch (e) { showToast('Failed: ' + e.message, true); } finally { btn.disabled = false; }
+}
+async function removePairs() {
+  if (!confirm('Remove the Daily Match pairs? The card disappears from the home page.')) return;
+  try { const { db, doc, deleteDoc } = window.__fb; await deleteDoc(doc(db, 'sample', 'pairs')); document.getElementById('pm_text').value = ''; document.getElementById('pm_status').textContent = 'Removed. The Daily Match card is hidden.'; showToast('Removed'); }
+  catch (e) { showToast('Failed: ' + e.message, true); }
+}
+document.getElementById('pm_save').addEventListener('click', savePairs);
+document.getElementById('pm_reload').addEventListener('click', loadPairsAdmin);
+document.getElementById('pm_remove').addEventListener('click', removePairs);
 async function removeSampleQs() {
   if (!confirm('Remove the free sample from the home page?')) return;
   try { const { db, doc, deleteDoc } = window.__fb; await deleteDoc(doc(db, 'sample', 'main')); document.getElementById('sm_text').value = ''; document.getElementById('sm_status').textContent = 'Removed. The sample box is hidden now.'; showToast('Removed'); }
