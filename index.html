@@ -1188,6 +1188,25 @@
   :where(html[data-eff="dark"]) .hb-soon b { color: var(--ink); }
   @media (min-width: 700px) { .hb-grid { grid-template-columns: repeat(4, 1fr); } }
 
+
+  /* ---------- Rotate (PDF and cards) and a smaller bottom strip ---------- */
+  .viewer-overlay.rot, .fc-overlay.rot { inset: auto !important; top: 0 !important; left: 100vw !important; width: 100vh !important; width: 100dvh !important; height: 100vw !important; transform: rotate(90deg); transform-origin: 0 0; }
+  .viewer-footer { padding: 6px 10px calc(6px + env(safe-area-inset-bottom, 0px)) !important; gap: 6px !important; }
+  .viewer-footer .nav-btn { width: 34px; height: 32px; font-size: 16px; border-radius: 9px; display: inline-grid; place-items: center; padding: 0; }
+  .viewer-footer .page-pill { padding: 5px 11px; font-size: 12.5px; }
+  .viewer-footer .zoom-lab { font-size: 11.5px; min-width: 34px; }
+  .viewer-overlay.rot .viewer-bar { padding: 6px 12px !important; }
+  .viewer-overlay.rot .viewer-bar .title { font-size: 13px; }
+  .viewer-overlay.rot .viewer-bar .rp-btn { padding: 4px 10px; }
+  .viewer-overlay.rot .viewer-footer { padding: 3px 10px !important; }
+  .fc-overlay.rot .fc-top { padding: 6px 12px; }
+  @media (orientation: landscape) and (max-height: 520px) {
+    .viewer-bar { padding: 6px 12px !important; }
+    .viewer-bar .title { font-size: 13px; }
+    .viewer-footer { padding: 3px 10px !important; }
+    .fc-top { padding: 6px 12px; }
+  }
+
   /* ---------- My progress ---------- */
   .lib-switch { display: flex; background: #fff; border: 1.5px solid var(--border); border-radius: 14px; padding: 4px; gap: 4px; margin: 0 0 16px; }
   .lib-switch button { flex: 1; padding: 11px 10px; border-radius: 10px; background: transparent; color: var(--gray); font-weight: 700; font-size: 14px; font-family: inherit; }
@@ -2392,6 +2411,7 @@
     <div class="viewer-footer">
       <div class="page-pill" id="pagePill">1 / 12</div>
       <div class="pdf-nav" id="pdfNav" style="display:none;">
+        <button class="nav-btn" id="rotBtn" aria-label="Rotate screen"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg></button>
         <button class="nav-btn" id="zoomOutBtn" aria-label="Zoom out">&minus;</button>
         <span class="zoom-lab" id="zoomLabel">100%</span>
         <button class="nav-btn" id="zoomInBtn" aria-label="Zoom in">+</button>
@@ -3301,6 +3321,7 @@ async function openDeck(list, startId, title, mode) {
 
 function closeDeck() {
   navDone("deck");
+  rotOff();
   FC.open = false; FC.tok++;
   if (CARDS.timer) saveCards();
   FC.cache.forEach(u => { if (String(u).indexOf("blob:") === 0) URL.revokeObjectURL(u); });
@@ -3416,6 +3437,7 @@ function fcRender() {
   ov.innerHTML =
     '<div class="fc-top"><div class="fc-title">' + esc(FC.title) + '</div>' +
       '<div class="fc-count">' + (revise ? n + " left" : (n ? (FC.pos + 1) + " / " + n : "0 / 0")) + '</div>' +
+      '<button class="fc-x" data-fc="rotate" aria-label="Rotate screen"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg></button>' +
       '<button class="fc-x" data-fc="close" aria-label="Close">&times;</button></div>' +
     '<div class="fc-prog"><i style="width:' + (revise ? Math.round(FC.session.rated / Math.max(1, FC.session.rated + n) * 100) : (n ? Math.round((FC.pos + 1) / n * 100) : 0)) + '%"></i></div>' +
     '<div class="fc-stage' + (FC.zoom ? " zoom" : "") + '" id="fcStage">' + stage + '</div>' +
@@ -3456,6 +3478,7 @@ document.getElementById("fcOverlay").addEventListener("click", (e) => {
   if (!b || !FC.open) return;
   const act = b.dataset.fc, it = fcCurrent();
   if (act === "close") return closeDeck();
+  if (act === "rotate") return rotToggle(document.getElementById("fcOverlay"));
   if (act === "good" || act === "again") {
     if (!it) return;
     if (FC.kind === "cardtest" && FC.revealId !== it.id) return;       // see the answer first
@@ -3648,6 +3671,7 @@ function openReport(ctx) {
   document.getElementById("rpCount").textContent = "0 / 500";
   const wa = "Mistake in " + where + ". What is wrong: \n\n" + helpWho();
   document.getElementById("rpWa").href = waLink(wa);
+  if (ROT.ov && ROT.mode === "css") rotOff();      // the report form is not turned, so turn the page back first
   document.getElementById("rpScrim").classList.add("on");
   document.getElementById("rpSheet").classList.add("on"); navPush("report", { close: closeReport });
   setTimeout(() => document.getElementById("rpMsg").focus(), 80);
@@ -5925,6 +5949,30 @@ function syncViewerHeight() {
   ov.style.setProperty("--vvh", Math.round(h) + "px");
 }
 if (window.visualViewport) { window.visualViewport.addEventListener("resize", () => { if (document.documentElement.classList.contains("viewer-lock")) syncViewerHeight(); }); }
+
+// ---------- Rotate: read a small-print PDF or card sideways ----------
+const ROT = { ov: null, mode: "", fs: false };
+function rotAfter() { setTimeout(() => { try { if (document.getElementById("viewerOverlay").classList.contains("open") && currentPdfDoc) renderPdfPage(currentPdfPage); } catch (e) {} }, 150); }
+function rotOff() {
+  if (!ROT.ov) return;
+  try { if (ROT.mode === "lock" && screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {}
+  try { if (ROT.fs && document.fullscreenElement && document.exitFullscreen && !document.getElementById("viewerOverlay").classList.contains("open")) { const r = document.exitFullscreen(); if (r && r.catch) r.catch(() => {}); } } catch (e) {}
+  ROT.ov.classList.remove("rot"); ROT.ov = null; ROT.mode = ""; ROT.fs = false;
+  rotAfter();
+}
+async function rotToggle(ov) {
+  if (!ov) return;
+  if (ROT.ov) { rotOff(); return; }
+  ROT.ov = ov;
+  try { if (!document.fullscreenElement && document.documentElement.requestFullscreen) { await document.documentElement.requestFullscreen({ navigationUI: "hide" }); ROT.fs = true; } } catch (e) {}
+  let ok = false;
+  try { if (document.fullscreenElement && screen.orientation && screen.orientation.lock) { await screen.orientation.lock("landscape"); ok = true; } } catch (e) {}
+  if (!ROT.ov) return;
+  if (ok) ROT.mode = "lock"; else { ROT.mode = "css"; ov.classList.add("rot"); }       // no phone lock available: turn the page on the screen instead
+  rotAfter();
+}
+document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && ROT.mode === "lock") rotOff(); });
+document.getElementById("rotBtn").onclick = () => rotToggle(document.getElementById("viewerOverlay"));
 function viewerShow() {
   document.documentElement.classList.add("viewer-lock");
   document.getElementById("viewerOverlay").classList.add("open");
@@ -5934,6 +5982,7 @@ function viewerShow() {
 }
 function viewerHide() {
   navDone("viewer");
+  rotOff();
   try { if (document.fullscreenElement && document.exitFullscreen) { const r = document.exitFullscreen(); if (r && r.catch) r.catch(() => {}); } } catch (e) {}
   document.getElementById("viewerOverlay").classList.remove("open");
   document.documentElement.classList.remove("viewer-lock");
