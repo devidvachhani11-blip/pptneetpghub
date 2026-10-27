@@ -1213,11 +1213,15 @@ async function handleStat(request, env) {
   st.days = st.days || {}; st.puz = st.puz || {};
   const day = istDate(now);
   const d = st.days[day] = st.days[day] || { ss: 0, sd: 0, sc: 0, sn: 0, sg: 0, dq: 0, dw: 0, dc: [0, 0, 0, 0, 0, 0, 0] };
-  if (b.e === 'ss') d.ss++;
+  const kk = (b.k === 's' || b.k === 'd') ? b.k : null;
+  const kd = () => { d.k = d.k || {}; return d.k[kk] = d.k[kk] || { u: 0, t: 0, f: 0, c: 0, n: 0, g: 0 }; };
+  if (b.e === 'ss') { d.ss++; if (kk) kd().u++; }
+  else if (b.e === 'pt') { if (!kk) return ok; kd().t++; }
   else if (b.e === 'sd') {
     const n = int(b.n, 1, 50), c = int(b.c, 0, 50);
     if (n === null || c === null || c > n) return ok;
     d.sd++; d.sc += c; d.sn += n; if (c * 100 >= n * 70) d.sg++;
+    if (kk) { const x = kd(); x.f++; x.c += c; x.n += n; if (c * 100 >= n * 70) x.g++; }
   } else if (b.e === 'dq') {
     const w = int(b.w, 0, 1), g = int(b.g, 1, 6), p = int(b.p, 1, 9999);
     if (w === null || g === null || p === null) return ok;

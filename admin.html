@@ -4034,6 +4034,16 @@ async function loadStatsAdmin() {
     h += '<tr style="border-bottom:1px solid #EEE6D2"><td style="padding:6px 4px"><b>' + s[0] + '</b></td><td>' + t.ss + '</td><td>' + t.sd + '</td><td>' + stPct(t.sc, t.sn) + '</td><td>' + stPct(t.sg, t.sd) + '</td><td>' + t.dq + '</td><td>' + t.dw + ' (' + stPct(t.dw, t.dq) + ')</td><td>' + stAvg(t.c, t.cn) + '</td></tr>';
   });
   h += '</table></div>';
+  // Daily 10 and the fixed sample, counted separately (from this update). Phones = different phones, Plays = every start.
+  const kSum = (keys, kind) => { const t = { u: 0, t: 0, f: 0, c: 0, n: 0, g: 0 }; keys.forEach(k => { const x = ((days[k] || {}).k || {})[kind]; if (!x) return; Object.keys(t).forEach(f => { t[f] += Number(x[f]) || 0; }); }); return t; };
+  h += '<h4 style="margin:16px 0 6px">Daily 10 and free sample, counted separately</h4><p class="hint" style="margin-top:0">Phones = different phones that day. Plays = every time the test was started, so one person playing 3 times counts 3. Counted from this update only; older days appear in the table above.</p><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="text-align:left;border-bottom:1px solid #D9CFB8"><th style="padding:6px 4px">&nbsp;</th><th>Phones</th><th>Plays</th><th>Finished</th><th>Avg score</th><th>70%+</th></tr>';
+  sets.forEach(s => {
+    [['d', 'Daily 10'], ['s', 'Free sample']].forEach(kd => {
+      const t = kSum(s[1], kd[0]);
+      h += '<tr style="border-bottom:1px solid #EEE6D2"><td style="padding:6px 4px"><b>' + kd[1] + '</b><br><span style="font-size:11px;color:#6B7280">' + s[0] + '</span></td><td>' + t.u + '</td><td>' + t.t + '</td><td>' + t.f + '</td><td>' + stPct(t.c, t.n) + '</td><td>' + stPct(t.g, t.f) + '</td></tr>';
+    });
+  });
+  h += '</table></div>';
   h += '<h4 style="margin:16px 0 6px">By day (last 14)</h4><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="text-align:left;border-bottom:1px solid #D9CFB8"><th style="padding:6px 4px">Date</th><th>Sample started</th><th>Finished</th><th>Avg score</th><th>Diagnosis played</th><th>Solved</th></tr>';
   all.slice(-14).reverse().forEach(k => {
     const t = stSum(days, [k]);
