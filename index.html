@@ -1558,6 +1558,9 @@
   .rb-ban .rb-b { display:inline-block; background:linear-gradient(135deg,#C9A24B,#EACF85); color:#0A1830; font-weight:800; font-size:14px; border-radius:10px; padding:9px 14px; }
   .inst-safe { flex-basis: 100%; margin: 4px 0 0; font-size: 12px; line-height: 1.5; opacity: .75; }
   #libInstall2 { display: none !important; }
+  #libInstall2 { justify-content: flex-start; gap: 9px; padding: 8px 12px; margin: 0 0 14px; border-radius: 12px; font-size: 12.5px; font-weight: 700; background: var(--gold-tint); color: var(--ink); border: 1px solid #ecd9a2; }
+  #libInstall2 span { flex: 1; text-align: left; }
+  #libInstall2 b { background: #0A1830; color: #E6C873; font-size: 11.5px; font-weight: 800; border-radius: 99px; padding: 5px 12px; }
   @media (max-width: 600px) {
     #libInstall { display: none !important; }
     #libInstall2.on { display: flex !important; }
@@ -2242,20 +2245,6 @@
   <div class="container">
         <div class="note-rose"><b>Timeline note:</b> Phase 1 is planned to finish on <b>14 March 2027</b>. If a file is ever delayed for a genuine reason, don't worry. It will be released as soon as possible. Our firm aim is to complete Phase 1 before <b>1 April 2027</b>.</div>
 
-    <div class="grp" style="margin-top:38px">Your access</div>
-    <div class="access-main">
-      <div class="ae">&#128218;</div>
-      <div>
-        <h4>Member library on this website</h4>
-        <p>All your NEET PG resources, organised subject-wise, plus the INICET bonus resources. This is the main part of your membership.</p>
-      </div>
-    </div>
-    <div class="grp">Telegram Premium &middot; optional, included</div>
-    <div class="agrid">
-      <div class="acard" style="--c:var(--gold-b)"><div class="ae">&#128279;</div><h4>NEET PG 2027 Premium Channel</h4><p>All 3 phases</p></div>
-      <div class="acard" style="--c:#5AA0F0"><div class="ae">&#127873;</div><h4>INICET Bonus Channel</h4><p>Extra channel, included</p></div>
-      <div class="acard" style="--c:#2BB5A6"><div class="ae">&#128172;</div><h4>Discussion Group</h4><p>Doubts, help, mistake reports</p></div>
-    </div>
   </div>
 </section>
 
@@ -2372,7 +2361,7 @@
       <div class="hb-sec">MY SPACE</div>
       <div class="hb-grid" id="hubSpace"></div>
       <button class="hb-tg" id="hubTgRow" type="button" style="display:none;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F8F83" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3l-9 18-2-8-8-2z"/></svg><div><b>Telegram &middot; optional</b><br>Only for discussion. All study material stays here on the website.</div><span class="o" id="hubTgBtn">Open</span></button>
-      <button class="inst-bar" id="libInstall2" type="button"><img src="/logo-96.webp" width="26" height="26" alt="" style="border-radius:50%;display:block">Install the app on your phone</button>
+      <button class="inst-bar" id="libInstall2" type="button"><img src="/logo-96.webp" width="22" height="22" alt="" style="border-radius:50%;display:block"><span>Install the app on your phone</span><b>Install</b></button>
     </div>
 
     <div id="libBrowse">
@@ -6374,7 +6363,7 @@ function paintInstall() {
   const b = document.getElementById("libInstall");
   if (b) b.style.display = show ? "" : "none";
   const b2 = document.getElementById("libInstall2");
-  if (b2) b2.classList.toggle("on", show);
+  if (b2) b2.classList.toggle("on", !isStandalone());       // the small strip at the bottom of the member home: Android shows the help steps when the phone has no install prompt
 }
 function openIosHelp() {
   const old = document.getElementById("iosHelp"); if (old) old.remove();
