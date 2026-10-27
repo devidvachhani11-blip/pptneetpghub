@@ -1172,7 +1172,7 @@
   .hb-mini.dash { border: 1.5px dashed var(--border); background: transparent; align-items: center; justify-content: center; text-align: center; color: var(--gray); font-size: 12px; gap: 6px; }
   .hb-mini:disabled { opacity: .55; }
   #libraryView .lib-switch { display: none; }
-  #libraryView.hub-home .lib-fbtn, #libraryView.hp-practice .lib-fbtn, #libraryView.hp-decks .lib-fbtn { display: none !important; }
+  #libraryView.hub-nosubj .lib-scroll > h3, #libraryView.hub-nosubj #libSubjects, #libraryView.hub-nosubj .lib-drawer-foot { display: none; }
   #libraryView:not(.hp-practice) #libPractice, #libraryView:not(.hp-practice) #hubPlay { display: none !important; }
   #libraryView:not(.hp-tests) #libTop10 { display: none !important; }
   #libraryView.hp-practice .lib-search, #libraryView.hp-practice #libChips, #libraryView.hp-practice #libActive, #libraryView.hp-practice #libList { display: none !important; }
@@ -2235,7 +2235,7 @@
     <button class="lib-hbtn lib-tbtn" id="themeBtn" aria-label="Switch between light and dark mode" title="Light / dark"><svg class="moon" width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><svg class="sun" width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
     <button class="lib-hbtn lib-fbtn" id="libFilterBtn" aria-controls="libSide">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M7 12h10M10 18h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      Filter <span class="lib-dot"></span>
+      <span id="libFbTxt">Filter</span> <span class="lib-dot"></span>
     </button>
     <button class="lib-hbtn gold" id="libInstall" style="display:none;">Install app</button>
     <button class="lib-hbtn" id="libSignOut">Sign out</button>
@@ -5853,6 +5853,9 @@ function render() {
   const lvEl = document.getElementById("libraryView");
   ["practice", "resources", "decks", "tests"].forEach(k => lvEl.classList.toggle("hp-" + k, libView === "library" && HUB.page === k));
   lvEl.classList.toggle("hub-home", hubHome);
+  const subjPage = libView === "library" && (HUB.page === "resources" || HUB.page === "tests");
+  lvEl.classList.toggle("hub-nosubj", !subjPage);
+  document.getElementById("libFbTxt").textContent = subjPage ? "Filter" : "Settings";
   document.getElementById("libHub").style.display = hubHome ? "" : "none";
   document.getElementById("hubTabs").style.display = hubHome ? "" : "none";
   document.getElementById("libBrowse").style.display = prog || nbk || com || hubHome ? "none" : "";
@@ -7328,7 +7331,7 @@ function tourSteps() {
   const first = (...sels) => { for (const q of sels) { const e = document.querySelector(q); if (tourVisible(e)) return e; } return null; };
   const list = [
     { t: "Welcome to PPTNEETPGHUB Premium", b: "Here is a quick tour of where everything is. It takes less than a minute." },
-    { el: first("#libFilterBtn", "#libSide"), t: "Pick a subject", b: "Use Filter to see one subject at a time. Core subjects come first, and INICET is at the end." },
+    { el: first("#libFilterBtn", "#libSide"), t: "Filter and settings", b: "On Resources and Tests, use Filter to see one subject at a time. Here you can also switch Light and Dark mode. Core subjects come first, and INICET is at the end." },
     { el: first("#libPractice"), t: "Practice", b: "Practise 10, 30 or 50 random questions, with instant answers or a timer. Your wrong answers go to the Mistake notebook." },
     { el: first("#hubTabs"), t: "NEET PG and INICET", b: "Use these two tabs to switch exam. Each has Daily Practice, Resources, Card Decks and Tests. Progress Report and Mistake Notebook are under My Space." },
     { el: first("#libInstall2.on", "#libInstall"), t: "Install the app", b: "Add this website to your home screen so it opens like an app." },
