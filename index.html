@@ -1207,6 +1207,52 @@
     .fc-top { padding: 6px 12px; }
   }
 
+
+  /* ---------- Free today (home page) ---------- */
+  #matchSec, #sampleSec, #freeExtraSec { display: none !important; }
+  #dailySec { display: none !important; }
+  #dailySec.pop { display: block !important; position: fixed; inset: 0; z-index: 150; overflow: auto; background: var(--paper); padding: 64px 0 30px; -webkit-overflow-scrolling: touch; }
+  #dailySec .pop-x { display: none; }
+  #dailySec.pop .pop-x { display: grid; place-items: center; position: fixed; top: 12px; right: 14px; width: 40px; height: 40px; border-radius: 50%; background: #0A1830; color: #fff; font-size: 24px; line-height: 1; z-index: 151; }
+  #freeHub { padding: 28px 0 8px; scroll-margin-top: 70px; }
+  .fh-head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 12px; }
+  .fh-head h2 { margin: 0; font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -.2px; }
+  .fh-head span { font-size: 12px; color: var(--gray); }
+  .fh-streak { display: flex; align-items: center; gap: 8px; background: var(--gold-tint); border: 1px solid #ecd9a2; border-radius: 12px; padding: 9px 12px; font-size: 12.5px; font-weight: 700; color: #8a6410; margin-bottom: 12px; }
+  .fh-streak b { font-weight: 700; white-space: nowrap; }
+  .fh-bar { flex: 1; height: 6px; border-radius: 9px; background: rgba(178,130,24,.2); overflow: hidden; }
+  .fh-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #B28218, #D4AF55); transition: width .4s; }
+  .fh-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+  .fh-t { position: relative; text-align: left; text-decoration: none; background: var(--white); border: 1px solid var(--border); border-radius: 18px; padding: 14px; min-height: 116px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; box-shadow: 0 4px 12px rgba(10,24,48,.07); font-family: inherit; color: var(--ink); cursor: pointer; }
+  .fh-t:active { transform: scale(.98); }
+  .fh-ib { width: 40px; height: 40px; border-radius: 12px; background: #0A1830; color: #E6C873; display: grid; place-items: center; }
+  .fh-tx b { display: block; font-size: 14.5px; font-weight: 800; color: var(--ink); }
+  .fh-tx em { display: block; font-style: normal; font-size: 12px; color: var(--gray); margin-top: 2px; }
+  .fh-bd { position: absolute; top: 12px; right: 12px; font-size: 10px; font-weight: 800; background: #D4AF55; color: #0A1830; border-radius: 99px; padding: 3px 9px; }
+  .fh-bd:empty { display: none; }
+  .fh-bd.d { background: #E4F2EE; color: #0b6e65; }
+  .fh-note { text-align: center; font-size: 12px; color: var(--gray); margin: 12px 0 0; }
+  .fh-try { text-align: center; text-decoration: none; display: inline-block; }
+  #homeInstallSec .inst-safe { font-size: 11.5px; }
+  .sg-ov { position: fixed; inset: 0; z-index: 150; background: rgba(10,24,48,.62); display: none; align-items: flex-end; }
+  .sg-ov.on { display: flex; }
+  .sg-sheet { position: relative; width: 100%; max-width: 520px; margin: 0 auto; background: var(--white); color: var(--ink); border-radius: 24px 24px 0 0; padding: 26px 20px calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .sg-sheet .sg-k { font-size: 11px; letter-spacing: 1.6px; font-weight: 800; color: var(--gold); }
+  .sg-sheet h2 { margin: 6px 0 4px; font-size: 26px; font-weight: 800; color: var(--ink); }
+  .sg-sheet .sg-d { margin: 0 0 8px; font-weight: 700; color: var(--ink); }
+  .sg-sheet .sg-m { margin: 0 0 18px; color: var(--gray); line-height: 1.5; }
+  .sg-sheet .btn { width: 100%; }
+  .sg-x { position: absolute; top: 12px; right: 14px; width: 36px; height: 36px; border-radius: 50%; background: var(--paper-alt); color: var(--ink); font-size: 22px; line-height: 1; }
+  .sec-head { --bar: var(--gold-b) !important; }
+  .fgrid { --c: var(--gold-b) !important; }
+  #landingView:not(.feat-all) .fmore, #landingView:not(.feat-all) #inside { display: none; }
+  .fmore-btn { text-align: center; margin: 20px 0 6px; }
+  .stk { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: none; align-items: center; gap: 12px; padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px)); background: rgba(10,24,48,.97); border-top: 1px solid #2b4378; }
+  .stk small { display: block; font-size: 11px; color: #9fb0cc; }
+  .stk b { color: #fff; font-size: 18px; }
+  .stk button { margin-left: auto; padding: 12px 22px; font-size: 14px; border-radius: 12px; }
+  @media (max-width: 760px) { .stk.on { display: flex; } html.has-stk .help-fab { bottom: calc(78px + env(safe-area-inset-bottom, 0px)); } .l-footer { padding-bottom: 84px; } }
+
   /* ---------- My progress ---------- */
   .lib-switch { display: flex; background: #fff; border: 1.5px solid var(--border); border-radius: 14px; padding: 4px; gap: 4px; margin: 0 0 16px; }
   .lib-switch button { flex: 1; padding: 11px 10px; border-radius: 10px; background: transparent; color: var(--gray); font-weight: 700; font-size: 14px; font-family: inherit; }
@@ -1885,6 +1931,7 @@
   <div class="container lh-in">
     <a class="l-brand" href="#top"><img class="lg" src="/logo-96.webp" width="36" height="36" alt="PPT Premium logo">PPTNEETPGHUB <i>&middot;</i><span>Premium</span></a>
     <nav class="l-nav">
+      <a href="#freeHub">Free today</a>
       <a href="#features">What you get</a>
       <a href="#journey">Journey</a>
       <a href="#pricing">Pricing</a>
@@ -1901,6 +1948,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
         <div class="l-menu-panel" id="lMenuPanel" hidden>
+          <a href="#freeHub">Free today</a>
           <a href="#features">What you get</a>
           <a href="#journey">Journey</a>
           <a href="#pricing">Pricing</a>
@@ -1935,6 +1983,7 @@
     </div>
     <div class="hero-cta">
       <button class="btn-gold big" data-go="join">Go Premium &middot; <span data-price>&#8377;500</span></button>
+      <a class="btn-ghost-light big fh-try" href="#freeHub">Try free today &darr;</a>
       <button class="btn-ghost-light big" id="heroSignIn">Member sign in</button>
     </div>
     <p class="hero-note">Already a member? Sign in to open your library.</p>
@@ -1947,6 +1996,49 @@
     </div>
     <div class="offer" id="offerBand"></div>
     <div class="hero-end"></div>
+  </div>
+</section>
+
+<section class="sample-sec" id="freeHub">
+  <div class="container">
+    <div class="fh-head"><h2>Free today</h2><span>New every day</span></div>
+    <div class="fh-streak" id="fhStreak" style="display:none;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z"/></svg><b id="fhSn"></b><div class="fh-bar"><i id="fhBar"></i></div><span id="fhDone"></span></div>
+    <div class="fh-grid">
+      <button class="fh-t" id="fhD10" type="button" style="display:none;"><span class="fh-bd" id="fhD10B"></span><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span><span class="fh-tx"><b>Daily 10</b><em>10 free questions</em></span></button>
+      <button class="fh-t" id="fhDx" type="button" style="display:none;"><span class="fh-bd" id="fhDxB"></span><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3v6a4 4 0 0 0 8 0V3"/><path d="M10 13v2a5 5 0 0 0 10 0v-2"/><circle cx="20" cy="11" r="2"/></svg></span><span class="fh-tx"><b>Daily Diagnosis</b><em>Guess from clues</em></span></button>
+      <button class="fh-t" id="fhMt" type="button" style="display:none;"><span class="fh-bd" id="fhMtB"></span><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4a2 2 0 1 1 4 0v2h4v4h-2a2 2 0 1 0 0 4h2v4h-4v-2a2 2 0 1 0-4 0v2H6v-4h2a2 2 0 1 0 0-4H6V6h4z"/></svg></span><span class="fh-tx"><b>Daily Match</b><em>6 pairs, be quick</em></span></button>
+      <button class="fh-t" id="fhSg" type="button"><span class="fh-bd" id="fhSgB"></span><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="fh-tx"><b>Today&#39;s Sign</b><em>One sign a day</em></span></button>
+      <a class="fh-t" id="fhPdf" href="/sample-PYT-Medicine-Part1.pdf" target="_blank" rel="noopener"><span class="fh-bd" id="fhPdfB"></span><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5"/></svg></span><span class="fh-tx"><b>Free sample PDF</b><em>First 4 pages</em></span></a>
+      <a class="fh-t" id="fhTips" href="/study-tips"><span class="fh-bd" id="fhTipsB"></span><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span><span class="fh-tx"><b>Study tips</b><em>Tips and updates</em></span></a>
+    </div>
+    <p class="fh-note">Free tools open right here. No payment needed.</p>
+  </div>
+</section>
+
+<section class="sample-sec" id="homeInstallSec" style="display:none;">
+  <div class="container">
+    <div class="sample-box">
+      <div><h2>Get the free app</h2><p>Keep the Daily Diagnosis and the free sample on your phone, one tap away.</p></div>
+      <button class="btn btn-gold" id="homeInstallBtn" type="button">Install free app</button>
+      <p class="inst-safe">This is a safe web app, not a Play Store app. It installs straight from our website, takes almost no space and needs no extra permissions. We never ask for your contacts, photos or location.</p>
+    </div>
+  </div>
+</section>
+
+<section class="sec cream" id="tests" style="padding:36px 0 8px;">
+  <div class="container">
+    <div class="pm-box">
+      <h2>What you get in Premium</h2>
+      <p>Swipe to see the roadmap, library, tests and tools.</p>
+      <div class="pm-track" id="pmTrack">
+        <div class="pm-slide"><img src="/premium-1.jpg" alt="NEET PG 2027 Premium: one payment, all 3 phases" width="864" height="1080" loading="lazy"></div>
+        <div class="pm-slide"><img src="/premium-2.jpg" alt="Three phases to exam day" width="864" height="1080" loading="lazy"></div>
+        <div class="pm-slide"><img src="/premium-3.jpg" alt="Subject-wise resources in the library" width="864" height="1080" loading="lazy"></div>
+        <div class="pm-slide"><img src="/premium-4.jpg" alt="Practice and test modes" width="864" height="1080" loading="lazy"></div>
+        <div class="pm-slide"><img src="/premium-5.jpg" alt="Smart tools inside Premium" width="864" height="1080" loading="lazy"></div>
+      </div>
+      <div class="pm-dots" id="pmDots"><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
   </div>
 </section>
 
@@ -1965,6 +2057,7 @@
 </section>
 
 <section class="sample-sec" id="dailySec" style="display:none;">
+  <button class="pop-x" id="dqPopX" type="button" aria-label="Close">&times;</button>
   <div class="container"><div class="dq-box" id="dqBox"></div></div>
 </section>
 
@@ -2014,16 +2107,6 @@
     <div class="sample-box" style="margin-top:14px;">
       <div><h2>Free sample PDF</h2><p>Read the first 4 pages of our NEET PG 2027 Medicine PYT sheet (Cardiology &amp; Hypertension). Made for phone reading.</p></div>
       <a class="btn btn-gold" href="/sample-PYT-Medicine-Part1.pdf" target="_blank" rel="noopener">Open free sample PDF</a>
-    </div>
-  </div>
-</section>
-
-<section class="sample-sec" id="homeInstallSec" style="display:none;">
-  <div class="container">
-    <div class="sample-box">
-      <div><h2>Get the free app</h2><p>Keep the Daily Diagnosis and the free sample on your phone, one tap away.</p></div>
-      <button class="btn btn-gold" id="homeInstallBtn" type="button">Install free app</button>
-      <p class="inst-safe">This is a safe web app, not a Play Store app. It installs straight from our website, takes almost no space and needs no extra permissions. We never ask for your contacts, photos or location.</p>
     </div>
   </div>
 </section>
@@ -2082,12 +2165,15 @@
       <div class="fcard"><span class="em">&#9888;&#65039;</span><div><h4>Trap Spotter</h4><p>Practise only the tricky questions (NOT / EXCEPT and look-alike options) and see which trap you fell into.</p></div></div>
     </div>
 
+    <div class="fmore">
     <div class="grp">Learn from your mistakes</div>
     <div class="fgrid two" style="--c:#C4456B">
       <div class="fcard"><span class="em">&#128211;</span><div><h4>Mistake notebook</h4><p>Every wrong answer is saved for you. It leaves your notebook after you answer it right twice. Tap why you got it wrong.</p></div></div>
       <div class="fcard"><span class="em">&#128200;</span><div><h4>Your progress</h4><p>See your weak subjects, your score trend, and your place in the anonymous Top 10 with your member ID.</p></div></div>
     </div>
 
+    </div>
+    <div class="fmore-btn"><button class="btn btn-gold" id="featToggle" type="button">Show all features</button></div>
     <p class="feat-note">One website. Works on your phone like an app. Light and dark mode.</p>
   </div>
 </section>
@@ -2148,23 +2234,6 @@
       <h3>Ready to follow a plan?</h3>
       <p>Join in a few minutes. Pay by UPI, no card needed.</p>
       <button class="btn-gold big" data-go="join">Go Premium &middot; <span data-price>&#8377;500</span></button>
-    </div>
-  </div>
-</section>
-
-<section class="sec cream" id="tests" style="padding:36px 0 8px;">
-  <div class="container">
-    <div class="pm-box">
-      <h2>What you get in Premium</h2>
-      <p>Swipe to see the roadmap, library, tests and tools.</p>
-      <div class="pm-track" id="pmTrack">
-        <div class="pm-slide"><img src="/premium-1.jpg" alt="NEET PG 2027 Premium: one payment, all 3 phases" width="864" height="1080" loading="lazy"></div>
-        <div class="pm-slide"><img src="/premium-2.jpg" alt="Three phases to exam day" width="864" height="1080" loading="lazy"></div>
-        <div class="pm-slide"><img src="/premium-3.jpg" alt="Subject-wise resources in the library" width="864" height="1080" loading="lazy"></div>
-        <div class="pm-slide"><img src="/premium-4.jpg" alt="Practice and test modes" width="864" height="1080" loading="lazy"></div>
-        <div class="pm-slide"><img src="/premium-5.jpg" alt="Smart tools inside Premium" width="864" height="1080" loading="lazy"></div>
-      </div>
-      <div class="pm-dots" id="pmDots"><i></i><i></i><i></i><i></i><i></i></div>
     </div>
   </div>
 </section>
@@ -2244,6 +2313,17 @@
   </div>
 </footer>
 
+<div class="sg-ov" id="sgOv" role="dialog" aria-modal="true" aria-label="Today's Sign">
+  <div class="sg-sheet">
+    <button class="sg-x" id="sgX" type="button" aria-label="Close">&times;</button>
+    <div class="sg-k">TODAY'S SIGN</div>
+    <h2 id="sgoName"></h2>
+    <p class="sg-d" id="sgoDis"></p>
+    <p class="sg-m" id="sgoMean"></p>
+    <button class="btn btn-gold" id="sgoMore" type="button">Get the full Signs PDF with Premium</button>
+  </div>
+</div>
+<div class="stk" id="stk"><div><small>One-time</small><b data-price>&#8377;500</b></div><button class="btn-gold" data-go="join" type="button">Go Premium</button></div>
 </div><!-- /landingView -->
 
 <!-- ================= MEMBER LIBRARY ================= -->
@@ -3095,8 +3175,8 @@ function paintTicker() {
   if (!sec || !tr) return;
   const L = [];
   TK.drops.forEach(n => L.push(['NEW', n.t, '#pricing']));
-  try { if (typeof SIGNS !== 'undefined') { const g = SIGNS[((istDay(Date.now()) % SIGNS.length) + SIGNS.length) % SIGNS.length]; L.push(["TODAY'S SIGN", g[0] + ' · ' + g[1], '#freeExtraSec']); } } catch (e) {}
-  L.push(['FREE', 'Daily 10 questions, Daily Diagnosis and a sample PDF', '#sampleSec']);
+  try { if (typeof SIGNS !== 'undefined') { const g = SIGNS[((istDay(Date.now()) % SIGNS.length) + SIGNS.length) % SIGNS.length]; L.push(["TODAY'S SIGN", g[0] + ' · ' + g[1], '#freeHub']); } } catch (e) {}
+  L.push(['FREE', 'Daily 10 questions, Daily Diagnosis and a sample PDF', '#freeHub']);
   TK.news.forEach(n => L.push([String(n.category || 'UPDATE').toUpperCase().slice(0, 14), n.title, '/news/' + encodeURIComponent(n.slug)]));
   L.push(['MORE', 'See all news and counselling updates', '/news']);
   const build = () => { const f = document.createDocumentFragment(); L.forEach(x => { const a = document.createElement('a'); a.href = x[2]; const b = document.createElement('b'); b.textContent = x[0]; a.appendChild(b); a.appendChild(document.createTextNode(x[1])); f.appendChild(a); }); return f; };
@@ -7373,6 +7453,59 @@ document.querySelectorAll(".theme-seg button").forEach(b => { b.onclick = () => 
 document.getElementById("themeBtn").onclick = () => setTheme(document.documentElement.getAttribute("data-eff") === "dark" ? "light" : "dark");
 if (window.matchMedia) { const mq = matchMedia("(prefers-color-scheme: dark)"); const fn = () => { if (themePref() === "auto") applyTheme(); }; if (mq.addEventListener) mq.addEventListener("change", fn); else if (mq.addListener) mq.addListener(fn); }
 applyTheme();
+
+
+// ---------- Free today: one block for the daily free tools (home page) ----------
+(function () {
+  const $ = id => document.getElementById(id);
+  const today = () => istDay(Date.now());
+  const rd = (k) => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } };
+  const d10Done = () => { const s = rd("pptStreak"); return !!(s && s.last === today()); };
+  const dxDone = () => { const s = rd("pptDaily:" + today()); return !!(s && s.done); };
+  const signSeen = () => { try { return localStorage.getItem("pptSignSeen") === String(today()); } catch (e) { return false; } };
+  function badge(id, done) { const b = $(id + "B"); if (!b) return; b.textContent = done ? "Done" : "New"; b.className = "fh-bd" + (done ? " d" : ""); }
+  function paint() {
+    const hub = $("freeHub"); if (!hub || hub.offsetParent === null) return;
+    let total = 1, done = signSeen() ? 1 : 0;
+    badge("fhSg", signSeen());
+    const has10 = !!(typeof SMP !== "undefined" && SMP.data), hasDx = !!(typeof DQ !== "undefined" && DQ.data && DQ.data.puzzles && DQ.data.puzzles.length), hasMt = !!(typeof MT !== "undefined" && MT.pairs && MT.pairs.length >= 6);
+    $("fhD10").style.display = has10 ? "" : "none"; $("fhDx").style.display = hasDx ? "" : "none"; $("fhMt").style.display = hasMt ? "" : "none";
+    if (has10) { total++; const d = d10Done(); if (d) done++; badge("fhD10", d); }
+    if (hasDx) { total++; const d = dxDone(); if (d) done++; badge("fhDx", d); }
+    if (hasMt) { total++; const d = !!mtSaved(); if (d) done++; badge("fhMt", d); }
+    let n = 0;
+    [rd("pptStreak"), rd("pptDailyStreak")].forEach(o => { if (o && o.n > 0 && o.last >= today() - 1) n = Math.max(n, o.n); });
+    const st = $("fhStreak");
+    if (n > 0 || done > 0) { st.style.display = "flex"; $("fhSn").textContent = n > 0 ? n + "-day streak" : "Today"; $("fhBar").style.width = Math.round(done / total * 100) + "%"; $("fhDone").textContent = done + " of " + total + " done"; }
+    else st.style.display = "none";
+  }
+  setInterval(paint, 1500); setTimeout(paint, 600);
+  $("fhD10").onclick = () => { if (SMP.data) startSample(); };
+  $("fhMt").onclick = () => mtOpen();
+  function dqClose(fromApp) { $("dailySec").classList.remove("pop"); document.body.style.overflow = ""; if (fromApp !== true) navDone("dq"); }
+  $("fhDx").onclick = () => { $("dailySec").classList.add("pop"); document.body.style.overflow = "hidden"; $("dailySec").scrollTop = 0; navPush("dq", { close: () => dqClose(true) }); };
+  $("dqPopX").onclick = () => dqClose();
+  function sgClose(fromApp) { $("sgOv").classList.remove("on"); document.body.style.overflow = ""; if (fromApp !== true) navDone("sign"); }
+  $("fhSg").onclick = () => {
+    const g = SIGNS[((today() % SIGNS.length) + SIGNS.length) % SIGNS.length];
+    $("sgoName").textContent = g[0]; $("sgoDis").textContent = g[1]; $("sgoMean").textContent = g[2];
+    $("sgOv").classList.add("on"); document.body.style.overflow = "hidden"; navPush("sign", { close: () => sgClose(true) });
+    try { localStorage.setItem("pptSignSeen", String(today())); } catch (e) {} paint();
+  };
+  $("sgX").onclick = () => sgClose();
+  $("sgOv").addEventListener("click", (e) => { if (e.target.id === "sgOv") sgClose(); });
+  $("sgoMore").onclick = () => { sgClose(); const m = $("sgMore"); if (m) m.click(); };
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { if ($("sgOv").classList.contains("on")) sgClose(); else if ($("dailySec").classList.contains("pop")) dqClose(); } });
+  // show all features
+  $("featToggle").onclick = () => { const lv = $("landingView"), on = lv.classList.toggle("feat-all"); $("featToggle").textContent = on ? "Show less" : "Show all features"; };
+  // sticky Go Premium bar: after the top, hidden near the price and the join steps
+  try {
+    const stk = $("stk"), seen = { top: true, pricing: false, join: false };
+    const upd = () => { const on = !seen.top && !seen.pricing && !seen.join; stk.classList.toggle("on", on); document.documentElement.classList.toggle("has-stk", on); };
+    const io = new IntersectionObserver((es) => { es.forEach(e => { seen[e.target.id] = e.isIntersecting; }); upd(); });
+    ["top", "pricing", "join"].forEach(id => { const el = $(id); if (el) io.observe(el); });
+  } catch (e) {}
+})();
 
 // ---------- Quick tour the first time a member opens the library ----------
 const TOUR = { i: 0, steps: [], on: false };
