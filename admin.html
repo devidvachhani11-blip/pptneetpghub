@@ -818,7 +818,7 @@
       </div>
       <div class="card">
         <h3>Daily Match: free pairs pool</h3>
-        <p class="hint" style="margin-top:-6px">One pair per line: <b>Type | Left | Right</b>. Type is <b>D</b> (Drug | Mechanism), <b>S</b> (Disease | Feature) or <b>F</b> (Finding | Associated condition). The home page shows 8 new pairs every day, in order, and starts again from the first when the pool ends. Keep each side short (left up to 34 letters, right up to 52). Use only pairs with one clear right answer. Everything saved here is public.</p>
+        <p class="hint" style="margin-top:-6px">One pair per line: <b>Type | Left | Right</b>. Type is <b>D</b> (Drug | Mechanism), <b>S</b> (Disease | Feature) or <b>F</b> (Finding | Associated condition). The home page shows 6 new pairs every day, in order, and starts again from the first when the pool ends. Keep each side short (left up to 34 letters, right up to 52). Use only pairs with one clear right answer. Everything saved here is public.</p>
         <textarea id="pm_text" class="t-area" rows="14" spellcheck="false" placeholder="D | Atenolol | β1-selective blocker&#10;S | Wilson disease | Kayser-Fleischer ring&#10;F | Koplik spots | Measles"></textarea>
         <div class="t-actions">
           <button class="btn" id="pm_save">Save pairs</button>
@@ -4873,18 +4873,18 @@ async function loadPairsAdmin() {
     const { db, doc, getDoc } = window.__fb;
     const s = await getDoc(doc(db, 'sample', 'pairs')), d = s.exists() ? s.data() : null;
     document.getElementById('pm_text').value = d && Array.isArray(d.ps) ? pairsToText(d.ps) : '';
-    st.textContent = d && Array.isArray(d.ps) && d.ps.length ? 'Saved: ' + d.ps.length + ' pairs, enough for ' + Math.floor(d.ps.length / 8) + ' days before it repeats.' : 'No pairs saved yet. The Daily Match card is hidden on the home page.';
+    st.textContent = d && Array.isArray(d.ps) && d.ps.length ? 'Saved: ' + d.ps.length + ' pairs, enough for ' + Math.floor(d.ps.length / 6) + ' days before it repeats.' : 'No pairs saved yet. The Daily Match card is hidden on the home page.';
   } catch (e) { st.textContent = 'Could not load: ' + e.message; }
 }
 async function savePairs() {
   const r = parsePairs(document.getElementById('pm_text').value), st = document.getElementById('pm_status');
   if (r.errs.length) { st.textContent = r.errs.slice(0, 6).join(' | ') + (r.errs.length > 6 ? ' ... and ' + (r.errs.length - 6) + ' more' : ''); showToast('Fix the lines first', true); return; }
-  if (r.ps.length < 8 || r.ps.length > 400) { st.textContent = 'Add between 8 and 400 pairs. Now: ' + r.ps.length + '.'; showToast('Need 8 to 400 pairs', true); return; }
+  if (r.ps.length < 6 || r.ps.length > 400) { st.textContent = 'Add between 6 and 400 pairs. Now: ' + r.ps.length + '.'; showToast('Need 6 to 400 pairs', true); return; }
   const btn = document.getElementById('pm_save'); btn.disabled = true;
   try {
     const { db, doc, setDoc, serverTimestamp } = window.__fb;
     await setDoc(doc(db, 'sample', 'pairs'), { ps: r.ps, count: r.ps.length, updatedAt: serverTimestamp() });
-    st.textContent = 'Saved: ' + r.ps.length + ' pairs, enough for ' + Math.floor(r.ps.length / 8) + ' days before it repeats. Live on the home page.';
+    st.textContent = 'Saved: ' + r.ps.length + ' pairs, enough for ' + Math.floor(r.ps.length / 6) + ' days before it repeats. Live on the home page.';
     showToast('\u2714 Pairs saved');
   } catch (e) { showToast('Failed: ' + e.message, true); } finally { btn.disabled = false; }
 }

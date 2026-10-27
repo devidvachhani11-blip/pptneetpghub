@@ -1528,7 +1528,7 @@
   .mt-it { text-align:left; border:1.5px solid var(--border); background:#fff; color:var(--ink); border-radius:12px; padding:10px 10px; font-family:inherit; font-size:13.5px; line-height:1.3; font-weight:700; cursor:pointer; min-height:54px; }
   .mt-it small { display:block; font-size:10px; letter-spacing:.1em; font-weight:800; color:#0F8F83; margin-bottom:2px; text-transform:uppercase; }
   .mt-it.sel { border-color:#C9A24B; background:#FFF6DC; box-shadow:0 0 0 2px rgba(201,162,75,.4); }
-  .mt-it.ok { border-color:#16A34A; background:#E6F7EC; color:#14532D; opacity:.75; cursor:default; }
+  .mt-it.ok { border-color:#16A34A; background:#E6F7EC; color:#14532D; cursor:default; transition:opacity .3s, transform .3s; opacity:.4; transform:scale(.96); }
   .mt-it.bad { border-color:#DC2626; background:#FDECEA; animation:mtShake .35s; }
   @keyframes mtShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
   .mt-res { display:none; padding:22px 18px; text-align:center; overflow-y:auto; }
@@ -1895,7 +1895,7 @@
 <section class="sample-sec" id="matchSec" style="display:none;">
   <div class="container">
     <div class="sample-box">
-      <div><h2>Daily Match</h2><p>Match <b>8 pairs</b> as fast as you can: drugs, diseases and signs. One free round every day.</p><p class="st-note" id="mtNote"></p></div>
+      <div><h2>Daily Match</h2><p>Match <b>6 pairs</b> as fast as you can: drugs, diseases and signs. One free round every day.</p><p class="st-note" id="mtNote"></p></div>
       <button class="btn btn-gold" id="mtStart" type="button">Play today's round</button>
     </div>
   </div>
@@ -6949,7 +6949,7 @@ async function loadMatch() {
     const s = await getDoc(doc(db, "sample", "pairs")), d = s.exists() ? s.data() : null;
     MT.pairs = d && Array.isArray(d.ps) ? d.ps.filter(p => p && typeof p.l === "string" && typeof p.r === "string" && p.l && p.r && /^[DSF]$/.test(p.t)) : [];
   } catch (e) { MT.pairs = []; if (!MT.retried) { MT.retried = true; setTimeout(loadMatch, 3000); } }
-  if (MT.pairs.length < 8) { sec.style.display = "none"; return; }
+  if (MT.pairs.length < 6) { sec.style.display = "none"; return; }
   sec.style.display = ""; mtPaintHome();
 }
 function mtPaintHome() {
@@ -6959,8 +6959,8 @@ function mtPaintHome() {
   else { n.style.display = "none"; b.textContent = "Play today's round"; }
 }
 function mtBuild() {
-  const day = istDay(Date.now()), n = MT.pairs.length, st = (day * 8) % n;
-  MT.round = []; for (let i = 0; i < 8; i++) MT.round.push(MT.pairs[(st + i) % n]);
+  const day = istDay(Date.now()), n = MT.pairs.length, st = (day * 6) % n;
+  MT.round = []; for (let i = 0; i < 6; i++) MT.round.push(MT.pairs[(st + i) % n]);
   const rnd = mtSeed(day * 7919 + 13), idx = MT.round.map((_, i) => i);
   for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); const t = idx[i]; idx[i] = idx[j]; idx[j] = t; }
   MT.rights = idx.map(i => MT.round[i].r);
@@ -6978,7 +6978,7 @@ function mtBuild() {
 }
 function mtTick() { const t = (Date.now() - MT.t0) / 1000 + MT.wrong * 3; document.getElementById("mtTime").textContent = t.toFixed(1) + "s"; }
 function mtOpen() {
-  if (MT.pairs.length < 8) return;
+  if (MT.pairs.length < 6) return;
   const ov = document.getElementById("mtOv"), sv = mtSaved();
   ov.classList.add("on"); document.body.style.overflow = "hidden"; navPush("match", { close: mtClose });
   if (sv) { mtShowRes(sv.s, sv.w); return; }
@@ -7002,7 +7002,8 @@ function mtPickR(b) {
   const lb = document.querySelector('#mtL .mt-it[data-i="' + MT.sel + '"]');
   if (MT.round[MT.sel].r === b.dataset.r) {
     lb.classList.remove("sel"); lb.classList.add("ok"); b.classList.add("ok"); MT.sel = -1; MT.ok++;
-    if (MT.ok >= 8) mtFinish();
+    setTimeout(() => { lb.remove(); b.remove(); }, 320);
+    if (MT.ok >= 6) mtFinish();
   } else {
     MT.wrong++; b.classList.add("bad"); lb.classList.add("bad"); setTimeout(() => { b.classList.remove("bad"); lb.classList.remove("bad"); }, 380); mtTick();
   }
@@ -7011,16 +7012,16 @@ function mtFinish() {
   clearInterval(MT.iv); MT.run = false;
   const secs = Math.round(((Date.now() - MT.t0) / 1000 + MT.wrong * 3) * 10) / 10;
   try { localStorage.setItem("pptMatch", JSON.stringify({ d: istDay(Date.now()), s: secs, w: MT.wrong })); } catch (e) {}
-  mtShowRes(secs, MT.wrong); mtPaintHome();
+  setTimeout(() => { mtShowRes(secs, MT.wrong); mtPaintHome(); }, 380);
 }
 function mtShowRes(secs, wrong) {
   document.getElementById("mtGrid").style.display = "none"; document.getElementById("mtHint").style.display = "none";
   document.getElementById("mtTime").textContent = secs + "s";
   document.getElementById("mtResS").textContent = secs + " seconds";
-  document.getElementById("mtResN").textContent = wrong ? "8 of 8 matched, with " + wrong + " wrong " + (wrong === 1 ? "tap" : "taps") + " (+" + wrong * 3 + "s). Try for zero wrong taps tomorrow." : "8 of 8 matched with no wrong taps. Perfect round.";
+  document.getElementById("mtResN").textContent = wrong ? "6 of 6 matched, with " + wrong + " wrong " + (wrong === 1 ? "tap" : "taps") + " (+" + wrong * 3 + "s). Try for zero wrong taps tomorrow." : "6 of 6 matched with no wrong taps. Perfect round.";
   document.getElementById("mtRes").style.display = "block";
   document.getElementById("mtShare").onclick = () => {
-    const txt = "I matched 8 NEET PG pairs in " + secs + " seconds on today's Daily Match. Can you beat me? " + location.origin + "/";
+    const txt = "I matched 6 NEET PG pairs in " + secs + " seconds on today's Daily Match. Can you beat me? " + location.origin + "/";
     if (navigator.share) navigator.share({ text: txt }).catch(() => {}); else window.open("https://wa.me/?text=" + encodeURIComponent(txt), "_blank", "noopener");
   };
   document.getElementById("mtJoin").onclick = () => { mtClose(); goToJoin(); };
