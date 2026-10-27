@@ -1131,6 +1131,59 @@
   .lib-pill.best { background: #E9F6F3; color: #0B6B61; }
   @media (max-width: 380px) { .tr-stats { grid-template-columns: repeat(2, 1fr); } }
 
+
+  /* ---------- Member hub (home of the library) ---------- */
+  .lib-title { display: flex; align-items: flex-start; gap: 12px; }
+  .lib-title .lt-txt { min-width: 0; flex: 1; }
+  .hub-back { flex: none; width: 40px; height: 40px; margin-top: 2px; border-radius: 12px; background: var(--navy); color: #fff; display: grid; place-items: center; font-family: inherit; }
+  :where(html[data-eff="dark"]) .hub-back { background: #1d2c47; }
+  .hub-tabs { display: flex; gap: 4px; background: #E3E9EE; border-radius: 14px; padding: 4px; margin: 0 0 14px; }
+  .hub-tabs button { flex: 1; padding: 12px 6px; border-radius: 11px; background: transparent; color: #5b6b80; font-weight: 800; font-size: 14.5px; font-family: inherit; }
+  .hub-tabs button.on { background: #0A1830; color: #E6C873; }
+  .hub-tabs button.on.ini { background: #0a4b49; color: #9aeedd; }
+  .hub-tabs u { text-decoration: none; font-size: 9.5px; font-weight: 800; background: #D4AF55; color: #0A1830; border-radius: 99px; padding: 2px 6px; margin-left: 5px; vertical-align: 2px; }
+  :where(html[data-eff="dark"]) .hub-tabs { background: #141D2E; }
+  :where(html[data-eff="dark"]) .hub-tabs button { color: #9AA7BB; }
+  .hb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; margin-bottom: 14px; }
+  .hb-tile { position: relative; text-align: left; border-radius: 18px; padding: 15px 14px 14px; min-height: 118px; color: #fff; background: linear-gradient(150deg, #12284f, #0A1830); box-shadow: 0 6px 14px rgba(10,24,48,.18); display: flex; flex-direction: column; justify-content: space-between; font-family: inherit; }
+  .hb-tile.t2 { background: linear-gradient(150deg, #12514f, #0a3534); }
+  .hb-tile .ib { width: 42px; height: 42px; border-radius: 13px; background: rgba(212,175,85,.16); border: 1px solid rgba(212,175,85,.4); color: #E6C873; display: grid; place-items: center; }
+  .hb-tile.t2 .ib { background: rgba(120,230,210,.13); border-color: rgba(120,230,210,.4); color: #8ae8d6; }
+  .hb-tile h3 { font-size: 15px; font-weight: 700; margin: 12px 0 0; color: #fff; }
+  .hb-tile p { font-size: 12px; color: #b9c6dc; margin: 2px 0 0; line-height: 1.35; }
+  .hb-tile.t2 p { color: #b6dad4; }
+  .hb-tile .bd { position: absolute; top: 12px; right: 12px; font-size: 10.5px; font-weight: 800; background: #D4AF55; color: #0A1830; border-radius: 99px; padding: 3px 9px; }
+  .hb-tile .bd.g { background: rgba(255,255,255,.14); color: #dfe6f2; font-weight: 700; }
+  .hb-tile:active { transform: scale(.98); }
+  .hb-sec { display: flex; align-items: center; gap: 8px; margin: 4px 0 10px; font-size: 12px; font-weight: 800; letter-spacing: 1.2px; color: var(--navy); }
+  .hb-sec:after { content: ""; flex: 1; height: 1px; background: var(--border); }
+  :where(html[data-eff="dark"]) .hb-sec { color: var(--ink); }
+  .hb-tg { width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; font-size: 12.5px; line-height: 1.4; color: #44556d; background: #E4F2EE; border-radius: 12px; padding: 11px 13px; margin: 0 0 14px; font-family: inherit; }
+  .hb-tg b { color: #0A1830; }
+  .hb-tg span.o { margin-left: auto; font-weight: 800; color: #0F8F83; flex: none; }
+  :where(html[data-eff="dark"]) .hb-tg { background: #11322F; color: #b6dad4; }
+  :where(html[data-eff="dark"]) .hb-tg b { color: #fff; }
+  .hb-mini { text-align: left; background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 13px; min-height: 104px; display: flex; flex-direction: column; justify-content: space-between; font-family: inherit; color: var(--ink); }
+  .hb-mini .ib { width: 36px; height: 36px; border-radius: 11px; background: var(--gold-tint); color: var(--gold); display: grid; place-items: center; }
+  .hb-mini h5 { font-size: 14px; font-weight: 700; margin: 10px 0 0; color: var(--navy); }
+  .hb-mini p { font-size: 11.5px; color: var(--gray); margin: 2px 0 0; }
+  :where(html[data-eff="dark"]) .hb-mini { background: var(--white); }
+  :where(html[data-eff="dark"]) .hb-mini h5 { color: var(--ink); }
+  .hb-mini.dash { border: 1.5px dashed var(--border); background: transparent; align-items: center; justify-content: center; text-align: center; color: var(--gray); font-size: 12px; gap: 6px; }
+  .hb-mini:disabled { opacity: .55; }
+  #libraryView .lib-switch { display: none; }
+  #libraryView.hub-home .lib-fbtn, #libraryView.hp-practice .lib-fbtn, #libraryView.hp-decks .lib-fbtn { display: none !important; }
+  #libraryView:not(.hp-practice) #libPractice, #libraryView:not(.hp-practice) #hubPlay { display: none !important; }
+  #libraryView:not(.hp-tests) #libTop10 { display: none !important; }
+  #libraryView.hp-practice .lib-search, #libraryView.hp-practice #libChips, #libraryView.hp-practice #libActive, #libraryView.hp-practice #libList { display: none !important; }
+  #libraryView.hp-decks #libChips, #libraryView.hp-decks #libActive { display: none !important; }
+  #libraryView.hp-decks #libList { margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 11px; align-items: start; }
+  #libraryView.hp-decks #libList .sr-tile { grid-template-columns: 1fr; margin-bottom: 0; border-left-width: 1px; }
+  #libraryView.hp-decks #libList .sr-ico { width: 38px; height: 38px; border-radius: 11px; }
+  #libraryView.hp-decks #libList .sr-btns { flex-direction: column; }
+  #libraryView.hp-decks #libList .lib-empty { grid-column: 1 / -1; }
+  @media (min-width: 700px) { .hb-grid { grid-template-columns: repeat(4, 1fr); } }
+
   /* ---------- My progress ---------- */
   .lib-switch { display: flex; background: #fff; border: 1.5px solid var(--border); border-radius: 14px; padding: 4px; gap: 4px; margin: 0 0 16px; }
   .lib-switch button { flex: 1; padding: 11px 10px; border-radius: 10px; background: transparent; color: var(--gray); font-weight: 700; font-size: 14px; font-family: inherit; }
@@ -2188,8 +2241,13 @@
 <div class="lib-wrap">
   <main class="lib-main">
     <div class="lib-title">
-      <h1 id="libTitle">All resources</h1>
-      <p id="libSub">Newest first</p>
+      <button class="hub-back" id="hubBack" type="button" aria-label="Back" style="display:none;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="lt-txt"><h1 id="libTitle">All resources</h1><p id="libSub">Newest first</p></div>
+    </div>
+
+    <div class="hub-tabs" id="hubTabs" role="tablist" style="display:none;">
+      <button type="button" role="tab" id="hubTN" class="on">NEET PG</button>
+      <button type="button" role="tab" id="hubTI">INICET<u id="hubTIb" style="display:none;">Soon</u></button>
     </div>
 
     <div class="lib-switch" role="tablist">
@@ -2202,12 +2260,23 @@
     <div class="exp-bar" id="libExpiry" style="display:none;"></div>
     <div class="tg-card" id="libTg" style="display:none;"></div>
 
+    <div id="libHub" style="display:none;">
+      <div class="hb-grid" id="hubTiles"></div>
+      <div id="hubStrip">
+        <div class="rs-card" id="libResume" style="display:none;"></div>
+        <div class="rs-card" id="hubNew" style="display:none;"></div>
+      </div>
+      <div class="hb-sec">MY SPACE</div>
+      <div class="hb-grid" id="hubSpace"></div>
+      <button class="hb-tg" id="hubTgRow" type="button" style="display:none;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F8F83" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3l-9 18-2-8-8-2z"/></svg><div><b>Telegram &middot; optional</b><br>Only for discussion. All study material stays here on the website.</div><span class="o" id="hubTgBtn">Open</span></button>
+      <button class="inst-bar" id="libInstall2" type="button"><img src="/logo-96.webp" width="26" height="26" alt="" style="border-radius:50%;display:block">Install the app on your phone</button>
+    </div>
+
     <div id="libBrowse">
-    <button class="inst-bar" id="libInstall2" type="button"><img src="/logo-96.webp" width="26" height="26" alt="" style="border-radius:50%;display:block">Install the app on your phone</button>
     <div class="sk-card" id="libStreak" style="display:none;"></div>
     <div class="lb-top" id="libTop10" style="display:none;"></div>
-    <div class="rs-card" id="libResume" style="display:none;"></div>
     <div class="pr-card" id="libPractice" style="display:none;"></div>
+    <div id="hubPlay"></div>
     <div class="lib-search">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
       <input class="lib-q" id="libSearch" type="search" placeholder="Search by title or subject" autocomplete="off">
@@ -2347,6 +2416,7 @@ const SUBJECTS = SUBJECT_GROUPS[0].list.concat(SUBJECT_GROUPS[1].list);
 const OTHER_SUBJECTS = SUBJECT_GROUPS[2].list.concat(SUBJECT_GROUPS[3].list);
 
 const CATEGORIES = ["PYTs", "PYQs", "High Yield", "Tests", "Image Tests", "Real Test", "Series", "Card Test"];
+const TEST_TABS = ["Tests", "Image Tests", "Real Test"];
 const CARD_TABS = ["Series", "Card Test"];      // shown as tiles: one tile per series, not one row per picture
 function isCardTab(t) { return CARD_TABS.indexOf(t) > -1; }
 
@@ -3529,7 +3599,9 @@ async function loadTgInfo() {
 function paintTg() {
   const box = document.getElementById("libTg");
   if (!box) return;
-  if (!TG.configured || libView !== "library") { box.style.display = "none"; return; }
+  const hrow = document.getElementById("hubTgRow"), tgHome = libView === "library" && !HUB.page;
+  if (hrow) { hrow.style.display = TG.configured && tgHome ? "" : "none"; document.getElementById("hubTgBtn").textContent = HUB.tgOpen ? "Close" : "Open"; }
+  if (!TG.configured || !tgHome || !HUB.tgOpen) { box.style.display = "none"; return; }
   box.innerHTML = "";
   box.appendChild(libEl("h4", null, "Telegram Premium (optional)"));
   if (TG.links) {
@@ -4738,7 +4810,7 @@ function renderProgress() {
   if (!MY_ATTEMPTS.length) {
     const e = libEl("div", "lib-empty", "No tests taken yet. Take a test and your scores and progress will appear here.");
     const b = libEl("button", null, "Browse tests");
-    b.onclick = () => { lib.tab = "Tests"; lib.subject = "All"; navDone("exam"); lib.exam = "NEET PG"; setLibView("library"); };
+    b.onclick = () => { lib.exam = "NEET PG"; hubGo("tests"); };
     e.appendChild(document.createElement("br"));
     e.appendChild(b);
     box.appendChild(e);
@@ -4833,7 +4905,7 @@ function renderProgress() {
       f.style.background = x.p < 50 ? "#D98B54" : x.p < 70 ? "#D4AF55" : "#0F8F83";
       tk.appendChild(f); row.appendChild(tk);
       const acts = libEl("div", "acts");
-      const rb = libEl("button", null, "Resources"); rb.onclick = () => { lib.subject = canonSubject(x.k); lib.tab = "All"; navDone("exam"); lib.exam = "NEET PG"; setLibView("library"); };
+      const rb = libEl("button", null, "Resources"); rb.onclick = () => { lib.exam = "NEET PG"; hubGo("resources"); lib.subject = canonSubject(x.k); render(); };
       acts.appendChild(rb);
       row.appendChild(acts);
       sc.appendChild(row);
@@ -5251,7 +5323,7 @@ function nbPractice(list) {
 let ALL = [];
 let libLoaded = false;
 let libError = false;
-const lib = { tab: "All", subject: "All", q: "", exam: "NEET PG" };
+const lib = { tab: "All", subject: "All", q: "", exam: "NEET PG", scope: "" };
 const KNOWN_SUBJECTS = SUBJECTS.concat(OTHER_SUBJECTS);
 
 function subjLabel(s) { return s === "Mixed" ? "Mix subjects" : s; }      // what students see; the stored value stays "Mixed"
@@ -5364,6 +5436,7 @@ const INICET_PREFIX = "INICET \u00B7 ";
 function subjectKey(it) { return isInicet(it) ? INICET_PREFIX + it.subject : it.subject; }
 function libMatch(it, f) {
   if (isInicet(it) !== (f.exam === "INICET")) return false;      // NEET PG and INICET never mix
+  if (f.scope && !isCardTab(it.tab)) { const isT = TEST_TABS.indexOf(it.tab) > -1; if (f.scope === "res" ? isT : !isT) return false; }   // Resources page: no tests. Tests page: only tests
   if (isCardTab(it.tab)) {                                     // series and card test pictures only show inside their own tab
     if (f.tab !== it.tab) return false;
     return !f.q || (it.series + " " + it.title).toLowerCase().indexOf(f.q) > -1;
@@ -5377,27 +5450,19 @@ function libMatch(it, f) {
 
 function renderExam() {
   const box = document.getElementById("libExam");
-  const nIni = ALL.filter(it => !isCardTab(it.tab) && isInicet(it)).length;
-  if (!nIni && lib.exam === "NEET PG") { box.style.display = "none"; box.innerHTML = ""; return; }   // no INICET files: no switch
-  box.style.display = ""; box.innerHTML = "";
-  [["NEET PG", "neet"], ["INICET", "ini"]].forEach(e => {
-    const n = ALL.filter(it => !isCardTab(it.tab) && isInicet(it) === (e[0] === "INICET")).length;
-    const b = libEl("button", (lib.exam === e[0] ? "on " : "") + e[1]); b.type = "button";
-    b.appendChild(document.createTextNode(e[0])); b.appendChild(libEl("b", null, String(n)));
-    b.onclick = () => { if (lib.exam === e[0]) return; lib.exam = e[0]; lib.tab = "All"; lib.subject = "All"; if (e[0] === "INICET") navPush("exam", { close: () => { lib.exam = "NEET PG"; lib.tab = "All"; lib.subject = "All"; render(); } }); else navDone("exam"); render(); };
-    box.appendChild(b);
-  });
+  if (box) { box.style.display = "none"; box.innerHTML = ""; }      // NEET PG | INICET is now the tab bar at the top of the home
 }
 
 function renderChips() {
   const box = document.getElementById("libChips");
   box.innerHTML = "";
-  const base = { tab: "All", subject: lib.subject, q: lib.q, exam: lib.exam };
-  const tabs = ["All", "New"].concat(CATEGORIES);
+  const base = { tab: "All", subject: lib.subject, q: lib.q, exam: lib.exam, scope: lib.scope };
+  const tabs = HUB.page === "tests" ? ["All", "Tests", "Image Tests", "Real Test"] : HUB.page === "resources" ? ["All", "New", "PYTs", "PYQs", "High Yield"] : HUB.page === "decks" ? [] : ["All", "New"].concat(CATEGORIES);
+  const TLAB = HUB.page === "tests" ? { "All": "All tests", "Tests": "Mock tests", "Image Tests": "Image tests", "Real Test": "Real Test (GT)" } : {};
   tabs.forEach(t => {
-    const n = isCardTab(t) ? seriesGroups(t, lib.q).length : (t === "All" && lib.subject === "All" ? seriesGroups("Card Test", lib.q).length + seriesGroups("Series", lib.q).length : 0) + ALL.filter(it => libMatch(it, Object.assign({}, base, { tab: t }))).length;
+    const n = isCardTab(t) ? seriesGroups(t, lib.q).length : (t === "All" && lib.subject === "All" && !lib.scope ? seriesGroups("Card Test", lib.q).length + seriesGroups("Series", lib.q).length : 0) + ALL.filter(it => libMatch(it, Object.assign({}, base, { tab: t }))).length;
     const b = libEl("button", "lib-chip" + (lib.tab === t ? " on" : ""));
-    b.appendChild(document.createTextNode(t === "New" ? "New this week" : t));
+    b.appendChild(document.createTextNode(TLAB[t] || (t === "New" ? "New this week" : t)));
     b.appendChild(libEl("b", null, String(n)));
     b.onclick = () => { lib.tab = t; render(); };
     box.appendChild(b);
@@ -5407,7 +5472,7 @@ function renderChips() {
 function renderSubjects() {
   const box = document.getElementById("libSubjects");
   box.innerHTML = "";
-  const base = { tab: lib.tab, subject: "All", q: lib.q, exam: lib.exam };
+  const base = { tab: lib.tab, subject: "All", q: lib.q, exam: lib.exam, scope: lib.scope };
   const count = (s) => ALL.filter(it => libMatch(it, Object.assign({}, base, { subject: s }))).length;
   const extra = [], iniSubs = [];
   ALL.forEach(it => {
@@ -5515,9 +5580,14 @@ function renderList() {
     return;
   }
 
+  if (HUB.page === "decks") {
+    if (!seriesGroups("Card Test", lib.q).length && !seriesGroups("Series", lib.q).length) box.appendChild(libEl("div", "lib-empty", lib.q ? "Nothing matches your search." : "No card decks yet. New decks appear here as soon as they are added."));
+    else { renderTiles(box, "Card Test"); renderTiles(box, "Series"); }
+    return;
+  }
   if (isCardTab(lib.tab)) return renderTiles(box);
   const items = ALL.filter(it => libMatch(it, lib));
-  const showDecks = lib.tab === "All" && lib.subject === "All";
+  const showDecks = lib.tab === "All" && lib.subject === "All" && !lib.scope;
   const nDecks = showDecks ? seriesGroups("Card Test", lib.q).length + seriesGroups("Series", lib.q).length : 0;
   if (showDecks && nDecks) {
     const dg = libEl("div", "lib-group", "Card decks"); box.appendChild(dg);
@@ -5623,7 +5693,7 @@ function renderHeading() {
     if (lib.tab !== "All") parts.push(lib.tab === "New" ? "New this week" : lib.tab);
   }
   document.getElementById("libTitle").textContent = parts.join(" · ");
-  const n = cardTab ? seriesGroups(lib.tab, lib.q).length : ALL.filter(it => libMatch(it, lib)).length + (lib.tab === "All" && lib.subject === "All" ? seriesGroups("Card Test", lib.q).length + seriesGroups("Series", lib.q).length : 0);
+  const n = cardTab ? seriesGroups(lib.tab, lib.q).length : ALL.filter(it => libMatch(it, lib)).length + (lib.tab === "All" && lib.subject === "All" && !lib.scope ? seriesGroups("Card Test", lib.q).length + seriesGroups("Series", lib.q).length : 0);
   document.getElementById("libSub").textContent = libLoaded
     ? (cardTab ? n + (n === 1 ? " set" : " sets") : n + (n === 1 ? " file" : " files")) + " · newest first"
     : "Newest first";
@@ -5642,11 +5712,131 @@ function renderHeading() {
   document.getElementById("libFilterBtn").style.display = cardTab ? "none" : "";
 }
 
+// ---------- Member hub: home with boxes, one exam at a time ----------
+const HUB = { page: null, tgOpen: false };
+const HB_ICON = {
+  target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>',
+  book: '<path d="M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h10"/>',
+  cards: '<rect x="3" y="7" width="14" height="12" rx="2"/><path d="M7 7V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>',
+  clip: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9z"/><path d="m9 14 2 2 4-4"/>',
+  chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  note: '<path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/><path d="M9 8h6M9 11h4"/>',
+  bolt: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
+  puzzle: '<path d="M10 4a2 2 0 1 1 4 0v2h4v4h-2a2 2 0 1 0 0 4h2v4h-4v-2a2 2 0 1 0-4 0v2H6v-4h2a2 2 0 1 0 0-4H6V6h4z"/>',
+  duel: '<path d="M5 19 19 5M14 5h5v5M5 5l14 14"/>',
+  wall: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>'
+};
+function hbIcon(n, sz) { return '<svg width="' + (sz || 22) + '" height="' + (sz || 22) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + HB_ICON[n] + '</svg>'; }
+function hubExamGet() { try { return localStorage.getItem("pptHubExam") === "INICET" ? "INICET" : "NEET PG"; } catch (e) { return "NEET PG"; } }
+lib.exam = hubExamGet();
+function hubReset() { lib.tab = "All"; lib.subject = "All"; lib.q = ""; const si = document.getElementById("libSearch"); if (si) si.value = ""; }
+function hubSetExam(e) {
+  if (lib.exam === e) return;
+  lib.exam = e; hubReset();
+  try { localStorage.setItem("pptHubExam", e); } catch (x) {}
+  render();
+}
+function hubGo(p) {
+  HUB.page = p || null; lib.scope = p === "resources" ? "res" : p === "tests" ? "tests" : ""; hubReset();
+  setLibView("library");
+  if (p) navPush("hub", { close: () => hubGo(null) }); else navDone("hub");
+}
+function hubOpenItem(it) {
+  if (it.type === "test") return openTest(it);
+  if (it.type === "download") { const k = fileKind(it); if (k === "image") return openDeck(deckFor(it), it.id, it.series || it.subject); if (k !== "pdf") return doDownload(it); }
+  return openViewer(it);
+}
+function hubCounts() {
+  const ini = lib.exam === "INICET";
+  const mine = ALL.filter(it => !isCardTab(it.tab) && isInicet(it) === ini);
+  const res = mine.filter(it => TEST_TABS.indexOf(it.tab) === -1), tests = mine.filter(it => TEST_TABS.indexOf(it.tab) > -1);
+  const decks = seriesGroups("Series", "").length + seriesGroups("Card Test", "").length;
+  return { res: res.length, resNew: res.filter(it => it.t && daysOld(it.t) <= 7).length, tests: tests.length, decks: decks };
+}
+function hbTile(box, o) {
+  const b = document.createElement("button"); b.type = "button"; b.className = "hb-tile" + (lib.exam === "INICET" && o.exam ? " t2" : "");
+  b.innerHTML = (o.badge ? '<span class="bd' + (o.soft ? " g" : "") + '">' + esc(o.badge) + "</span>" : "") + '<div class="ib">' + hbIcon(o.icon) + "</div><div><h3>" + esc(o.title) + "</h3><p>" + esc(o.sub) + "</p></div>";
+  b.onclick = o.go; box.appendChild(b);
+}
+function renderHub() {
+  const ini = lib.exam === "INICET";
+  const tn = document.getElementById("hubTN"), ti = document.getElementById("hubTI");
+  tn.className = ini ? "" : "on"; ti.className = ini ? "on ini" : "";
+  tn.onclick = () => hubSetExam("NEET PG"); ti.onclick = () => hubSetExam("INICET");
+  const hasIni = ALL.some(it => isInicet(it)) || !!(PR.index && PR.index.subjects && PR.index.subjects.some(x => /inicet/i.test(x.subject || "")));
+  document.getElementById("hubTIb").style.display = libLoaded && !hasIni ? "" : "none";
+  const box = document.getElementById("hubTiles"); box.innerHTML = "";
+  const L = libLoaded && !libError, c = L ? hubCounts() : { res: 0, resNew: 0, tests: 0, decks: 0 };
+  let pb = "", ps = "Pool, games, duels";
+  if (PR.index && PR.index.daily > 0) { try { pb = "Today " + (PR.index.daily - prLeft()) + "/" + PR.index.daily; } catch (e) {} }
+  if (!(PR.index && PR.index.total)) { pb = ini && L ? "Soon" : ""; }
+  hbTile(box, { icon: "target", title: "Daily Practice", sub: ps, badge: pb, exam: 1, go: () => hubGo("practice") });
+  hbTile(box, { icon: "book", title: "Resources", sub: !L ? "Opening…" : c.res ? c.res + (c.res === 1 ? " file" : " files") : "Coming soon", badge: L && c.resNew ? c.resNew + " new" : (L && !c.res ? "Soon" : ""), exam: 1, go: () => hubGo("resources") });
+  hbTile(box, { icon: "cards", title: "Card Decks", sub: !L ? "Opening…" : c.decks ? c.decks + (c.decks === 1 ? " deck" : " decks") : "Coming soon", badge: L && !c.decks ? "Soon" : "", exam: 1, go: () => hubGo("decks") });
+  hbTile(box, { icon: "clip", title: "Tests", sub: !L ? "Opening…" : c.tests ? "Mock · GT · Image" : "Coming soon", badge: L && c.tests ? c.tests + (c.tests === 1 ? " test" : " tests") : (L ? "Soon" : ""), soft: !!c.tests, exam: 1, go: () => hubGo("tests") });
+  const sp = document.getElementById("hubSpace"); sp.innerHTML = "";
+  const nbn = NB.loaded && NB.items.length ? String(NB.items.length) : "";
+  const save = lib.exam; lib.exam = "NEET PG";           // My Space is shared by both exams: always the navy style
+  hbTile(sp, { icon: "chart", title: "Progress Report", sub: "Scores · weak areas", go: () => setLibView("progress") });
+  hbTile(sp, { icon: "note", title: "Mistake Notebook", sub: "Wrong answers saved", badge: nbn, go: () => setLibView("notebook") });
+  lib.exam = save;
+  paintResume(); paintHubNew();
+}
+function paintHubNew() {
+  const box = document.getElementById("hubNew"); if (!box) return;
+  if (!libLoaded || libError) { box.style.display = "none"; return; }
+  const list = ALL.filter(it => !isCardTab(it.tab) && it.t && daysOld(it.t) <= 7).sort((a, b) => b.t - a.t);
+  if (!list.length) { box.style.display = "none"; return; }
+  const it = list[0];
+  box.innerHTML = ""; box.style.display = "";
+  box.appendChild(libEl("h4", null, "New drops" + (list.length > 1 ? " · " + list.length + " this week" : "")));
+  const row = libEl("div", "rs-row"), tx = libEl("div", "tx");
+  tx.appendChild(libEl("b", null, it.title)); tx.appendChild(libEl("span", null, (isInicet(it) ? "INICET" : "NEET PG") + " · " + agoText(it.t)));
+  row.appendChild(tx);
+  const go = libEl("button", "go", it.type === "test" ? "Start" : "View"); go.onclick = () => hubOpenItem(it); row.appendChild(go);
+  box.appendChild(row);
+}
+function paintHubPlay() {
+  const box = document.getElementById("hubPlay"); if (!box) return;
+  box.innerHTML = "";
+  box.appendChild(libEl("div", "hb-sec", "DAILY GAMES"));
+  const g = libEl("div", "hb-grid");
+  const mini = (icon, t, p, fn, dis) => { const b = document.createElement("button"); b.type = "button"; b.className = "hb-mini"; b.disabled = !!dis; b.innerHTML = '<div class="ib">' + hbIcon(icon, 20) + "</div><div><h5>" + esc(t) + "</h5><p>" + esc(p) + "</p></div>"; b.onclick = fn; g.appendChild(b); };
+  mini("bolt", "Daily 10", "10 free questions", () => startSample(), !(typeof SMP !== "undefined" && SMP.data));
+  mini("puzzle", "Daily Match", "6 pairs, be quick", () => mtOpen(), !(typeof MT !== "undefined" && MT.pairs && MT.pairs.length >= 6));
+  mini("duel", "1v1 Duel", "Challenge a friend", () => { PLAY.sec = "duel"; setLibView("community"); });
+  mini("wall", "Mnemonic Wall", "Share and learn", () => { PLAY.sec = "mn"; setLibView("community"); });
+  const d = libEl("div", "hb-mini dash"); d.innerHTML = hbIcon("plus", 20) + "<div>More games<br>coming later</div>"; g.appendChild(d);
+  box.appendChild(g);
+}
+document.getElementById("hubBack").onclick = () => { if (libView !== "library") setLibView("library"); else hubGo(null); };
+document.getElementById("hubTgRow").onclick = () => { HUB.tgOpen = !HUB.tgOpen; paintTg(); };
+const renderHeading0 = renderHeading;
+renderHeading = function () {
+  renderHeading0();
+  const T = document.getElementById("libTitle"), S = document.getElementById("libSub"), bk = document.getElementById("hubBack");
+  const home = libView === "library" && !HUB.page;
+  bk.style.display = home ? "none" : "";
+  if (home) { T.textContent = "Welcome back"; S.textContent = (currentUser && currentUser.email) || ""; return; }
+  if (libView !== "library") return;
+  const nm = { practice: "Daily Practice", resources: "Resources", decks: "Card Decks", tests: "Tests" }[HUB.page];
+  T.textContent = lib.exam + " · " + nm + ((HUB.page === "resources" || HUB.page === "tests") && lib.subject !== "All" ? " · " + subjLabel(lib.subject) : "");
+  if (HUB.page === "practice") { S.textContent = "Questions, games and duels"; paintHubPlay(); }
+  else if (HUB.page === "decks") { const n = seriesGroups("Series", lib.q).length + seriesGroups("Card Test", lib.q).length; S.textContent = libLoaded ? n + (n === 1 ? " deck" : " decks") : "Opening…"; }
+};
+
 function render() {
   const prog = libView === "progress", nbk = libView === "notebook", com = libView === "community";
   document.getElementById("libraryView").classList.toggle("v-progress", prog);
   document.getElementById("libraryView").classList.toggle("v-notebook", nbk || com);
-  document.getElementById("libBrowse").style.display = prog || nbk || com ? "none" : "";
+  const hubHome = libView === "library" && !HUB.page;
+  const lvEl = document.getElementById("libraryView");
+  ["practice", "resources", "decks", "tests"].forEach(k => lvEl.classList.toggle("hp-" + k, libView === "library" && HUB.page === k));
+  lvEl.classList.toggle("hub-home", hubHome);
+  document.getElementById("libHub").style.display = hubHome ? "" : "none";
+  document.getElementById("hubTabs").style.display = hubHome ? "" : "none";
+  document.getElementById("libBrowse").style.display = prog || nbk || com || hubHome ? "none" : "";
   document.getElementById("libProgress").style.display = prog ? "" : "none";
   document.getElementById("libNotebook").style.display = nbk ? "" : "none";
   document.getElementById("libCommunity").style.display = com ? "" : "none";
@@ -5662,6 +5852,7 @@ function render() {
   if (nbk) { renderNotebook(); return; }
   if (com) { renderCommunity(); return; }
   if (prog) { renderProgress(); return; }
+  if (hubHome) { renderHub(); return; }
   renderExam();
   renderChips();
   renderSubjects();
@@ -5996,10 +6187,11 @@ function rsTests() {
 function paintResume() {
   const box = document.getElementById("libResume");
   if (!box) return;
-  const fresh = !lib.q && lib.tab === "All" && lib.subject === "All";
+  const hubHome = libView === "library" && !HUB.page;
+  const fresh = hubHome || (!lib.q && lib.tab === "All" && lib.subject === "All");
   const rows = [];
   if (libLoaded && !libError && currentUser && fresh) {
-    const inEx = it => !!it && isInicet(it) === (lib.exam === "INICET");
+    const inEx = it => !!it && (hubHome || isInicet(it) === (lib.exam === "INICET"));
     rsTests().filter(t => inEx(t.item)).forEach(t => rows.push({ k: "test", title: t.item.title, sub: t.sub, go: () => openTest(t.item) }));
     const r = rsGet();
     const p = r.pdf && ALL.find(x => x.id === r.pdf.id && inEx(x));
@@ -6181,7 +6373,9 @@ function paintPractice() {
   box.appendChild(libEl("h4", null, "Practice"));
   box.appendChild(libEl("p", "sub", "Random questions from our whole question bank, new ones first. Your wrong answers go to the Mistake notebook."));
   const ents = ix.subjects;
-  if (!ix.legacy && ents.length > 1) {                   // NEET PG | INICET: each draws only from its own questions
+  const hx = ents.find(x => String(x.subject || "").replace(/\s/g, "").toLowerCase() === lib.exam.replace(/\s/g, "").toLowerCase());
+  if (hx && !ix.legacy) PR.exam = hx.slug;                // the tab at the top of the home picks NEET PG or INICET
+  if (!hx && !ix.legacy && ents.length > 1) {                   // NEET PG | INICET: each draws only from its own questions
     if (!ents.some(x => x.slug === PR.exam)) PR.exam = ents[0].slug;
     const exRow = libEl("div", "pr-row");
     ents.forEach(x => {
@@ -7117,7 +7311,7 @@ function tourSteps() {
     { t: "Welcome to PPTNEETPGHUB Premium", b: "Here is a quick tour of where everything is. It takes less than a minute." },
     { el: first("#libFilterBtn", "#libSide"), t: "Pick a subject", b: "Use Filter to see one subject at a time. Core subjects come first, and INICET is at the end." },
     { el: first("#libPractice"), t: "Practice", b: "Practise 10, 30 or 50 random questions, with instant answers or a timer. Your wrong answers go to the Mistake notebook." },
-    { el: first(".lib-switch"), t: "Library, progress and notebook", b: "Library has all your files. My progress shows your scores and weak areas. Notebook keeps the questions you got wrong." },
+    { el: first("#hubTabs"), t: "NEET PG and INICET", b: "Use these two tabs to switch exam. Each has Daily Practice, Resources, Card Decks and Tests. Progress Report and Mistake Notebook are under My Space." },
     { el: first("#libInstall2.on", "#libInstall"), t: "Install the app", b: "Add this website to your home screen so it opens like an app." },
     { el: first("#helpFab"), t: "Need help?", b: "Tap here any time to message us on Telegram or WhatsApp." },
     { t: "You are ready", b: "Tip: open Filter to switch between Light and Dark mode, or to see this tour again." }
