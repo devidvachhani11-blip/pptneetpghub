@@ -1709,6 +1709,10 @@
   .terms-ck input { width: 20px; height: 20px; margin-top: 1px; flex-shrink: 0; accent-color: var(--navy); }
   .terms-ck a { color: var(--teal); font-weight: 600; }
   .legal-links { margin: 6px 0 4px; }
+  .foot-c { margin: 4px 0 0; font-size: 12px; opacity: .75; }
+  .foot-ig { margin: 10px 0 2px; }
+  .foot-ig a { display:inline-flex; width:40px; height:40px; align-items:center; justify-content:center; border:1px solid rgba(212,175,85,.5); border-radius:50%; color:#D4AF55; }
+  .foot-c a { color: #D4AF55; text-decoration: none; }
   .legal-links a { color: #D4AF55; margin: 0 8px; text-decoration: none; font-size: 13px; white-space: nowrap; display: inline-block; }
   .lib-legal { margin: 26px 0 8px; text-align: center; font-size: 12.5px; }
   .lib-legal a { color: var(--gray); margin: 0 8px; text-decoration: none; white-space: nowrap; display: inline-block; }
@@ -2290,6 +2294,10 @@
     <img class="foot-logo" src="/logo-96.webp" width="64" height="64" alt="" loading="lazy"><div class="fb">PPTNEETPGHUB</div>
     <p><a href="/news" style="color:#D4AF55;margin:0 8px;text-decoration:none">News</a><a href="/study-tips" style="color:#D4AF55;margin:0 8px;text-decoration:none">Study tips</a><a href="/counselling" style="color:#D4AF55;margin:0 8px;text-decoration:none">Counselling</a><a href="https://www.instagram.com/neetpg2026hub/" target="_blank" rel="noopener me" style="color:#D4AF55;margin:0 8px;text-decoration:none">Instagram</a></p>
     <p class="legal-links"><a href="/terms">Terms of Use</a><a href="/privacy">Privacy Policy</a><a href="/refund">Refund Policy</a></p>
+    <p class="foot-c">Contact: <a href="mailto:neetpghub111@gmail.com">neetpghub111@gmail.com</a></p>
+    <p class="foot-ig"><a href="https://www.instagram.com/neetpg2026hub/" target="_blank" rel="noopener me" aria-label="Instagram"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"/></svg></a></p>
+    <p class="foot-c">&copy; 2026 PPTNEETPGHUB &middot; Devid Vachhani. All rights reserved.</p>
+    <p class="foot-c">Made with &#10084; in India &#127470;&#127475;</p>
   </div>
 </footer>
 
@@ -2615,24 +2623,33 @@ function deviceLabel() {
   return br + " on " + os;
 }
 
-async function ensureDevice() {
+function prefetchDevice(email) {
+  try {
+    const { db, doc, getDoc } = window.__fb;
+    const cfg = getDoc(doc(db, "config", "limits")).catch(() => null);
+    const snap = getDoc(doc(db, "devices", email));
+    snap.catch(() => {});
+    return { cfg, snap };
+  } catch (e) { return null; }
+}
+async function ensureDevice(pre) {
   if (!currentUser || isAdminUser()) { deviceState = { status: "ok", list: [], lastChange: 0 }; return; }
   const email = String(currentUser.email || "").toLowerCase();
   try {
     const { db, doc, getDoc, setDoc, serverTimestamp } = window.__fb;
     try {
-      const cfg = await getDoc(doc(db, "config", "limits"));
-      if (cfg.exists() && Number(cfg.data().maxDevices) >= 1) DEVICE_LIMIT = Math.min(4, Math.floor(Number(cfg.data().maxDevices)));
+      const cfg = await (pre ? pre.cfg : getDoc(doc(db, "config", "limits")));
+      if (cfg && cfg.exists() && Number(cfg.data().maxDevices) >= 1) DEVICE_LIMIT = Math.min(4, Math.floor(Number(cfg.data().maxDevices)));
     } catch (e) {}
     const ref = doc(db, "devices", email);
-    const snap = await getDoc(ref);
+    const snap = await (pre ? pre.snap : getDoc(ref));
     const data = snap.exists() ? (snap.data() || {}) : {};
     const list = Array.isArray(data.list) ? data.list.map(d => Object.assign({}, d)) : [];
     const id = getDeviceId(), now = Date.now();
     const mine = list.find(d => d.id === id);
     const save = () => setDoc(ref, { email, list, lastChange: data.lastChange || 0, updatedAt: serverTimestamp() });
     if (mine) {
-      if (now - (mine.lastSeen || 0) > 6 * 3600 * 1000) { mine.lastSeen = now; await save(); }
+      if (now - (mine.lastSeen || 0) > 6 * 3600 * 1000) { mine.lastSeen = now; save().catch(() => {}); }
       deviceState = { status: "ok", list, lastChange: data.lastChange || 0 };
     } else if (list.length < DEVICE_LIMIT) {
       list.push({ id, label: deviceLabel(), firstSeen: now, lastSeen: now });
@@ -2820,8 +2837,9 @@ onFbReady(() => {
     renderDeviceGate();
 
     if (user && user.email) {
+      const pre = (window.__fb && !isAdminUser()) ? prefetchDevice(String(user.email).toLowerCase()) : null;
       isPaidMember = await loadMembership(user.email);
-      if (isPaidMember) await ensureDevice();
+      if (isPaidMember) await ensureDevice(pre);
       else { deviceState = { status: "ok", list: [], lastChange: 0 }; await loadPaymentInfo(user.email); }
     }
     membershipChecked = true;
