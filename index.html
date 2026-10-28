@@ -1645,6 +1645,51 @@
   .sg-box .btn { width:100%; }
   .st-note { display:none; margin:6px 0 0; font-size:13.5px; font-weight:700; color:#B45309; }
   :where(html[data-eff="dark"]) .sg-box { background: var(--white); }
+  .gm-ov { position:fixed; inset:0; z-index:130; background:var(--paper); display:none; flex-direction:column; }
+  .gm-ov.on { display:flex; }
+  .gm-body { flex:1; overflow-y:auto; padding:16px 16px 32px; width:100%; max-width:560px; margin:0 auto; }
+  .gm-h { font-size:22px; font-weight:800; color:var(--navy); margin:0 0 6px; }
+  .gm-h2 { font-size:15px; font-weight:800; color:var(--navy); margin:18px 0 8px; }
+  .gm-p { font-size:14px; color:var(--gray); line-height:1.5; margin:0 0 14px; }
+  .gm-p.c { text-align:center; margin:0 0 12px; }
+  .gm-big { font-size:56px; font-weight:800; color:#0F8F83; text-align:center; margin:8px 0 0; line-height:1.1; }
+  .gm-stats { display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:8px; margin:0 0 16px; }
+  .gm-stat { background:var(--white,#fff); border:1px solid var(--border); border-radius:14px; padding:12px 6px; text-align:center; }
+  .gm-stat b { display:block; font-size:20px; font-weight:800; color:var(--navy); }
+  .gm-stat span { font-size:11px; color:var(--gray); }
+  .gm-bar { height:8px; border-radius:99px; background:var(--border); overflow:hidden; margin:0 0 12px; }
+  .gm-bar i { display:block; height:100%; width:100%; background:#0F8F83; transition:width .1s linear; }
+  .gm-bar.low i { background:#DC2626; }
+  .gm-sc { text-align:center; font-weight:800; color:var(--navy); margin:0 0 10px; font-variant-numeric:tabular-nums; }
+  .gm-card { background:var(--white,#fff); border:1px solid var(--border); border-radius:16px; padding:15px 16px; font-size:15.5px; line-height:1.55; color:var(--ink); margin:0 0 12px; }
+  .gm-card.s { font-size:19px; font-weight:700; min-height:120px; display:flex; align-items:center; }
+  .gm-tag { display:inline-block; font-size:10.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#0F8F83; margin:0 0 6px; }
+  .gm-tf { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .gm-tf button { padding:22px 10px; border-radius:14px; font-size:19px; font-weight:800; border:2px solid var(--border); background:var(--white,#fff); color:var(--navy); font-family:inherit; cursor:pointer; }
+  .gm-tf button.ok, .gm-opt.ok { border-color:#16A34A; background:#E6F7EC; color:#14532D; }
+  .gm-tf button.bad, .gm-opt.bad { border-color:#DC2626; background:#FDECEA; color:#7F1D1D; }
+  .gm-opt { display:block; width:100%; text-align:left; border:1.5px solid var(--border); background:var(--white,#fff); color:var(--ink); border-radius:12px; padding:12px 13px; margin:0 0 9px; font-family:inherit; font-size:14.5px; line-height:1.4; font-weight:600; cursor:pointer; }
+  .gm-opt:disabled { cursor:default; opacity:1; }
+  .gm-opt .wy { display:block; font-weight:500; font-size:12.5px; line-height:1.45; margin-top:6px; opacity:.9; }
+  .gm-btn { display:block; width:100%; margin:12px 0 0; padding:14px; border-radius:12px; font-family:inherit; font-size:15px; font-weight:800; cursor:pointer; border:1.5px solid var(--border); background:transparent; color:var(--navy); }
+  .gm-btn.go { background:var(--navy); border-color:var(--navy); color:#fff; }
+  .gm-done { text-align:center; padding:18px 12px; border:1.5px dashed var(--border); border-radius:14px; color:var(--gray); font-size:13.5px; line-height:1.5; margin-top:6px; }
+  .gm-ans { font-weight:800; color:#0F8F83; font-size:13.5px; margin-top:6px; }
+  .gm-why { font-size:13px; color:var(--gray); margin-top:3px; line-height:1.45; }
+  .gm-res { border-radius:12px; padding:11px 13px; font-weight:700; font-size:14px; margin:4px 0 0; }
+  .gm-res.ok { background:#E6F7EC; color:#14532D; } .gm-res.bad { background:#FDECEA; color:#7F1D1D; }
+  .gm-rowi { display:flex; align-items:center; gap:10px; background:var(--white,#fff); border:1px solid var(--border); border-radius:12px; padding:11px 12px; margin:0 0 8px; font-size:13.5px; color:var(--ink); }
+  .gm-rowi .n { width:24px; height:24px; border-radius:50%; background:var(--gold-tint); color:var(--gold); display:grid; place-items:center; font-weight:800; font-size:12px; flex:none; }
+  .gm-rowi .t { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .gm-rowi.ok b { color:#16A34A; } .gm-rowi.bad b { color:#DC2626; }
+  .gm-pearl { background:linear-gradient(135deg,#FFF9E8,#FFF3CF); border:1.5px solid #E8CF8A; border-radius:14px; padding:13px 14px; margin:12px 0 0; color:#3F3210; }
+  .gm-pearl .k { font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#8A6A14; display:flex; justify-content:space-between; gap:8px; }
+  .gm-pearl .k small { font-weight:700; letter-spacing:0; text-transform:none; opacity:.8; }
+  .gm-pearl .v { font-size:15px; font-weight:700; line-height:1.5; margin-top:5px; }
+  .gm-pearl .q { font-size:12px; margin-top:7px; opacity:.75; line-height:1.4; }
+  .gm-search { width:100%; box-sizing:border-box; padding:12px 14px; border:1.5px solid var(--border); border-radius:12px; font-family:inherit; font-size:15px; background:var(--white,#fff); color:var(--ink); margin:0 0 4px; }
+  :where(html[data-eff="dark"]) .gm-h, :where(html[data-eff="dark"]) .gm-h2, :where(html[data-eff="dark"]) .gm-stat b, :where(html[data-eff="dark"]) .gm-sc, :where(html[data-eff="dark"]) .gm-btn { color:var(--ink); }
+  :where(html[data-eff="dark"]) .gm-btn.go { color:#fff; background:#2A78D6; border-color:#2A78D6; }
   .mt-ov { position:fixed; inset:0; z-index:130; background:var(--paper); display:none; flex-direction:column; }
   .mt-ov.on { display:flex; }
   .mt-top { display:flex; align-items:center; gap:10px; padding:12px 14px; border-bottom:1px solid var(--border); background:var(--white,#fff); }
@@ -2079,21 +2124,6 @@
   </div>
 </section>
 
-<div class="mt-ov" id="mtOv" role="dialog" aria-label="Daily Match">
-  <div class="mt-top"><b>Daily Match</b><span class="mt-time" id="mtTime">0.0s</span><button class="mt-x" id="mtClose" type="button" aria-label="Close">&times;</button></div>
-  <p class="mt-hint" id="mtHint">Tap one on the left, then its match on the right. A wrong tap adds 3 seconds.</p>
-  <div class="mt-grid" id="mtGrid"><div class="mt-col" id="mtL"></div><div class="mt-col" id="mtR"></div></div>
-  <div class="mt-res" id="mtRes">
-    <div style="font-size:34px">&#127942;</div>
-    <h2 id="mtResT">Round complete</h2>
-    <div class="big" id="mtResS"></div>
-    <p id="mtResN"></p>
-    <button class="btn btn-gold" id="mtShare" type="button">Share my time</button>
-    <button class="btn" id="mtJoin" type="button">Get all premium resources</button>
-    <p style="margin-top:14px">New pairs come tomorrow.</p>
-  </div>
-</div>
-
 <section class="sample-sec" id="sampleSec" style="display:none;">
   <div class="container">
     <div class="sample-box">
@@ -2313,6 +2343,26 @@
 </div>
 <div class="stk" id="stk"><div><small>One-time</small><b data-price>&#8377;500</b></div><button class="btn-gold" data-go="join" type="button">Go Premium</button></div>
 </div><!-- /landingView -->
+
+<div class="mt-ov" id="mtOv" role="dialog" aria-label="Daily Match">
+  <div class="mt-top"><b id="mtTitle">Daily Match</b><span class="mt-time" id="mtTime">0.0s</span><button class="mt-x" id="mtClose" type="button" aria-label="Close">&times;</button></div>
+  <p class="mt-hint" id="mtHint">Tap one on the left, then its match on the right. A wrong tap adds 3 seconds.</p>
+  <div class="mt-grid" id="mtGrid"><div class="mt-col" id="mtL"></div><div class="mt-col" id="mtR"></div></div>
+  <div class="mt-res" id="mtRes">
+    <div style="font-size:34px">&#127942;</div>
+    <h2 id="mtResT">Round complete</h2>
+    <div class="big" id="mtResS"></div>
+    <p id="mtResN"></p>
+    <button class="btn btn-gold" id="mtShare" type="button">Share my time</button>
+    <button class="btn" id="mtJoin" type="button">Get all premium resources</button>
+    <p style="margin-top:14px">New pairs come tomorrow.</p>
+  </div>
+</div>
+
+<div class="gm-ov" id="gmOv" role="dialog" aria-label="Game">
+  <div class="mt-top"><b id="gmTitle">Game</b><span class="mt-time" id="gmTime"></span><button class="mt-x" id="gmX" type="button" aria-label="Close">&times;</button></div>
+  <div class="gm-body" id="gmBody"></div>
+</div>
 
 <!-- ================= MEMBER LIBRARY ================= -->
 <div id="libraryView" style="display:none;">
@@ -2831,6 +2881,7 @@ onFbReady(() => {
     memberExpired = false;
     CARDS.loaded = false; CARDS.loading = null; CARDS.map = {}; NB.loaded = false; NB.loading = null; NB.items = []; NB.gone = []; NB.tests = {}; NB.open = new Set(); PR.index = null; PR.parts = {}; PR.loading = null; PLAY.duels = null; PLAY.mn = null; PLAY.mnMine = null; PLAY.mnForm = false;
     deviceState = { status: user ? "checking" : "ok", list: [], lastChange: 0 };
+    try { gmReset(); } catch (e) {}
     updateView();
     try { paintHomeInstall(); } catch (e) {}
     renderJoin();
@@ -5784,7 +5835,7 @@ function renderTiles(box, tabArg) {
 }
 
 function renderHeading() {
-  if (libView === "community") { document.getElementById("libTitle").textContent = "Play"; document.getElementById("libSub").textContent = "Duel a friend \u00B7 Mnemonic Wall"; return; }
+  if (libView === "community") { const dl = PLAY.sec === "duel"; document.getElementById("libTitle").textContent = dl ? "1v1 Duel" : "Mnemonic Wall"; document.getElementById("libSub").textContent = dl ? "Challenge a friend" : "Share and learn"; return; }
   if (libView === "notebook") { document.getElementById("libTitle").textContent = "Mistake notebook"; return; }
   if (libView === "progress") {
     document.getElementById("libTitle").textContent = "My progress";
@@ -5837,6 +5888,9 @@ function exOf(id, title) {
 function nbInEx(x) { return exOf(x.t) === lib.exam; }
 function attInEx(a) { return exOf(a.testId, a.title) === lib.exam; }
 const HB_ICON = {
+  timer: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/>',
+  casep: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M12 7.5v6M9 10.5h6M8 17h8"/>',
+  gem: '<path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M9 3l3 6 3-6M12 21 9 9m3 12 3-12"/>',
   target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>',
   book: '<path d="M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h10"/>',
   cards: '<rect x="3" y="7" width="14" height="12" rx="2"/><path d="M7 7V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>',
@@ -5922,13 +5976,17 @@ function paintHubPlay() {
   box.innerHTML = "";
   if (lib.exam === "INICET") { const c = libEl("div", "hb-soon"); c.innerHTML = '<div class="ib">' + hbIcon("target", 26) + "</div><b>INICET practice pool</b>Coming soon. It will have its own questions, separate from NEET PG."; box.appendChild(c); return; }
   box.appendChild(libEl("div", "hb-sec", "DAILY GAMES"));
-  const g = libEl("div", "hb-grid");
+  if (!GM.P && !GM.loading) gmEnsure().then(() => { if (HUB.page === "practice" && libView === "library") paintHubPlay(); });
+  const g = libEl("div", "hb-grid"), I = gmInfo(), P = GM.P;
   const mini = (icon, t, p, fn, dis) => { const b = document.createElement("button"); b.type = "button"; b.className = "hb-mini"; b.disabled = !!dis; b.innerHTML = '<div class="ib">' + hbIcon(icon, 20) + "</div><div><h5>" + esc(t) + "</h5><p>" + esc(p) + "</p></div>"; b.onclick = fn; g.appendChild(b); };
-  mini("bolt", "Daily 10", "10 free questions", () => startSample(), !(typeof SMP !== "undefined" && SMP.data));
-  mini("puzzle", "Daily Match", "6 pairs, be quick", () => mtOpen(), !(typeof MT !== "undefined" && MT.pairs && MT.pairs.length >= 6));
+  const st = (n, ok) => !P ? "Opening\u2026" : GM.err ? "Could not load" : n ? ok : "Coming soon";
+  const off = (n) => !P || GM.err || !n;
+  mini("timer", "One-Liner Blitz", st(P && P.b.length, I && I.left > 0 ? I.left + " of " + GM_DAILY + " plays left" : "Done for today"), () => gmOpen("blitz"), off(P && P.b.length));
+  mini("casep", "Case Sprint", st(P && P.c.length, I ? I.cdone + " of " + GM_DAILY + " cases done" : ""), () => gmOpen("case"), off(P && P.c.length));
+  mini("gem", "Pearl Collector", st(P && P.p.length, I ? I.pearls + " collected" : ""), () => gmOpen("pearl"), off(P && P.p.length));
+  mini("puzzle", "Premium Match", st(P && P.m.length, mtSaved("pptMatchP") ? "Done today" : "6 pairs, be quick"), () => mtOpen(true), off(P && P.m.length));
   mini("duel", "1v1 Duel", "Challenge a friend", () => { PLAY.sec = "duel"; setLibView("community"); });
   mini("wall", "Mnemonic Wall", "Share and learn", () => { PLAY.sec = "mn"; setLibView("community"); });
-  const d = libEl("div", "hb-mini dash"); d.innerHTML = hbIcon("plus", 20) + "<div>More games<br>coming later</div>"; g.appendChild(d);
   box.appendChild(g);
 }
 document.getElementById("hubBack").onclick = () => { if (libView !== "library") setLibView("library"); else hubGo(null); };
@@ -6643,13 +6701,6 @@ function renderCommunity() {
   const box = document.getElementById("libCommunity");
   if (!box) return;
   box.innerHTML = "";
-  const seg = libEl("div", "cm-seg");
-  [["duel", "1v1 Duel"], ["mn", "Mnemonic Wall"]].forEach(x => {
-    const b = libEl("button", PLAY.sec === x[0] ? "on" : "", x[1]); b.type = "button";
-    b.onclick = () => { PLAY.sec = x[0]; renderCommunity(); };
-    seg.appendChild(b);
-  });
-  box.appendChild(seg);
   if (!currentUser || !isPaidMember) { box.appendChild(libEl("div", "lib-empty", "Sign in as a member to play.")); return; }
   if (PLAY.sec === "duel") paintDuel(box); else paintMnemonics(box);
 }
@@ -7284,9 +7335,9 @@ document.getElementById("sampleStart").onclick = startSample;
 
 
 // ---------- Daily Match: 8 pairs a day, tap to match, fastest time wins ----------
-const MT = { pairs: [], round: [], rights: [], sel: -1, ok: 0, wrong: 0, t0: 0, iv: null, run: false };
+const MT = { pairs: [], pp: [], prem: false, round: [], rights: [], sel: -1, ok: 0, wrong: 0, t0: 0, iv: null, run: false };
 function mtSeed(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
-function mtSaved() { try { const o = JSON.parse(localStorage.getItem("pptMatch") || "null"); return o && o.d === istDay(Date.now()) ? o : null; } catch (e) { return null; } }
+function mtSaved(k) { try { const o = JSON.parse(localStorage.getItem(k || "pptMatch") || "null"); return o && o.d === istDay(Date.now()) ? o : null; } catch (e) { return null; } }
 async function loadMatch() {
   const sec = document.getElementById("matchSec"); if (!sec) return;
   try {
@@ -7304,8 +7355,8 @@ function mtPaintHome() {
   else { n.style.display = "none"; b.textContent = "Play today's round"; }
 }
 function mtBuild() {
-  const day = istDay(Date.now()), n = MT.pairs.length, st = (day * 6) % n;
-  MT.round = []; for (let i = 0; i < 6; i++) MT.round.push(MT.pairs[(st + i) % n]);
+  const src = MT.prem ? MT.pp : MT.pairs, day = istDay(Date.now()), n = src.length, st = (day * 6) % n;
+  MT.round = []; for (let i = 0; i < 6; i++) MT.round.push(src[(st + i) % n]);
   const rnd = mtSeed(day * 7919 + 13), idx = MT.round.map((_, i) => i);
   for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); const t = idx[i]; idx[i] = idx[j]; idx[j] = t; }
   MT.rights = idx.map(i => MT.round[i].r);
@@ -7322,9 +7373,12 @@ function mtBuild() {
   });
 }
 function mtTick() { const t = (Date.now() - MT.t0) / 1000 + MT.wrong * 3; document.getElementById("mtTime").textContent = t.toFixed(1) + "s"; }
-function mtOpen() {
-  if (MT.pairs.length < 6) return;
-  const ov = document.getElementById("mtOv"), sv = mtSaved();
+function mtOpen(prem) {
+  MT.prem = prem === true;
+  if ((MT.prem ? MT.pp : MT.pairs).length < 6) return;
+  const ov = document.getElementById("mtOv"), sv = mtSaved(MT.prem ? "pptMatchP" : "pptMatch");
+  document.getElementById("mtTitle").textContent = MT.prem ? "Premium Daily Match" : "Daily Match";
+  document.getElementById("mtJoin").style.display = MT.prem ? "none" : "";
   ov.classList.add("on"); document.body.style.overflow = "hidden"; navPush("match", { close: mtClose });
   if (sv) { mtShowRes(sv.s, sv.w); return; }
   document.getElementById("mtRes").style.display = "none"; document.getElementById("mtGrid").style.display = ""; document.getElementById("mtHint").style.display = "";
@@ -7336,6 +7390,7 @@ function mtClose(fromApp) {
   document.getElementById("mtOv").classList.remove("on"); document.body.style.overflow = "";
   if (fromApp !== true) navDone("match");
   mtPaintHome();
+  if (MT.prem && HUB.page === "practice" && libView === "library") paintHubPlay();
 }
 function mtPickL(i, b) {
   if (!MT.run || b.classList.contains("ok")) return;
@@ -7356,7 +7411,7 @@ function mtPickR(b) {
 function mtFinish() {
   clearInterval(MT.iv); MT.run = false;
   const secs = Math.round(((Date.now() - MT.t0) / 1000 + MT.wrong * 3) * 10) / 10;
-  try { localStorage.setItem("pptMatch", JSON.stringify({ d: istDay(Date.now()), s: secs, w: MT.wrong })); } catch (e) {}
+  try { localStorage.setItem(MT.prem ? "pptMatchP" : "pptMatch", JSON.stringify({ d: istDay(Date.now()), s: secs, w: MT.wrong })); } catch (e) {}
   setTimeout(() => { mtShowRes(secs, MT.wrong); mtPaintHome(); }, 380);
 }
 function mtShowRes(secs, wrong) {
@@ -7366,13 +7421,289 @@ function mtShowRes(secs, wrong) {
   document.getElementById("mtResN").textContent = wrong ? "6 of 6 matched, with " + wrong + " wrong " + (wrong === 1 ? "tap" : "taps") + " (+" + wrong * 3 + "s). Try for zero wrong taps tomorrow." : "6 of 6 matched with no wrong taps. Perfect round.";
   document.getElementById("mtRes").style.display = "block";
   document.getElementById("mtShare").onclick = () => {
-    const txt = "I matched 6 NEET PG pairs in " + secs + " seconds on today's Daily Match. Can you beat me? " + location.origin + "/";
+    const txt = "I matched 6 NEET PG pairs in " + secs + " seconds on today's " + (MT.prem ? "Premium " : "") + "Daily Match. Can you beat me? " + location.origin + "/";
     if (navigator.share) navigator.share({ text: txt }).catch(() => {}); else window.open("https://wa.me/?text=" + encodeURIComponent(txt), "_blank", "noopener");
   };
   document.getElementById("mtJoin").onclick = () => { mtClose(); goToJoin(); };
 }
-document.getElementById("mtStart").onclick = mtOpen;
+document.getElementById("mtStart").onclick = () => mtOpen(false);
 document.getElementById("mtClose").onclick = () => mtClose();
+
+// ---------- Member games: One-Liner Blitz, Clinical Case Sprint, Clinical Pearl Collector ----------
+// Pools live in practice/g_blitz, g_cases, g_pearls, g_pairs (members read, admin writes). Each member's progress and pearls live in games/<email>.
+const GM = { P: null, doc: null, ready: false, loading: null, err: false, kind: "", iv: null, to: null, ctx: {} };
+const GM_DAILY = 5;
+function gmReset() { clearInterval(GM.iv); clearTimeout(GM.to); GM.P = null; GM.doc = null; GM.ready = false; GM.loading = null; GM.err = false; if (typeof MT !== "undefined") MT.pp = []; }
+function gmH(s) { let h = 2166136261; s = String(s); for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); }
+function gmMyHash() { return parseInt(gmH(myEmail()), 36) % 100000; }
+function gmShuffle(arr, seed) { const r = mtSeed(seed), a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function gmEnsure() {
+  if (GM.ready) return Promise.resolve();
+  if (GM.loading) return GM.loading;
+  GM.loading = (async () => {
+    const { db, doc, getDoc } = window.__fb, me = myEmail();
+    const get = (c, id) => getDoc(doc(db, c, id)).then(s => s.exists() ? s.data() : null).catch(() => undefined);
+    const r = await Promise.all([get("practice", "g_blitz"), get("practice", "g_cases"), get("practice", "g_pearls"), get("practice", "g_pairs"), get("games", me)]);
+    const arr = (d) => d && Array.isArray(d.ps) ? d.ps : [];
+    const b = arr(r[0]).filter(x => x && typeof x.s === "string" && typeof x.a === "boolean");
+    const c = arr(r[1]).filter(x => x && typeof x.c === "string" && Array.isArray(x.o) && x.o.length === 4 && Array.isArray(x.w) && x.a >= 0 && x.a < 4);
+    const p = arr(r[2]).filter(x => x && typeof x.q === "string" && Array.isArray(x.o) && x.o.length === 4 && typeof x.p === "string" && x.a >= 0 && x.a < 4);
+    const m = arr(r[3]).filter(x => x && typeof x.l === "string" && typeof x.r === "string" && x.l && x.r && /^[DSF]$/.test(x.t));
+    GM.P = { b: b.length >= 20 ? b : [], c: c.length >= 5 ? c : [], p: p.length >= 5 ? p : [], m: m.length >= 6 ? m : [] };
+    MT.pp = GM.P.m;
+    GM.err = r[4] === undefined;
+    if (!GM.err) {
+      const g = r[4] || {};
+      GM.doc = { email: me, g: g.g && typeof g.g === "object" ? g.g : {}, pearls: Array.isArray(g.pearls) ? g.pearls : [], best: g.best && typeof g.best === "object" ? g.best : {} };
+      GM.ready = true;
+    }
+    GM.loading = null;
+  })();
+  return GM.loading;
+}
+function gmG() { const d = istDay(Date.now()); if (!GM.doc.g || GM.doc.g.day !== d) GM.doc.g = { day: d }; return GM.doc.g; }
+function gmSave() {
+  const { db, doc, setDoc, serverTimestamp } = window.__fb, me = myEmail();
+  return setDoc(doc(db, "games", me), { email: me, g: GM.doc.g, pearls: GM.doc.pearls, best: GM.doc.best, updated: Date.now(), updatedAt: serverTimestamp() })
+    .catch(() => showToast("Could not save your progress. Check your internet.", true));
+}
+// numbers for the tiles
+function gmInfo() {
+  if (!GM.ready || !GM.P) return null;
+  const g = gmG();
+  const cn = GM.P.c.length ? Object.keys(g.c || {}).length : 0;
+  return { left: Math.max(0, GM_DAILY - (g.b || 0)), cdone: Math.min(GM_DAILY, cn), pearls: GM.doc.pearls.length };
+}
+
+// ---- overlay shell ----
+function gmBody() { const b = document.getElementById("gmBody"); b.innerHTML = ""; b.scrollTop = 0; return b; }
+function gmTime(t) { document.getElementById("gmTime").textContent = t || ""; }
+function gmTitle(t) { document.getElementById("gmTitle").textContent = t; }
+function gmClose(fromApp) {
+  clearInterval(GM.iv); clearTimeout(GM.to);
+  document.getElementById("gmOv").classList.remove("on"); document.body.style.overflow = "";
+  if (fromApp !== true) navDone("game");
+  if (HUB.page === "practice" && libView === "library") paintHubPlay();
+}
+async function gmOpen(kind) {
+  await gmEnsure();
+  if (GM.err || !GM.ready) { showToast("Could not load your games. Check your internet and try again.", true); return; }
+  GM.kind = kind; GM.ctx = {};
+  const ov = document.getElementById("gmOv");
+  ov.classList.add("on"); document.body.style.overflow = "hidden"; navPush("game", { close: gmClose });
+  if (kind === "blitz") gmBlitzHome(); else if (kind === "case") gmCaseHome(); else gmPearlHome();
+}
+document.getElementById("gmX").onclick = () => {
+  if (GM.ctx && GM.ctx.live && GM.kind === "blitz" && !confirm("Leave this round? It still counts for today.")) return;
+  gmClose();
+};
+function gmBtn(txt, cls, fn) { const b = libEl("button", "gm-btn " + (cls || ""), txt); b.type = "button"; b.onclick = fn; return b; }
+
+// ---- One-Liner Blitz ----
+function gmBlitzHome(note) {
+  GM.ctx = {}; clearInterval(GM.iv); gmTime(""); gmTitle("One-Liner Blitz");
+  const B = gmBody(), g = gmG(), left = GM_DAILY - (g.b || 0);
+  B.appendChild(libEl("h2", "gm-h", "True or False, 60 seconds"));
+  B.appendChild(libEl("p", "gm-p", "Rapid-fire one-liners. Tap True or False. Each right answer scores 10, plus up to 5 more for a fast answer. A wrong answer scores 0."));
+  const st = libEl("div", "gm-stats");
+  [[left > 0 ? left + " of " + GM_DAILY : "0", "plays left today"], [String(g.bs || 0), "best today"], [String(GM.doc.best.b || 0), "best ever"]].forEach(x => { const d = libEl("div", "gm-stat"); d.appendChild(libEl("b", null, x[0])); d.appendChild(libEl("span", null, x[1])); st.appendChild(d); });
+  B.appendChild(st);
+  if (left > 0) B.appendChild(gmBtn("Start round", "go", gmBlitzStart));
+  else B.appendChild(libEl("div", "gm-done", "All " + GM_DAILY + " rounds done today. New rounds tomorrow."));
+}
+function gmBlitzStart() {
+  const g = gmG(); if ((g.b || 0) >= GM_DAILY) return;
+  g.b = (g.b || 0) + 1; gmSave();
+  const pool = GM.P.b, seed = istDay(Date.now()) * 977 + g.b * 31 + gmMyHash();
+  let deck = gmShuffle(pool, seed); while (deck.length < 90) deck = deck.concat(gmShuffle(pool, seed + deck.length));
+  const X = GM.ctx = { live: true, deck: deck, i: 0, score: 0, ok: 0, n: 0, miss: [], tsum: 0, end: Date.now() + 60000, c0: Date.now(), lock: false };
+  const B = gmBody();
+  X.bar = libEl("div", "gm-bar"); X.bar.appendChild(document.createElement("i")); B.appendChild(X.bar);
+  X.sc = libEl("div", "gm-sc", "Score 0"); B.appendChild(X.sc);
+  X.card = libEl("div", "gm-card s"); B.appendChild(X.card);
+  const tf = libEl("div", "gm-tf"); X.bT = libEl("button", null, "True"); X.bF = libEl("button", null, "False"); X.bT.type = X.bF.type = "button";
+  X.bT.onclick = () => gmBlitzAns(true); X.bF.onclick = () => gmBlitzAns(false); tf.appendChild(X.bT); tf.appendChild(X.bF); B.appendChild(tf);
+  gmBlitzShow(); clearInterval(GM.iv); GM.iv = setInterval(gmBlitzTick, 100); gmBlitzTick();
+}
+function gmBlitzShow() { const X = GM.ctx; X.card.textContent = X.deck[X.i].s; X.c0 = Date.now(); X.lock = false; X.bT.className = X.bF.className = ""; }
+function gmBlitzTick() {
+  const X = GM.ctx; if (!X || !X.live) return;
+  const left = X.end - Date.now();
+  if (left <= 0) return gmBlitzEnd();
+  gmTime(Math.ceil(left / 1000) + "s");
+  X.bar.firstChild.style.width = (left / 600) + "%"; X.bar.classList.toggle("low", left < 10000);
+}
+function gmBlitzAns(v) {
+  const X = GM.ctx; if (!X || !X.live || X.lock) return; X.lock = true;
+  const it = X.deck[X.i], dt = (Date.now() - X.c0) / 1000, ok = v === it.a;
+  X.n++; X.tsum += dt;
+  if (ok) { X.ok++; X.score += 10 + Math.max(0, Math.min(5, Math.round(5 - dt))); } else X.miss.push(it);
+  X.sc.textContent = "Score " + X.score;
+  (v ? X.bT : X.bF).className = ok ? "ok" : "bad";
+  if (!ok) (it.a ? X.bT : X.bF).className = "ok";
+  GM.to = setTimeout(() => { if (GM.ctx !== X || !X.live) return; X.i++; gmBlitzShow(); }, ok ? 220 : 520);
+}
+function gmBlitzEnd() {
+  const X = GM.ctx; if (!X || !X.live) return;
+  X.live = false; clearInterval(GM.iv); clearTimeout(GM.to); gmTime("");
+  const g = gmG(), prevBest = g.bs || 0; g.bs = Math.max(prevBest, X.score);
+  const ever = GM.doc.best.b || 0, isBest = X.score > ever && X.score > 0; GM.doc.best.b = Math.max(ever, X.score); gmSave();
+  const B = gmBody(), left = GM_DAILY - (g.b || 0);
+  B.appendChild(libEl("div", "gm-big", String(X.score)));
+  B.appendChild(libEl("p", "gm-p c", isBest ? "New personal best!" : "points this round"));
+  const acc = X.n ? Math.round(X.ok / X.n * 100) : 0;
+  const st = libEl("div", "gm-stats");
+  [[X.ok + "/" + X.n, "correct"], [acc + "%", "accuracy"], [X.n ? (X.tsum / X.n).toFixed(1) + "s" : "-", "avg per answer"]].forEach(x => { const d = libEl("div", "gm-stat"); d.appendChild(libEl("b", null, x[0])); d.appendChild(libEl("span", null, x[1])); st.appendChild(d); });
+  B.appendChild(st);
+  if (X.miss.length) {
+    B.appendChild(libEl("h4", "gm-h2", "Revise these"));
+    X.miss.slice(0, 8).forEach(it => { const d = libEl("div", "gm-card"); d.appendChild(libEl("div", null, it.s)); d.appendChild(libEl("div", "gm-ans", "Answer: " + (it.a ? "True" : "False"))); if (it.e) d.appendChild(libEl("div", "gm-why", it.e)); B.appendChild(d); });
+  }
+  if (left > 0) B.appendChild(gmBtn("Play again (" + left + " left)", "go", gmBlitzStart));
+  else B.appendChild(libEl("div", "gm-done", "All " + GM_DAILY + " rounds done today. New rounds tomorrow."));
+  B.appendChild(gmBtn("Close", "ghost", () => gmClose()));
+}
+
+// ---- Clinical Case Sprint ----
+function gmCaseList() {
+  const pool = GM.P.c, n = pool.length, day = istDay(Date.now()), st = (day * GM_DAILY) % n, out = [];
+  for (let i = 0; i < Math.min(GM_DAILY, n); i++) { const c = pool[(st + i) % n]; out.push({ c: c, k: gmH(c.c) }); }
+  return out;
+}
+function gmCaseHome() {
+  GM.ctx = {}; clearInterval(GM.iv); gmTime(""); gmTitle("Clinical Case Sprint");
+  const B = gmBody(), g = gmG(), list = gmCaseList(), R = g.c || {};
+  B.appendChild(libEl("h2", "gm-h", "Today's " + list.length + " cases"));
+  B.appendChild(libEl("p", "gm-p", "Read the case, pick the diagnosis in 45 seconds. Right answer scores 100, plus up to 50 for speed. You then see why the other options are wrong."));
+  let tot = 0, done = 0, next = -1;
+  list.forEach((x, i) => {
+    const r = R[x.k], row = libEl("div", "gm-rowi" + (r ? (r[0] ? " ok" : " bad") : ""));
+    row.appendChild(libEl("span", "n", String(i + 1)));
+    row.appendChild(libEl("span", "t", "Case " + (i + 1) + (x.c.s ? " \u00B7 " + x.c.s : "")));
+    row.appendChild(libEl("b", null, r ? (r[0] ? "✓ " : "✗ ") + r[1] : ""));
+    B.appendChild(row);
+    if (r) { done++; tot += r[1]; } else if (next < 0) next = i;
+  });
+  if (next >= 0) B.appendChild(gmBtn(done ? "Continue: case " + (next + 1) : "Start case 1", "go", () => gmCaseRun(next)));
+  else { B.appendChild(libEl("div", "gm-done", "All cases done. Score " + tot + " of " + list.length * 150 + ". New cases tomorrow.")); }
+  if (done && next >= 0) B.appendChild(libEl("p", "gm-p c", "Score so far: " + tot));
+}
+function gmCaseRun(i) {
+  const list = gmCaseList(), x = list[i]; if (!x) return gmCaseHome();
+  const c = x.c, order = gmShuffle([0, 1, 2, 3], parseInt(x.k, 36) % 100000);
+  const X = GM.ctx = { live: true, i: i, end: Date.now() + 45000, lock: false, x: x, order: order };
+  gmTitle("Case " + (i + 1) + " of " + list.length);
+  const B = gmBody();
+  X.bar = libEl("div", "gm-bar"); X.bar.appendChild(document.createElement("i")); B.appendChild(X.bar);
+  if (c.s) B.appendChild(libEl("div", "gm-tag", c.s));
+  B.appendChild(libEl("div", "gm-card", c.c));
+  X.opts = order.map((oi, pos) => {
+    const b = libEl("button", "gm-opt"); b.type = "button";
+    b.appendChild(libEl("b", null, "ABCD"[pos] + ". ")); b.appendChild(document.createTextNode(c.o[oi]));
+    b.onclick = () => gmCaseAns(oi); B.appendChild(b); return b;
+  });
+  X.out = libEl("div", "gm-out"); B.appendChild(X.out);
+  clearInterval(GM.iv); GM.iv = setInterval(gmCaseTick, 100); gmCaseTick();
+}
+function gmCaseTick() {
+  const X = GM.ctx; if (!X || !X.live || X.lock) return;
+  const left = X.end - Date.now();
+  if (left <= 0) return gmCaseAns(-1);
+  gmTime(Math.ceil(left / 1000) + "s");
+  X.bar.firstChild.style.width = (left / 450) + "%"; X.bar.classList.toggle("low", left < 10000);
+}
+function gmCaseAns(oi) {
+  const X = GM.ctx; if (!X || !X.live || X.lock) return; X.lock = true; X.live = false; clearInterval(GM.iv);
+  const c = X.x.c, left = Math.max(0, (X.end - Date.now()) / 1000), ok = oi === c.a;
+  const sc = ok ? 100 + Math.round(left / 45 * 50) : 0;
+  const g = gmG(); g.c = g.c || {}; g.c[X.x.k] = [ok ? 1 : 0, sc]; gmSave();
+  gmTime("");
+  X.opts.forEach((b, pos) => {
+    const o = X.order[pos], why = c.w[o] || "";
+    b.disabled = true; b.classList.toggle("ok", o === c.a); b.classList.toggle("bad", o === oi && !ok);
+    if (why) b.appendChild(libEl("span", "wy", (o === c.a ? "Why this fits: " : "Why not: ") + why));
+  });
+  X.out.appendChild(libEl("div", "gm-res " + (ok ? "ok" : "bad"), oi < 0 ? "Time up. The answer was " + "ABCD"[X.order.indexOf(c.a)] + "." : ok ? "Correct! +" + sc + " points" : "Not this one. The answer was " + "ABCD"[X.order.indexOf(c.a)] + "."));
+  const more = X.i + 1 < gmCaseList().length;
+  X.out.appendChild(gmBtn(more ? "Next case" : "See my score", "go", () => { X.live = false; if (more) gmCaseRun(X.i + 1); else gmCaseHome(); }));
+  X.opts[0].parentNode.scrollTop = X.out.offsetTop - 80;
+}
+
+// ---- Clinical Pearl Collector ----
+function gmPearlDaily() {
+  const g = gmG();
+  if (!g.p || !Array.isArray(g.p.keys)) {
+    const have = {}; GM.doc.pearls.forEach(x => { have[x.k] = 1; });
+    const fresh = GM.P.p.filter(x => !have[gmH(x.q)]);
+    g.p = { keys: gmShuffle(fresh, istDay(Date.now()) * 313 + gmMyHash()).slice(0, GM_DAILY).map(x => gmH(x.q)), r: {} }; gmSave();
+  }
+  const byK = {}; GM.P.p.forEach(x => { byK[gmH(x.q)] = x; });
+  return g.p.keys.filter(k => byK[k]).map(k => ({ k: k, it: byK[k] }));
+}
+function gmPearlHome() {
+  GM.ctx = {}; gmTime(""); gmTitle("Clinical Pearl Collector");
+  const B = gmBody(), list = gmPearlDaily(), g = gmG(), R = g.p.r || {};
+  B.appendChild(libEl("h2", "gm-h", "Collect today's pearls"));
+  B.appendChild(libEl("p", "gm-p", "Answer correctly to unlock a high-yield pearl. Up to " + GM_DAILY + " new ones a day. Every pearl you unlock is saved in your collection."));
+  const st = libEl("div", "gm-stats");
+  const got = list.filter(x => R[x.k] === 1).length;
+  [[got + "/" + list.length, "unlocked today"], [String(GM.doc.pearls.length), "in collection"]].forEach(x => { const d = libEl("div", "gm-stat"); d.appendChild(libEl("b", null, x[0])); d.appendChild(libEl("span", null, x[1])); st.appendChild(d); });
+  B.appendChild(st);
+  let next = list.findIndex(x => R[x.k] === undefined);
+  if (!list.length) B.appendChild(libEl("div", "gm-done", "You have collected every pearl in the pool. New ones are added soon."));
+  else if (next >= 0) B.appendChild(gmBtn(Object.keys(R).length ? "Continue: question " + (next + 1) : "Start", "go", () => gmPearlRun(next)));
+  else B.appendChild(libEl("div", "gm-done", "Today's questions are done. New ones tomorrow."));
+  B.appendChild(gmBtn("My collection (" + GM.doc.pearls.length + ")", "ghost", gmPearlColl));
+}
+function gmPearlRun(i) {
+  const list = gmPearlDaily(), x = list[i]; if (!x) return gmPearlHome();
+  const it = x.it, order = gmShuffle([0, 1, 2, 3], parseInt(x.k, 36) % 100000);
+  const X = GM.ctx = { live: false, i: i, x: x, lock: false, order: order };
+  gmTitle("Question " + (i + 1) + " of " + list.length);
+  const B = gmBody();
+  if (it.s) B.appendChild(libEl("div", "gm-tag", it.s));
+  B.appendChild(libEl("div", "gm-card", it.q));
+  X.opts = order.map((oi, pos) => {
+    const b = libEl("button", "gm-opt"); b.type = "button";
+    b.appendChild(libEl("b", null, "ABCD"[pos] + ". ")); b.appendChild(document.createTextNode(it.o[oi]));
+    b.onclick = () => gmPearlAns(oi); B.appendChild(b); return b;
+  });
+  X.out = libEl("div", "gm-out"); B.appendChild(X.out);
+}
+function gmPearlAns(oi) {
+  const X = GM.ctx; if (!X || X.lock) return; X.lock = true;
+  const it = X.x.it, ok = oi === it.a, g = gmG();
+  g.p.r[X.x.k] = ok ? 1 : 0;
+  if (ok && !GM.doc.pearls.some(p => p.k === X.x.k)) GM.doc.pearls.push({ k: X.x.k, q: it.q, a: it.o[it.a], p: it.p, s: it.s || "", d: istDay(Date.now()) });
+  gmSave();
+  X.opts.forEach((b, pos) => { const o = X.order[pos]; b.disabled = true; b.classList.toggle("ok", o === it.a); b.classList.toggle("bad", o === oi && !ok); });
+  if (ok) { const pc = libEl("div", "gm-pearl"); pc.appendChild(libEl("div", "k", "💎 Pearl unlocked")); pc.appendChild(libEl("div", "v", it.p)); X.out.appendChild(pc); }
+  else X.out.appendChild(libEl("div", "gm-res bad", "Not this time. The right answer is highlighted. The pearl stays locked and can come back on another day."));
+  const more = list => X.i + 1 < list.length;
+  const ln = gmPearlDaily();
+  X.out.appendChild(gmBtn(more(ln) ? "Next question" : "Finish", "go", () => { if (more(ln)) gmPearlRun(X.i + 1); else gmPearlHome(); }));
+  X.opts[0].parentNode.scrollTop = X.out.offsetTop - 80;
+}
+function gmPearlColl() {
+  GM.ctx = {}; gmTime(""); gmTitle("My pearls");
+  const B = gmBody(), all = GM.doc.pearls.slice().reverse();
+  B.appendChild(libEl("p", "gm-p", all.length + (all.length === 1 ? " pearl" : " pearls") + " collected" + (GM.P.p.length ? " of " + GM.P.p.length : "")));
+  const inp = document.createElement("input"); inp.type = "search"; inp.className = "gm-search"; inp.placeholder = "Search pearls, subjects, topics"; inp.setAttribute("aria-label", "Search pearls");
+  B.appendChild(inp);
+  const box = libEl("div", "gm-list"); B.appendChild(box);
+  const paint = () => {
+    box.innerHTML = ""; const q = inp.value.trim().toLowerCase();
+    const hit = q ? all.filter(p => (p.p + " " + p.q + " " + p.a + " " + p.s).toLowerCase().indexOf(q) >= 0) : all;
+    if (!hit.length) { box.appendChild(libEl("div", "gm-done", all.length ? "No pearl matches your search." : "No pearls yet. Answer correctly to unlock your first one.")); return; }
+    hit.slice(0, 200).forEach(p => {
+      const c = libEl("div", "gm-pearl"), top = libEl("div", "k", "💎 " + (p.s || "Pearl")); top.appendChild(libEl("small", null, new Date(p.d * 86400000).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "UTC" })));
+      c.appendChild(top); c.appendChild(libEl("div", "v", p.p)); c.appendChild(libEl("div", "q", p.q + " → " + p.a)); box.appendChild(c);
+    });
+    if (hit.length > 200) box.appendChild(libEl("p", "gm-p c", "Showing the latest 200. Search to find older ones."));
+  };
+  inp.oninput = paint; paint();
+  B.appendChild(gmBtn("Back", "ghost", gmPearlHome));
+}
 
 // ---------- Premium images slider (home page) ----------
 (function () {

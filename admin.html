@@ -828,6 +828,50 @@
         <p class="hint" id="pm_status"></p>
       </div>
       <div class="card">
+        <h3>Member games: One-Liner Blitz pool</h3>
+        <p class="hint" style="margin-top:-6px">Members only. One statement per line: <b>T | statement | short reason</b> or <b>F | statement | short reason</b>. T means the statement is true, F means false. The reason is optional but shown after the round for wrong answers. Add 20 to 600 lines. Each member gets 5 rounds a day.</p>
+        <textarea id="gb_text" class="t-area" rows="14" spellcheck="false" placeholder="T | Hydroxyurea increases fetal haemoglobin in sickle cell disease. | HbF stops sickling.&#10;F | Digoxin is safe in WPW with atrial fibrillation. | It can speed conduction through the accessory pathway."></textarea>
+        <div class="t-actions">
+          <button class="btn" id="gb_save">Save pool</button>
+          <button class="btn outline" id="gb_reload">Undo changes</button>
+          <button class="btn outline" id="gb_remove">Remove pool</button>
+        </div>
+        <p class="hint" id="gb_status"></p>
+      </div>
+      <div class="card">
+        <h3>Member games: Clinical Case Sprint pool</h3>
+        <p class="hint" style="margin-top:-6px">Members only. One case per block, blank line between cases. Lines: <b>CASE:</b> text, then <b>A)</b> <b>B)</b> <b>C)</b> <b>D)</b>, then <b>ANS:</b> letter, then <b>WHY A:</b> <b>WHY B:</b> <b>WHY C:</b> <b>WHY D:</b> (reason for every option; for the right one say why it fits). Optional <b>SUBJECT:</b>. Add 5 to 300 cases. Each member gets 5 cases a day, 45 seconds each.</p>
+        <textarea id="gc_text" class="t-area" rows="14" spellcheck="false" placeholder="CASE: 25-year-old with ...&#10;A) Option&#10;B) Option&#10;C) Option&#10;D) Option&#10;ANS: B&#10;WHY A: Why A is wrong&#10;WHY B: Why B fits&#10;WHY C: Why C is wrong&#10;WHY D: Why D is wrong&#10;SUBJECT: Medicine"></textarea>
+        <div class="t-actions">
+          <button class="btn" id="gc_save">Save pool</button>
+          <button class="btn outline" id="gc_reload">Undo changes</button>
+          <button class="btn outline" id="gc_remove">Remove pool</button>
+        </div>
+        <p class="hint" id="gc_status"></p>
+      </div>
+      <div class="card">
+        <h3>Member games: Clinical Pearl Collector pool</h3>
+        <p class="hint" style="margin-top:-6px">Members only. One question per block, blank line between. Lines: <b>Q:</b> question, <b>A)</b> to <b>D)</b>, <b>ANS:</b> letter, <b>PEARL:</b> the high-yield fact unlocked by a correct answer. Optional <b>SUBJECT:</b>. Add 5 to 500 items. Each member gets 5 new questions a day and keeps the pearls they unlock.</p>
+        <textarea id="gp_text" class="t-area" rows="14" spellcheck="false" placeholder="Q: Drug of choice for ...?&#10;A) Option&#10;B) Option&#10;C) Option&#10;D) Option&#10;ANS: C&#10;PEARL: One high-yield line&#10;SUBJECT: Pharmacology"></textarea>
+        <div class="t-actions">
+          <button class="btn" id="gp_save">Save pool</button>
+          <button class="btn outline" id="gp_reload">Undo changes</button>
+          <button class="btn outline" id="gp_remove">Remove pool</button>
+        </div>
+        <p class="hint" id="gp_status"></p>
+      </div>
+      <div class="card">
+        <h3>Member games: Premium Daily Match pairs</h3>
+        <p class="hint" style="margin-top:-6px">Members only, separate from the free pairs above. Same format: <b>Type | Left | Right</b> (D, S or F). Members get 6 new pairs every day, in order. Add 6 to 600 pairs.</p>
+        <textarea id="gm_text" class="t-area" rows="14" spellcheck="false" placeholder="D | Atenolol | β1-selective blocker&#10;S | Wilson disease | Kayser-Fleischer ring&#10;F | Koplik spots | Measles"></textarea>
+        <div class="t-actions">
+          <button class="btn" id="gm_save">Save pool</button>
+          <button class="btn outline" id="gm_reload">Undo changes</button>
+          <button class="btn outline" id="gm_remove">Remove pool</button>
+        </div>
+        <p class="hint" id="gm_status"></p>
+      </div>
+      <div class="card">
         <h3>Home sample: card slider (up to 5 cards)</h3>
         <p class="hint" style="margin-top:-6px">Pick 1 card from each of up to 5 different series. Visitors who are not signed in swipe through them, and the last slide asks them to join Premium. Only these picked pictures (and their answers) become public. Everything else stays private.</p>
         <div id="sm_slots"></div>
@@ -4782,7 +4826,7 @@ async function loadSampleAdmin() {
     document.getElementById('sm_text').value = d && Array.isArray(d.qs) ? questionsToText(d.qs) : '';
     st.textContent = d && Array.isArray(d.qs) && d.qs.length ? 'Saved on the home page: ' + d.qs.length + ' questions.' : 'No sample saved yet. The sample box is hidden on the home page.';
   } catch (e) { st.textContent = 'Could not load: ' + e.message; }
-  loadPairsAdmin();
+  loadPairsAdmin(); Object.keys(GPOOL).forEach(gLoad);
   try {
     const dl = await getDoc(doc(db, 'sample', 'daily10'));
     const dd = dl.exists() ? dl.data() : null, ds = document.getElementById('dl_status');
@@ -4896,6 +4940,108 @@ async function removePairs() {
 document.getElementById('pm_save').addEventListener('click', savePairs);
 document.getElementById('pm_reload').addEventListener('click', loadPairsAdmin);
 document.getElementById('pm_remove').addEventListener('click', removePairs);
+
+// ---------- Member games pools (stored in practice/g_*; members read, only admin writes) ----------
+const GPOOL = {
+  gb: { doc: 'g_blitz', min: 20, max: 600, nm: 'One-Liner Blitz', parse: parseBlitz, toText: blitzToText },
+  gc: { doc: 'g_cases', min: 5, max: 300, nm: 'Clinical Case Sprint', parse: parseCases, toText: casesToText },
+  gp: { doc: 'g_pearls', min: 5, max: 500, nm: 'Clinical Pearl Collector', parse: parsePearls, toText: pearlsToText },
+  gm: { doc: 'g_pairs', min: 6, max: 600, nm: 'Premium Daily Match', parse: parsePairs, toText: pairsToText }
+};
+function blitzToText(ps) { return (ps || []).map(p => (p.a ? 'T' : 'F') + ' | ' + p.s + (p.e ? ' | ' + p.e : '')).join('\n'); }
+function parseBlitz(text) {
+  const out = [], errs = [], seen = {};
+  String(text || '').split(/\r?\n/).forEach((ln, i) => {
+    const line = ln.trim(); if (!line) return;
+    const p = line.split('|').map(x => x.trim());
+    if (p.length < 2 || p.length > 3 || !/^[TF]$/i.test(p[0])) { errs.push('Line ' + (i + 1) + ': use T | statement | reason  (or F)'); return; }
+    if (!p[1] || p[1].length > 170) { errs.push('Line ' + (i + 1) + ': statement must be 1 to 170 letters'); return; }
+    if (p[2] && p[2].length > 220) { errs.push('Line ' + (i + 1) + ': reason is over 220 letters'); return; }
+    const k = p[1].toLowerCase(); if (seen[k]) { errs.push('Line ' + (i + 1) + ': repeated statement'); return; }
+    seen[k] = 1; out.push({ a: p[0].toUpperCase() === 'T', s: p[1], e: p[2] || '' });
+  });
+  return { ps: out, errs: errs };
+}
+function gBlocks(text) {
+  const blocks = [], cur = { lines: [], start: 0 };
+  let b = [], st = 0;
+  String(text || '').split(/\r?\n/).forEach((ln, i) => {
+    if (!ln.trim()) { if (b.length) { blocks.push({ lines: b, start: st }); b = []; } return; }
+    if (!b.length) st = i + 1; b.push(ln.trim());
+  });
+  if (b.length) blocks.push({ lines: b, start: st });
+  return blocks;
+}
+function gFields(lines, keys) {         // joins continuation lines onto the previous field
+  const f = {}; let k = null;
+  lines.forEach(l => {
+    let m = l.match(/^(CASE|Q|ANS|ANSWER|PEARL|SUBJECT)\s*:\s*(.*)$/i), n = null;
+    if (m) { k = m[1].toUpperCase(); if (k === 'ANSWER') k = 'ANS'; f[k] = m[2]; return; }
+    m = l.match(/^WHY\s*([A-D])\s*[:\)\.]\s*(.*)$/i);
+    if (m) { k = 'W' + m[1].toUpperCase(); f[k] = m[2]; return; }
+    m = l.match(/^\(?([A-D])[\)\.]\s*(.*)$/i);
+    if (m) { k = 'O' + m[1].toUpperCase(); f[k] = m[2]; return; }
+    if (k) f[k] += ' ' + l;
+  });
+  return f;
+}
+function parseOptsBlock(blk, kind, out, errs, seen) {
+  const f = gFields(blk.lines), at = 'Block starting line ' + blk.start + ': ';
+  const main = (kind === 'case' ? f.CASE : f.Q || '').trim();
+  if (!main || main.length > (kind === 'case' ? 650 : 350)) { errs.push(at + (kind === 'case' ? 'CASE text needed (up to 650 letters)' : 'Q text needed (up to 350 letters)')); return; }
+  const o = ['A', 'B', 'C', 'D'].map(x => (f['O' + x] || '').trim());
+  if (o.some(x => !x || x.length > 90)) { errs.push(at + 'need four options A) to D), each up to 90 letters'); return; }
+  const a = 'ABCD'.indexOf((f.ANS || '').trim().toUpperCase().charAt(0));
+  if (a < 0) { errs.push(at + 'ANS must be A, B, C or D'); return; }
+  const k = main.toLowerCase(); if (seen[k]) { errs.push(at + 'repeated'); return; } seen[k] = 1;
+  const s = (f.SUBJECT || '').trim().slice(0, 40);
+  if (kind === 'case') {
+    const w = ['A', 'B', 'C', 'D'].map(x => (f['W' + x] || '').trim());
+    const miss = w.findIndex((x, i) => i !== a && !x);
+    if (miss >= 0) { errs.push(at + 'WHY ' + 'ABCD'[miss] + ' is missing'); return; }
+    if (w.some(x => x.length > 240)) { errs.push(at + 'a WHY line is over 240 letters'); return; }
+    out.push({ c: main, o: o, a: a, w: w, s: s });
+  } else {
+    const p = (f.PEARL || '').trim();
+    if (!p || p.length > 300) { errs.push(at + 'PEARL needed (up to 300 letters)'); return; }
+    out.push({ q: main, o: o, a: a, p: p, s: s });
+  }
+}
+function parseCases(text) { const out = [], errs = [], seen = {}; gBlocks(text).forEach(b => parseOptsBlock(b, 'case', out, errs, seen)); return { ps: out, errs: errs }; }
+function parsePearls(text) { const out = [], errs = [], seen = {}; gBlocks(text).forEach(b => parseOptsBlock(b, 'pearl', out, errs, seen)); return { ps: out, errs: errs }; }
+function casesToText(ps) { return (ps || []).map(c => 'CASE: ' + c.c + '\n' + c.o.map((x, i) => 'ABCD'[i] + ') ' + x).join('\n') + '\nANS: ' + 'ABCD'[c.a] + '\n' + c.w.map((x, i) => x ? 'WHY ' + 'ABCD'[i] + ': ' + x : '').filter(Boolean).join('\n') + (c.s ? '\nSUBJECT: ' + c.s : '')).join('\n\n'); }
+function pearlsToText(ps) { return (ps || []).map(c => 'Q: ' + c.q + '\n' + c.o.map((x, i) => 'ABCD'[i] + ') ' + x).join('\n') + '\nANS: ' + 'ABCD'[c.a] + '\nPEARL: ' + c.p + (c.s ? '\nSUBJECT: ' + c.s : '')).join('\n\n'); }
+async function gLoad(id) {
+  const g = GPOOL[id], st = document.getElementById(id + '_status'); if (!st) return;
+  try {
+    const { db, doc, getDoc } = window.__fb;
+    const s = await getDoc(doc(db, 'practice', g.doc)), d = s.exists() ? s.data() : null;
+    document.getElementById(id + '_text').value = d && Array.isArray(d.ps) ? g.toText(d.ps) : '';
+    st.textContent = d && Array.isArray(d.ps) && d.ps.length ? 'Saved: ' + d.ps.length + ' items.' : 'Nothing saved yet. Members see "Coming soon" for this game.';
+  } catch (e) { st.textContent = 'Could not load: ' + e.message; }
+}
+async function gSave(id) {
+  const g = GPOOL[id], st = document.getElementById(id + '_status');
+  const r = g.parse(document.getElementById(id + '_text').value);
+  if (r.errs.length) { st.textContent = r.errs.slice(0, 6).join(' | ') + (r.errs.length > 6 ? ' ... and ' + (r.errs.length - 6) + ' more' : ''); showToast('Fix the lines first', true); return; }
+  if (r.ps.length < g.min || r.ps.length > g.max) { st.textContent = 'Add between ' + g.min + ' and ' + g.max + ' items. Now: ' + r.ps.length + '.'; showToast('Need ' + g.min + ' to ' + g.max + ' items', true); return; }
+  const btn = document.getElementById(id + '_save'); btn.disabled = true;
+  try {
+    const { db, doc, setDoc, serverTimestamp } = window.__fb;
+    await setDoc(doc(db, 'practice', g.doc), { ps: r.ps, count: r.ps.length, updatedAt: serverTimestamp() });
+    st.textContent = 'Saved: ' + r.ps.length + ' items. Live for members.'; showToast('✔ ' + g.nm + ' saved');
+  } catch (e) { showToast('Failed: ' + e.message, true); } finally { btn.disabled = false; }
+}
+async function gRemove(id) {
+  const g = GPOOL[id]; if (!confirm('Remove the ' + g.nm + ' pool? Members will see Coming soon.')) return;
+  try { const { db, doc, deleteDoc } = window.__fb; await deleteDoc(doc(db, 'practice', g.doc)); document.getElementById(id + '_text').value = ''; document.getElementById(id + '_status').textContent = 'Removed.'; showToast('Removed'); }
+  catch (e) { showToast('Failed: ' + e.message, true); }
+}
+Object.keys(GPOOL).forEach(id => {
+  document.getElementById(id + '_save').addEventListener('click', () => gSave(id));
+  document.getElementById(id + '_reload').addEventListener('click', () => gLoad(id));
+  document.getElementById(id + '_remove').addEventListener('click', () => gRemove(id));
+});
 async function removeSampleQs() {
   if (!confirm('Remove the free sample from the home page?')) return;
   try { const { db, doc, deleteDoc } = window.__fb; await deleteDoc(doc(db, 'sample', 'main')); document.getElementById('sm_text').value = ''; document.getElementById('sm_status').textContent = 'Removed. The sample box is hidden now.'; showToast('Removed'); }
