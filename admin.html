@@ -470,6 +470,7 @@
       <button class="tab-btn" data-panel="imgTestPanel">Image Tests</button>
       <button class="tab-btn" data-panel="dropsPanel">Recent Drops</button>
       <button class="tab-btn" data-panel="samplePanel">Home sample</button>
+      <button class="tab-btn" data-panel="gamesPanel">Member Games</button>
       <button class="tab-btn" data-panel="lbPanel">Top 10</button>
       <button class="tab-btn" data-panel="bankPanel">Question Bank</button>
       <button class="tab-btn" data-panel="newsPanel">News</button>
@@ -792,41 +793,8 @@
       </div>
     </div>
 
-    <!-- Home sample (for visitors who are not signed in) -->
-    <div id="samplePanel" style="display:none;">
-      <div class="card">
-        <h3>Home sample: 10 free questions</h3>
-        <p class="hint" style="margin-top:-6px">Shown on the home page to visitors who are not signed in. Exactly 10 mix-subject questions, answers shown after each one. No pictures. Paste them in the same format as Add Test, then press Save. You can replace them any time.</p>
-        <textarea id="sm_text" class="t-area" rows="14" spellcheck="false" placeholder="Q1. Question text&#10;A. Option&#10;B. Option&#10;C. Option&#10;D. Option&#10;Answer: B&#10;Explanation: Why B is right&#10;Subject: Pathology"></textarea>
-        <div class="t-actions">
-          <button class="btn" id="sm_save">Save 10 questions</button>
-          <button class="btn outline" id="sm_reload">Undo changes</button>
-          <button class="btn outline" id="sm_remove">Remove sample</button>
-        </div>
-        <p class="hint" id="sm_status"></p>
-      </div>
-      <div class="card">
-        <h3>Daily 10: free question pool</h3>
-        <p class="hint" style="margin-top:-6px">Paste a pool of free questions (10 to 400). The home page shows 10 new ones every day, in order, and starts again from the first when the pool ends. Everything you save here is public, so keep your premium questions out. If this is empty, the fixed 10-question sample above is used. No pictures. Same format as Add Test.</p>
-        <textarea id="dl_text" class="t-area" rows="14" spellcheck="false" placeholder="Q1. Question text&#10;A. Option&#10;B. Option&#10;C. Option&#10;D. Option&#10;Answer: B&#10;Explanation: Why B is right&#10;Subject: Pathology"></textarea>
-        <div class="t-actions">
-          <button class="btn" id="dl_save">Save pool</button>
-          <button class="btn outline" id="dl_reload">Undo changes</button>
-          <button class="btn outline" id="dl_remove">Remove pool</button>
-        </div>
-        <p class="hint" id="dl_status"></p>
-      </div>
-      <div class="card">
-        <h3>Daily Match: free pairs pool</h3>
-        <p class="hint" style="margin-top:-6px">One pair per line: <b>Type | Left | Right</b>. Type is <b>D</b> (Drug | Mechanism), <b>S</b> (Disease | Feature) or <b>F</b> (Finding | Associated condition). The home page shows 6 new pairs every day, in order, and starts again from the first when the pool ends. Keep each side short (left up to 34 letters, right up to 52). Use only pairs with one clear right answer. Everything saved here is public.</p>
-        <textarea id="pm_text" class="t-area" rows="14" spellcheck="false" placeholder="D | Atenolol | β1-selective blocker&#10;S | Wilson disease | Kayser-Fleischer ring&#10;F | Koplik spots | Measles"></textarea>
-        <div class="t-actions">
-          <button class="btn" id="pm_save">Save pairs</button>
-          <button class="btn outline" id="pm_reload">Undo changes</button>
-          <button class="btn outline" id="pm_remove">Remove pairs</button>
-        </div>
-        <p class="hint" id="pm_status"></p>
-      </div>
+    <!-- Member games pools -->
+    <div id="gamesPanel" style="display:none;">
       <div class="card">
         <h3>Member games: One-Liner Blitz pool</h3>
         <p class="hint" style="margin-top:-6px">Members only. One statement per line: <b>T | statement | short reason</b> or <b>F | statement | short reason</b>. T means the statement is true, F means false. The reason is optional but shown after the round for wrong answers. Add 20 to 600 lines. Each member gets 5 rounds a day.</p>
@@ -870,6 +838,43 @@
           <button class="btn outline" id="gm_remove">Remove pool</button>
         </div>
         <p class="hint" id="gm_status"></p>
+      </div>
+    </div>
+
+    <!-- Home sample (for visitors who are not signed in) -->
+    <div id="samplePanel" style="display:none;">
+      <div class="card">
+        <h3>Home sample: 10 free questions</h3>
+        <p class="hint" style="margin-top:-6px">Shown on the home page to visitors who are not signed in. Exactly 10 mix-subject questions, answers shown after each one. No pictures. Paste them in the same format as Add Test, then press Save. You can replace them any time.</p>
+        <textarea id="sm_text" class="t-area" rows="14" spellcheck="false" placeholder="Q1. Question text&#10;A. Option&#10;B. Option&#10;C. Option&#10;D. Option&#10;Answer: B&#10;Explanation: Why B is right&#10;Subject: Pathology"></textarea>
+        <div class="t-actions">
+          <button class="btn" id="sm_save">Save 10 questions</button>
+          <button class="btn outline" id="sm_reload">Undo changes</button>
+          <button class="btn outline" id="sm_remove">Remove sample</button>
+        </div>
+        <p class="hint" id="sm_status"></p>
+      </div>
+      <div class="card">
+        <h3>Daily 10: free question pool</h3>
+        <p class="hint" style="margin-top:-6px">Paste a pool of free questions (10 to 400). The home page shows 10 new ones every day, in order, and starts again from the first when the pool ends. Everything you save here is public, so keep your premium questions out. If this is empty, the fixed 10-question sample above is used. No pictures. Same format as Add Test.</p>
+        <textarea id="dl_text" class="t-area" rows="14" spellcheck="false" placeholder="Q1. Question text&#10;A. Option&#10;B. Option&#10;C. Option&#10;D. Option&#10;Answer: B&#10;Explanation: Why B is right&#10;Subject: Pathology"></textarea>
+        <div class="t-actions">
+          <button class="btn" id="dl_save">Save pool</button>
+          <button class="btn outline" id="dl_reload">Undo changes</button>
+          <button class="btn outline" id="dl_remove">Remove pool</button>
+        </div>
+        <p class="hint" id="dl_status"></p>
+      </div>
+      <div class="card">
+        <h3>Daily Match: free pairs pool</h3>
+        <p class="hint" style="margin-top:-6px">One pair per line: <b>Type | Left | Right</b>. Type is <b>D</b> (Drug | Mechanism), <b>S</b> (Disease | Feature) or <b>F</b> (Finding | Associated condition). The home page shows 6 new pairs every day, in order, and starts again from the first when the pool ends. Keep each side short (left up to 34 letters, right up to 52). Use only pairs with one clear right answer. Everything saved here is public.</p>
+        <textarea id="pm_text" class="t-area" rows="14" spellcheck="false" placeholder="D | Atenolol | β1-selective blocker&#10;S | Wilson disease | Kayser-Fleischer ring&#10;F | Koplik spots | Measles"></textarea>
+        <div class="t-actions">
+          <button class="btn" id="pm_save">Save pairs</button>
+          <button class="btn outline" id="pm_reload">Undo changes</button>
+          <button class="btn outline" id="pm_remove">Remove pairs</button>
+        </div>
+        <p class="hint" id="pm_status"></p>
       </div>
       <div class="card">
         <h3>Home sample: card slider (up to 5 cards)</h3>
@@ -1323,12 +1328,13 @@ window.addEventListener('fbReady', () => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      ['homePanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'gtPanel', 'seriesPanel', 'cardsPanel', 'imgTestPanel', 'dropsPanel', 'samplePanel', 'dailyPanel', 'statsPanel', 'mnPanel', 'lbPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'launchPanel', 'membersPanel', 'listPanel'].forEach(id => {
+      ['homePanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'gtPanel', 'seriesPanel', 'cardsPanel', 'imgTestPanel', 'dropsPanel', 'samplePanel', 'gamesPanel', 'dailyPanel', 'statsPanel', 'mnPanel', 'lbPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'launchPanel', 'membersPanel', 'listPanel'].forEach(id => {
         document.getElementById(id).style.display = (id === btn.dataset.panel) ? 'block' : 'none';
       });
       if (btn.dataset.panel === 'homePanel') loadHome();
       if (btn.dataset.panel === 'dropsPanel') loadDrops();
       if (btn.dataset.panel === 'samplePanel') loadSampleAdmin();
+      if (btn.dataset.panel === 'gamesPanel') Object.keys(GPOOL).forEach(gLoad);
       if (btn.dataset.panel === 'mnPanel') loadMnAdmin();
       if (btn.dataset.panel === 'dailyPanel') loadDailyAdmin();
       if (btn.dataset.panel === 'statsPanel') loadStatsAdmin();
@@ -4826,7 +4832,7 @@ async function loadSampleAdmin() {
     document.getElementById('sm_text').value = d && Array.isArray(d.qs) ? questionsToText(d.qs) : '';
     st.textContent = d && Array.isArray(d.qs) && d.qs.length ? 'Saved on the home page: ' + d.qs.length + ' questions.' : 'No sample saved yet. The sample box is hidden on the home page.';
   } catch (e) { st.textContent = 'Could not load: ' + e.message; }
-  loadPairsAdmin(); Object.keys(GPOOL).forEach(gLoad);
+  loadPairsAdmin();
   try {
     const dl = await getDoc(doc(db, 'sample', 'daily10'));
     const dd = dl.exists() ? dl.data() : null, ds = document.getElementById('dl_status');
