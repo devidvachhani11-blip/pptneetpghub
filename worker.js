@@ -455,7 +455,8 @@ function soonify(site, html) {
   if (!site.soon) return html;
   const drop = (s, x) => s.split(x).join('');      // every copy, not just the first
   let out = html;
-  [ '<a href="/#features">What you get</a>',
+  [ '<a class="hide" href="/calculators">Calculators</a>', '<a href="/calculators">Calculators</a>',
+    '<a href="/#features">What you get</a>',
     '<a href="/#pricing">Pricing</a>',
     '<a href="/#faq">FAQ</a>',
     '<hr><a href="/" style="color:#D4AF55;font-weight:700">Member sign in</a>'
@@ -476,11 +477,11 @@ function shellFull(site, o) {
     '<meta name="twitter:card" content="summary"><meta name="theme-color" content="#0A1830">' +
     '<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">' +
     '<style>' + NEWS_CSS + '</style>' + ld + CF_BEACON + '</head><body>' +
-    '<header class="top"><div class="in"><a class="brand" href="/"><img src="/logo-96.webp" width="30" height="30" alt="" style="border-radius:50%;vertical-align:middle;margin-right:8px">PPTNEETPGHUB<i>&middot;</i><span class="pr">Premium</span></a><nav class="m"><a class="hide" href="/news">News</a><a class="hide" href="/study-tips">Study tips</a><a class="hide" href="/counselling">Counselling</a><a class="btn" href="/#join">Go Premium</a>' +
+    '<header class="top"><div class="in"><a class="brand" href="/"><img src="/logo-96.webp" width="30" height="30" alt="" style="border-radius:50%;vertical-align:middle;margin-right:8px">PPTNEETPGHUB<i>&middot;</i><span class="pr">Premium</span></a><nav class="m"><a class="hide" href="/news">News</a><a class="hide" href="/study-tips">Study tips</a><a class="hide" href="/calculators">Calculators</a><a class="hide" href="/counselling">Counselling</a><a class="btn" href="/#join">Go Premium</a>' +
       '<details class="menu"><summary aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></summary><div class="panel">' +
-      '<a href="/">Home</a><a href="/#features">What you get</a><a href="/#pricing">Pricing</a><a href="/news">News</a><a href="/study-tips">Study tips</a><a href="/counselling">Counselling</a><a href="/#faq">FAQ</a><hr><a href="/" style="color:#D4AF55;font-weight:700">Member sign in</a></div></details></nav></div></header>' +
+      '<a href="/">Home</a><a href="/#features">What you get</a><a href="/#pricing">Pricing</a><a href="/news">News</a><a href="/study-tips">Study tips</a><a href="/calculators">Calculators</a><a href="/counselling">Counselling</a><a href="/#faq">FAQ</a><hr><a href="/" style="color:#D4AF55;font-weight:700">Member sign in</a></div></details></nav></div></header>' +
     '<main>' + o.body + '</main>' +
-    '<footer><div><a href="/">Home</a><a href="/news">News</a><a href="/study-tips">Study tips</a><a href="/counselling">Counselling</a><a href="/#pricing">Pricing</a></div><div class="legal"><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/refund">Refunds</a></div><p>Summaries of official notices. Always confirm dates and rules on the official website before acting.</p></footer><script>document.addEventListener("click",function(e){var d=document.querySelector("details.menu");if(d&&d.open&&!d.contains(e.target))d.open=false;});</script></body></html>';
+    '<footer><div><a href="/">Home</a><a href="/news">News</a><a href="/study-tips">Study tips</a><a href="/calculators">Calculators</a><a href="/counselling">Counselling</a><a href="/#pricing">Pricing</a></div><div class="legal"><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/refund">Refunds</a></div><p>Summaries of official notices. Always confirm dates and rules on the official website before acting.</p></footer><script>document.addEventListener("click",function(e){var d=document.querySelector("details.menu");if(d&&d.open&&!d.contains(e.target))d.open=false;});</script></body></html>';
 }
 function ctaBox() {
   return '<div class="cta"><b>Preparing for NEET PG?</b><p>Notes, PYQs, flash cards and timed tests, released step by step.</p><a class="btn" href="/#join">Go Premium</a></div>';
@@ -791,7 +792,8 @@ async function sitemapXml(env, url) {
   const last = (l) => (l.length ? (l[0].updatedAt || '').slice(0, 10) : '');
   const rows = site.soon
     ? [{ loc: '/news', mod: last(news) }, { loc: '/counselling', mod: guide ? (guide.updatedAt || '').slice(0, 10) : last(coun) }, { loc: '/study-tips', mod: last(tips) }]
-    : [{ loc: '/', mod: '' }, { loc: '/terms', mod: '' }, { loc: '/privacy', mod: '' }, { loc: '/refund', mod: '' }, { loc: '/news', mod: last(news) }, { loc: '/counselling', mod: guide ? (guide.updatedAt || '').slice(0, 10) : last(coun) }, { loc: '/study-tips', mod: last(tips) }];
+    : [{ loc: '/', mod: '' }, { loc: '/terms', mod: '' }, { loc: '/privacy', mod: '' }, { loc: '/refund', mod: '' }, { loc: '/calculators', mod: '' }, { loc: '/news', mod: last(news) }, { loc: '/counselling', mod: guide ? (guide.updatedAt || '').slice(0, 10) : last(coun) }, { loc: '/study-tips', mod: last(tips) }];
+  if (!site.soon) CALCS.forEach(c => rows.push({ loc: '/calculators/' + c.slug, mod: '' }));
   news.forEach(n => rows.push({ loc: '/news/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
   coun.forEach(n => rows.push({ loc: '/counselling/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
   tips.forEach(n => rows.push({ loc: '/study-tips/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
@@ -809,6 +811,135 @@ async function latestJson(env, url) {
   return new Response(JSON.stringify({ items: all.map(x => ({ title: x.title, slug: x.slug, category: x.category, date: x.date })) }), { status: 200, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=60' } });
 }
 
+// ---------- Quick calculators (free, no sign-in, runs in the browser) ----------
+const CALC_DISCLAIMER = 'For exam practice and learning only. Not for clinical decisions. Always follow your hospital protocol and the treating team.';
+const CALCS = [
+  { slug: 'curb-65-calculator', name: 'CURB-65', type: 'check', unit: 'points',
+    title: 'CURB-65 Calculator: Pneumonia Severity Score', short: 'CURB-65 pneumonia severity score',
+    desc: 'Free CURB-65 calculator for community-acquired pneumonia. Tick Confusion, Urea, Respiratory rate, Blood pressure and Age 65 to get the score and the usual disposition.',
+    lead: 'Tick every item that applies to the patient. The score and what it usually means appear below.',
+    fields: [
+      { l: 'Confusion', s: 'New disorientation to person, place or time', v: 1 },
+      { l: 'Urea raised', s: 'Urea > 7 mmol/L (BUN > 19 mg/dL)', v: 1 },
+      { l: 'Respiratory rate 30 or more', s: 'Breaths per minute', v: 1 },
+      { l: 'Low blood pressure', s: 'Systolic < 90 or diastolic 60 or less mmHg', v: 1 },
+      { l: 'Age 65 or more', s: 'Years', v: 1 }],
+    what: ['CURB-65 is a 5-point score used to judge how serious community-acquired pneumonia (CAP) is. Each item that is present adds 1 point: Confusion, Urea, Respiratory rate, Blood pressure and age 65 or more.',
+      'Score 0 to 1: low risk, usually outpatient treatment. Score 2: short inpatient stay or closely supervised treatment. Score 3 or more: severe pneumonia, consider ICU.'],
+    pearl: 'NEET PG often asks the score cut-offs and the five items. Remember C-U-R-B-65 and that 3 or more is severe.',
+    faq: [['What does CURB-65 stand for?', 'Confusion, Urea, Respiratory rate, Blood pressure, and age 65 or more.'],
+      ['What is a high CURB-65 score?', 'A score of 3 or more is severe pneumonia, and ICU care should be considered.']] },
+  { slug: 'wells-score-pulmonary-embolism-calculator', name: 'Wells score (PE)', type: 'check', unit: 'points',
+    title: 'Wells Score Calculator for Pulmonary Embolism (PE)', short: 'Wells criteria for pulmonary embolism',
+    desc: 'Free Wells score calculator for pulmonary embolism. Tick the criteria to get the score, PE likely or unlikely, and the usual next test.',
+    lead: 'Tick every criterion that applies. The score and the usual next step appear below.',
+    fields: [
+      { l: 'Clinical signs of DVT', s: 'Leg swelling and pain on palpation of deep veins', v: 3 },
+      { l: 'PE is the most likely diagnosis', s: 'An alternative diagnosis is less likely than PE', v: 3 },
+      { l: 'Heart rate above 100', s: 'Beats per minute', v: 1.5 },
+      { l: 'Immobilisation or recent surgery', s: 'Bed rest 3 days or more, or surgery in the past 4 weeks', v: 1.5 },
+      { l: 'Previous DVT or PE', s: 'Earlier confirmed event', v: 1.5 },
+      { l: 'Haemoptysis', s: 'Coughing up blood', v: 1 },
+      { l: 'Malignancy', s: 'On treatment, treated in the last 6 months, or palliative', v: 1 }],
+    what: ['The Wells score estimates how likely a pulmonary embolism (PE) is before any test is done. Seven criteria add up to a score of up to 12.5.',
+      'Two-tier use: a score above 4 means PE likely, so go to CT pulmonary angiography (CTPA), the investigation of choice. A score of 4 or less means PE unlikely, and a D-dimer is the usual next step.',
+      'Three-tier use: below 2 is low probability, 2 to 6 is moderate, and above 6 is high.'],
+    pearl: 'Remember that the PE-likely cut-off is above 4. The classic S1Q3T3 ECG is insensitive, and sinus tachycardia is the most common ECG finding in PE.',
+    faq: [['What Wells score means PE is likely?', 'Above 4 on the two-tier Wells score means PE likely, and CTPA is the usual next test.'],
+      ['What is the maximum Wells score for PE?', 'The maximum is 12.5 points.']] },
+  { slug: 'glasgow-coma-scale-calculator', name: 'Glasgow Coma Scale', type: 'radio', unit: '',
+    title: 'Glasgow Coma Scale (GCS) Calculator', short: 'Glasgow Coma Scale score',
+    desc: 'Free Glasgow Coma Scale calculator. Choose the best Eye, Verbal and Motor response to get the GCS total from 3 to 15 and its severity group.',
+    lead: 'Choose the best response in each of the three groups. The total appears below.',
+    groups: [
+      { l: 'Eye opening (E)', n: 'e', o: [['Spontaneous', 4], ['To voice', 3], ['To pain', 2], ['None', 1]] },
+      { l: 'Verbal response (V)', n: 'v', o: [['Oriented', 5], ['Confused', 4], ['Inappropriate words', 3], ['Incomprehensible sounds', 2], ['None', 1]] },
+      { l: 'Motor response (M)', n: 'm', o: [['Obeys commands', 6], ['Localises pain', 5], ['Withdraws from pain', 4], ['Abnormal flexion (decorticate)', 3], ['Extension (decerebrate)', 2], ['None', 1]] }],
+    what: ['The Glasgow Coma Scale (GCS) measures level of consciousness using three responses: Eye opening (1 to 4), Verbal (1 to 5) and Motor (1 to 6). The total runs from 3 to 15.',
+      'Usual groups: 13 to 15 mild, 9 to 12 moderate, and 8 or less severe (coma). A GCS of 8 or less is the classic point to think about securing the airway.',
+      'Write the score as its parts, for example E3 V4 M5 = 12. The motor score is the best response, and it is the strongest predictor of outcome.'],
+    pearl: 'Lowest possible GCS is 3, not 0. Use the best motor response, and note the parts as well as the total.',
+    faq: [['What is the lowest GCS score?', 'The lowest possible score is 3, with E1 V1 M1.'],
+      ['What GCS is severe head injury?', 'A GCS of 8 or less is usually called severe.']] },
+  { slug: 'apgar-score-calculator', name: 'Apgar score', type: 'radio', unit: '',
+    title: 'Apgar Score Calculator for Newborns', short: 'Apgar score for the newborn',
+    desc: 'Free Apgar score calculator. Score Appearance, Pulse, Grimace, Activity and Respiration to get the total out of 10 and what it usually means.',
+    lead: 'Choose one option in each of the five groups. The total out of 10 appears below.',
+    groups: [
+      { l: 'Appearance (colour)', n: 'a', o: [['Blue or pale all over', 0], ['Body pink, hands and feet blue', 1], ['Pink all over', 2]] },
+      { l: 'Pulse (heart rate)', n: 'p', o: [['Absent', 0], ['Below 100 per minute', 1], ['100 or more per minute', 2]] },
+      { l: 'Grimace (reflex response)', n: 'g', o: [['No response', 0], ['Grimace or weak response', 1], ['Cry, cough or sneeze', 2]] },
+      { l: 'Activity (muscle tone)', n: 'c', o: [['Limp', 0], ['Some flexion of limbs', 1], ['Active movement', 2]] },
+      { l: 'Respiration (breathing)', n: 'r', o: [['Absent', 0], ['Weak or irregular', 1], ['Good, strong cry', 2]] }],
+    what: ['The Apgar score is a quick check of a newborn. It is scored at 1 minute and again at 5 minutes. Each of the five signs gets 0, 1 or 2 points. APGAR stands for Appearance, Pulse, Grimace, Activity and Respiration.',
+      'Usual groups: 7 to 10 reassuring, 4 to 6 moderately low (the baby may need help), and 0 to 3 very low (needs immediate resuscitation).',
+      'The score should not delay resuscitation. Start resuscitation when needed, without waiting for the 1-minute score.'],
+    pearl: 'Know the five signs in the APGAR order and the groups 7 to 10, 4 to 6 and 0 to 3. Heart rate and respiration are the signs that guide resuscitation first.',
+    faq: [['What does APGAR stand for?', 'Appearance, Pulse, Grimace, Activity and Respiration.'],
+      ['When is the Apgar score taken?', 'At 1 minute and 5 minutes after birth.']] }
+];
+const CALC_CSS = '.calc{margin:18px 0}.copt{display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid #E3DCC8;border-radius:14px;padding:13px 14px;margin-bottom:9px;cursor:pointer;-webkit-tap-highlight-color:transparent}.copt.on{border-color:#0F8F83;background:#EAF7F4}.copt input{width:20px;height:20px;accent-color:#0F8F83;flex:none;margin:0}.copt span{flex:1;min-width:0}.copt b{display:block;font-size:15px;color:#0A1830}.copt em{display:block;font-style:normal;font-size:12.5px;color:#6E7A8A;margin-top:1px}.copt i{font-style:normal;font-weight:700;font-size:13px;color:#0B6F66;background:#DDF3EF;border-radius:10px;padding:2px 9px;flex:none}fieldset.cgrp{border:0;margin:0 0 16px;padding:0;min-width:0}fieldset.cgrp legend{font-weight:700;color:#0A1830;font-size:15px;margin-bottom:8px;padding:0}.cres{position:sticky;bottom:10px;background:#0A1830;color:#fff;border-radius:18px;padding:16px 18px;margin:16px 0;box-shadow:0 10px 28px rgba(10,24,48,.3)}.cres .sc{font-size:38px;font-weight:800;line-height:1;color:#EACF85}.cres .sc small{font-size:15px;color:#A9B6CE;font-weight:600;margin-left:6px}.cres .lv{font-weight:700;font-size:16px;margin-top:6px}.cres p{margin:4px 0 0;font-size:14px;color:#C5CFE2}.cres .rs{margin-top:10px;background:transparent;border:1.5px solid rgba(255,255,255,.35);color:#fff;border-radius:20px;padding:6px 14px;font:inherit;font-size:13px;cursor:pointer}.pearlbox{background:#FFF8E8;border:1px solid #EADFC0;border-left:4px solid #C9A24B;border-radius:12px;padding:12px 14px;margin:18px 0;font-size:15px}.disc{font-size:12.5px;color:#6E7A8A;margin:14px 0}.cgrid{display:grid;gap:10px}';
+const CALC_JS = `(function(){var root=document.getElementById('calc');if(!root)return;var kind=root.getAttribute('data-calc');var out=document.getElementById('cres');
+function f(n){return (Math.round(n*10)/10).toString();}
+function sum(){var t=0;root.querySelectorAll('input:checked').forEach(function(i){t+=parseFloat(i.value)||0;});return t;}
+function pick(n){var e=root.querySelector('input[name="'+n+'"]:checked');return e?parseFloat(e.value):null;}
+function show(sc,max,lv,tx){out.innerHTML='<div class="sc">'+sc+(max?'<small>/ '+max+'</small>':'')+'</div><div class="lv">'+lv+'</div><p>'+tx+'</p><button type="button" class="rs" id="crs">Reset</button>';document.getElementById('crs').onclick=reset;}
+function wait(t){out.innerHTML='<div class="lv">'+t+'</div>';}
+function reset(){root.querySelectorAll('input').forEach(function(i){i.checked=false;});paint();upd();window.scrollTo({top:root.offsetTop-70,behavior:'smooth'});}
+function paint(){root.querySelectorAll('.copt').forEach(function(l){var i=l.querySelector('input');l.classList.toggle('on',!!(i&&i.checked));});}
+function upd(){paint();
+if(kind==='curb-65'){var s=sum();var lv,tx;if(s<=1){lv='Low risk';tx='Usually outpatient treatment.';}else if(s===2){lv='Moderate risk';tx='Short inpatient stay or closely supervised treatment.';}else{lv='Severe pneumonia';tx='Consider ICU care.';}show(f(s),5,lv,tx);}
+else if(kind==='wells-pe'){var w=sum();var two=w>4?'PE likely. Go to CT pulmonary angiography (CTPA).':'PE unlikely. D-dimer is the usual next step.';var three=w<2?'Low':(w<=6?'Moderate':'High');show(f(w),12.5,w>4?'PE likely':'PE unlikely',two+' Three-tier group: '+three+' probability.');}
+else if(kind==='gcs'){var e=pick('e'),v=pick('v'),m=pick('m');if(e===null||v===null||m===null){wait('Choose one option in each of the three groups.');return;}var g=e+v+m;var lv2=g>=13?'Mild':(g>=9?'Moderate':'Severe (coma)');var tx2='E'+e+' V'+v+' M'+m+' = '+g+'.'+(g<=8?' A GCS of 8 or less is the classic point to think about securing the airway.':'');show(g,15,lv2,tx2);}
+else if(kind==='apgar'){var ks=['a','p','g','c','r'],t=0;for(var k=0;k<ks.length;k++){var x=pick(ks[k]);if(x===null){wait('Choose one option in each of the five groups.');return;}t+=x;}var lv3=t>=7?'Reassuring':(t>=4?'Moderately low':'Very low');var tx3=t>=7?'Usually normal adaptation to life outside the womb.':(t>=4?'The baby may need help with breathing or stimulation.':'Needs immediate resuscitation.');show(t,10,lv3,tx3);}}
+root.addEventListener('change',upd);root.addEventListener('click',function(ev){var l=ev.target.closest&&ev.target.closest('.copt');if(l)setTimeout(upd,0);});upd();})();`;
+const CALC_KIND = { 'curb-65-calculator': 'curb-65', 'wells-score-pulmonary-embolism-calculator': 'wells-pe', 'glasgow-coma-scale-calculator': 'gcs', 'apgar-score-calculator': 'apgar' };
+function calcFormHtml(c) {
+  const pt = (v) => (v > 0 ? '+' + v : '0');
+  if (c.type === 'check') {
+    return c.fields.map(f => '<label class="copt"><input type="checkbox" value="' + f.v + '"><span><b>' + h(f.l) + '</b><em>' + h(f.s) + '</em></span><i>' + pt(f.v) + '</i></label>').join('');
+  }
+  return c.groups.map(g => '<fieldset class="cgrp"><legend>' + h(g.l) + '</legend>' +
+    g.o.map(o => '<label class="copt"><input type="radio" name="' + g.n + '" value="' + o[1] + '"><span><b>' + h(o[0]) + '</b></span><i>' + o[1] + '</i></label>').join('') + '</fieldset>').join('');
+}
+function calcCta() {
+  return '<div class="cta"><b>Turn scores into marks.</b><p>Try the free daily questions, then practise by subject with instant answers.</p><div class="cta-row"><a class="btn" href="/#freeHub">Free daily practice</a><a class="btn" href="/#join">Go Premium</a></div></div>';
+}
+function calcNotFound(site) {
+  return htmlResponse(shell(site, { title: 'Page not found | PPTNEETPGHUB', desc: 'This page was not found.', path: '/calculators', noindex: true,
+    body: '<h1>Page not found</h1><p class="lead">That calculator does not exist.</p><p><a href="/calculators">See all calculators</a></p>' }), 404);
+}
+async function calcIndexPage(env, url) {
+  const site = siteOf(env, url);
+  const body = '<div class="crumbs"><a href="/">Home</a> › Calculators</div><h1>Free medical score calculators</h1>' +
+    '<p class="lead">Quick calculators for scores that NEET PG and INICET ask again and again. They work on your phone, with no sign-in.</p>' +
+    CALCS.map(c => '<a class="item" href="/calculators/' + c.slug + '"><span class="pill t">Calculator</span><b>' + h(c.title) + '</b><span class="s">' + h(c.desc) + '</span></a>').join('') +
+    '<p class="disc">' + h(CALC_DISCLAIMER) + '</p>' + calcCta();
+  return htmlResponse(shell(site, { title: 'Free Medical Score Calculators: CURB-65, Wells, GCS, Apgar | PPTNEETPGHUB',
+    desc: 'Free calculators for CURB-65, Wells score for PE, Glasgow Coma Scale and Apgar score. Made for NEET PG and INICET revision.', path: '/calculators', body,
+    ld: [crumbLd(site, [['Home', '/'], ['Calculators', '/calculators']])] }));
+}
+async function calcPage(env, url, slug) {
+  const site = siteOf(env, url);
+  const c = CALCS.find(x => x.slug === slug);
+  if (!c) return calcNotFound(site);
+  const path = '/calculators/' + c.slug;
+  const others = CALCS.filter(x => x.slug !== c.slug);
+  const body = '<style>' + CALC_CSS + '</style><div class="crumbs"><a href="/">Home</a> › <a href="/calculators">Calculators</a> › ' + h(c.name) + '</div>' +
+    '<span class="pill t">Calculator</span><h1>' + h(c.title) + '</h1><p class="lead">' + h(c.lead) + '</p>' +
+    '<div class="calc" id="calc" data-calc="' + CALC_KIND[c.slug] + '">' + calcFormHtml(c) + '</div>' +
+    '<div class="cres" id="cres" aria-live="polite"></div>' +
+    '<p class="disc">' + h(CALC_DISCLAIMER) + '</p>' +
+    '<div class="body"><h2>About the ' + h(c.name) + '</h2>' + c.what.map(t => '<p>' + h(t) + '</p>').join('') + '</div>' +
+    '<div class="pearlbox"><b>NEET PG pearl:</b> ' + h(c.pearl) + '</div>' +
+    '<div class="body"><h2>Common questions</h2>' + c.faq.map(q => '<p><b>' + h(q[0]) + '</b><br>' + h(q[1]) + '</p>').join('') + '</div>' +
+    calcCta() + '<h2>More calculators</h2>' + others.map(o => '<a class="item" href="/calculators/' + o.slug + '"><b>' + h(o.title) + '</b><span class="s">' + h(o.short) + '</span></a>').join('') +
+    '<script>' + CALC_JS + '</script>';
+  return htmlResponse(shell(site, { title: c.title + ' | PPTNEETPGHUB', desc: c.desc, path, body,
+    ld: [crumbLd(site, [['Home', '/'], ['Calculators', '/calculators'], [c.name, path]]),
+      { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: c.faq.map(q => ({ '@type': 'Question', name: q[0], acceptedAnswer: { '@type': 'Answer', text: q[1] } })) }] }));
+}
+
 async function handlePublic(request, env, url) {
   const p = url.pathname;
   if (p.length > 1 && p.endsWith('/')) return Response.redirect(url.origin + p.replace(/\/+$/, '') + url.search, 301);
@@ -818,6 +949,12 @@ async function handlePublic(request, env, url) {
     if (p === '/sitemap.xml') return await cachedPage(request, FRESH_SECONDS, () => sitemapXml(env, url));
     if (p === '/api/news') return await cachedPage(request, 60, () => latestJson(env, url));
     if (POLICIES[p]) return await cachedPage(request, 3600, () => policyPage(env, url, p));
+    if (!site.soon) {
+      if (p === '/calculators') return await cachedPage(request, 3600, () => calcIndexPage(env, url));
+      const km = /^\/calculators\/([a-z0-9-]{3,80})$/.exec(p);
+      if (km) return await cachedPage(request, 3600, () => calcPage(env, url, km[1]));
+      if (p.startsWith('/calculators/')) return calcNotFound(site);
+    }
     if (p === '/api/study-tips') return await cachedPage(request, 60, () => tipsLatestJson(env, url));
     if (p === '/study-tips') return await cachedPage(request, FRESH_SECONDS, () => tipsListPage(env, url));
     const tm = /^\/study-tips\/([a-z0-9-]{3,80})$/.exec(p);
