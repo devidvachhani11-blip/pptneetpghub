@@ -1364,6 +1364,14 @@ async function handleStat(request, env) {
     if (w === null || g === null || p === null) return ok;
     d.dq++; if (w) { d.dw++; d.dc[g]++; } else d.dc[0]++;     // dc[0] = not solved, dc[k] = solved with k clues
     const pz = st.puz[p] = st.puz[p] || { n: 0, w: 0 }; pz.n++; if (w) pz.w++;
+  } else if (b.e === 'ft' || b.e === 'ff') {
+    // free tools: ft = one open (u:1 when it is this phone's first open today), ff = finished (Daily Match, with seconds)
+    const n = ['mt', 'sg', 'pdf', 'tp'].indexOf(b.n) > -1 ? b.n : null;
+    if (!n) return ok;
+    d.f = d.f || {};
+    const x = d.f[n] = d.f[n] || { u: 0, t: 0, f: 0, s: 0 };
+    if (b.e === 'ft') { x.t++; if (b.u === 1) x.u++; }
+    else { const s = int(Math.round(Number(b.s)), 1, 999); if (s === null) return ok; x.f++; x.s += s; }
   } else return ok;
   const keys = Object.keys(st.days).sort(); while (keys.length > 90) delete st.days[keys.shift()];
   const pk = Object.keys(st.puz).map(Number).sort((x, y) => x - y); while (pk.length > 400) delete st.puz[pk.shift()];

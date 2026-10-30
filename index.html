@@ -7292,6 +7292,15 @@ function statSend(e, data) {
   } catch (x) {}
 }
 
+// Free tools count for the admin Stats tab. u:1 = this phone's first open today. No names, emails or IDs are sent.
+function freeStat(n) {
+  try {
+    let first = 0; const k = "pptFree:" + n + ":" + istDay(Date.now());
+    if (!localStorage.getItem(k)) { localStorage.setItem(k, "1"); first = 1; }
+    statSend("ft", { n: n, u: first });
+  } catch (x) {}
+}
+
 // ---------- Today's Sign (30 signs, one per day, India time) ----------
 const SIGNS = [["Cullen sign", "Acute haemorrhagic pancreatitis", "Bluish discolouration around the umbilicus from retroperitoneal bleeding."], ["Grey Turner sign", "Acute haemorrhagic pancreatitis", "Bruising over the flanks from retroperitoneal bleeding."], ["Murphy sign", "Acute cholecystitis", "Breath stops on deep inspiration while the RUQ is pressed."], ["Courvoisier law", "Carcinoma head of pancreas / periampullary", "Palpable non-tender gallbladder with painless jaundice. Stones are unlikely."], ["Charcot triad", "Ascending cholangitis", "Fever, jaundice and RUQ pain."], ["Reynolds pentad", "Severe ascending cholangitis", "Charcot triad plus hypotension and altered mental status."], ["Rovsing sign", "Acute appendicitis", "Pain in the right iliac fossa when the left iliac fossa is pressed."], ["Psoas sign", "Retrocaecal appendicitis", "Pain on extending the right hip."], ["Obturator sign", "Pelvic appendicitis", "Pain on internal rotation of the flexed hip."], ["Kehr sign", "Splenic rupture", "Left shoulder tip pain from diaphragmatic irritation."], ["Trousseau sign (latent tetany)", "Hypocalcaemia", "Carpal spasm after inflating a BP cuff above systolic pressure for 3 minutes."], ["Chvostek sign", "Hypocalcaemia", "Facial twitch on tapping the facial nerve in front of the ear."], ["Kussmaul sign", "Constrictive pericarditis", "JVP rises instead of falling on inspiration."], ["Pulsus paradoxus", "Cardiac tamponade", "Systolic BP falls by more than 10 mmHg on inspiration."], ["Beck triad", "Cardiac tamponade", "Hypotension, raised JVP and muffled heart sounds."], ["Argyll Robertson pupil", "Neurosyphilis", "Pupil accommodates but does not react to light."], ["Cushing triad", "Raised intracranial pressure", "Hypertension, bradycardia and irregular breathing."], ["Babinski sign", "Upper motor neuron lesion", "Great toe goes up on stroking the sole."], ["Kernig sign", "Meningitis", "Cannot fully extend the knee when the hip is flexed."], ["Brudzinski sign", "Meningitis", "Bending the neck makes the hips and knees flex."], ["Romberg sign", "Sensory (dorsal column) ataxia", "Loses balance with eyes closed, but not with eyes open."], ["Gowers sign", "Duchenne muscular dystrophy", "Child climbs up his own legs to stand, from proximal muscle weakness."], ["Homan sign", "Deep vein thrombosis", "Calf pain on dorsiflexion of the foot. Not a reliable sign."], ["Hutchinson sign", "Herpes zoster ophthalmicus", "Vesicles on the tip of the nose show nasociliary nerve involvement."], ["Koplik spots", "Measles", "Small white spots on the buccal mucosa before the rash."], ["Auspitz sign", "Psoriasis", "Pinpoint bleeding when a scale is scraped off."], ["Nikolsky sign", "Pemphigus vulgaris", "Top layer of skin slips off with sideways pressure."], ["Lhermitte sign", "Multiple sclerosis", "Electric shock down the spine on bending the neck."], ["Trendelenburg sign", "Weak gluteus medius (superior gluteal nerve) or hip disease", "Pelvis drops on the opposite side when standing on the affected leg."], ["Dalrymple sign", "Graves disease (thyroid eye disease)", "Upper eyelid retraction that shows the white above the iris."]];
 (function () {
@@ -7381,6 +7390,7 @@ function mtOpen(prem) {
   document.getElementById("mtTitle").textContent = MT.prem ? "Premium Daily Match" : "Daily Match";
   document.getElementById("mtJoin").style.display = MT.prem ? "none" : "";
   ov.classList.add("on"); document.body.style.overflow = "hidden"; navPush("match", { close: mtClose });
+  if (!MT.prem) freeStat("mt");
   if (sv) { mtShowRes(sv.s, sv.w); return; }
   document.getElementById("mtRes").style.display = "none"; document.getElementById("mtGrid").style.display = ""; document.getElementById("mtHint").style.display = "";
   mtBuild(); MT.sel = -1; MT.ok = 0; MT.wrong = 0; MT.t0 = Date.now(); MT.run = true;
@@ -7413,6 +7423,7 @@ function mtFinish() {
   clearInterval(MT.iv); MT.run = false;
   const secs = Math.round(((Date.now() - MT.t0) / 1000 + MT.wrong * 3) * 10) / 10;
   try { localStorage.setItem(MT.prem ? "pptMatchP" : "pptMatch", JSON.stringify({ d: istDay(Date.now()), s: secs, w: MT.wrong })); } catch (e) {}
+  if (!MT.prem) statSend("ff", { n: "mt", s: Math.max(1, Math.round(secs)) });
   setTimeout(() => { mtShowRes(secs, MT.wrong); mtPaintHome(); }, 380);
 }
 function mtShowRes(secs, wrong) {
@@ -7812,11 +7823,14 @@ applyTheme();
   setInterval(paint, 1500); setTimeout(paint, 600);
   $("fhD10").onclick = () => { if (SMP.data) startSample(); };
   $("fhMt").onclick = () => mtOpen();
+  $("fhPdf").addEventListener("click", () => freeStat("pdf"));
+  $("fhTips").addEventListener("click", () => freeStat("tp"));
   function dqClose(fromApp) { $("dailySec").classList.remove("pop"); document.body.style.overflow = ""; if (fromApp !== true) navDone("dq"); }
   $("fhDx").onclick = () => { $("dailySec").classList.add("pop"); document.body.style.overflow = "hidden"; $("dailySec").scrollTop = 0; navPush("dq", { close: () => dqClose(true) }); };
   $("dqPopX").onclick = () => dqClose();
   function sgClose(fromApp) { $("sgOv").classList.remove("on"); document.body.style.overflow = ""; if (fromApp !== true) navDone("sign"); }
   $("fhSg").onclick = () => {
+    freeStat("sg");
     const g = SIGNS[((today() % SIGNS.length) + SIGNS.length) % SIGNS.length];
     $("sgoName").textContent = g[0]; $("sgoDis").textContent = g[1]; $("sgoMean").textContent = g[2];
     $("sgOv").classList.add("on"); document.body.style.overflow = "hidden"; navPush("sign", { close: () => sgClose(true) });

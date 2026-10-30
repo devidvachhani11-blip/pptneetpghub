@@ -1048,7 +1048,7 @@
     <div id="statsPanel" style="display:none;">
       <div class="card">
         <h3>Visitor stats</h3>
-        <p class="hint" style="margin-top:-6px">Anonymous counts from the home page: the free sample and the Daily Diagnosis. No names or emails. A phone is counted once a day for each event, so these are good estimates, not exact numbers. Counting started when this version went live. Days are in Indian time.</p>
+        <p class="hint" style="margin-top:-6px">Anonymous counts from the home page: the free sample, Daily 10, Daily Diagnosis, Daily Match, Today's Sign, the sample PDF and the Study tips tile. Member games are shown at the bottom. No names or emails. A phone is counted once a day for each event, so these are good estimates, not exact numbers. Counting started when this version went live. Days are in Indian time.</p>
         <div class="t-actions"><button class="btn outline" id="st_reload">Refresh</button></div>
         <p class="hint" id="st_status"></p>
         <div id="st_body"></div>
@@ -4105,6 +4105,16 @@ async function loadStatsAdmin() {
     });
   });
   h += '</table></div>';
+  // Other free tools (Daily Match, Today's Sign, sample PDF, Study tips tile)
+  const fSum = (keys, n) => { const t = { u: 0, t: 0, f: 0, s: 0 }; keys.forEach(k => { const x = ((days[k] || {}).f || {})[n]; if (!x) return; Object.keys(t).forEach(q => { t[q] += Number(x[q]) || 0; }); }); return t; };
+  h += '<h4 style="margin:16px 0 6px">Other free tools</h4><p class="hint" style="margin-top:0">Phones = different phones that day. Opens = every open, so one person opening 3 times counts 3. Daily Match also counts opens from members. Counted from this update only.</p><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="text-align:left;border-bottom:1px solid #D9CFB8"><th style="padding:6px 4px">&nbsp;</th><th>Phones</th><th>Opens</th><th>Finished</th><th>Avg time</th></tr>';
+  sets.forEach(s => {
+    [['mt', 'Daily Match'], ['sg', "Today's Sign"], ['pdf', 'Free sample PDF'], ['tp', 'Study tips tile']].forEach(kd => {
+      const t = fSum(s[1], kd[0]);
+      h += '<tr style="border-bottom:1px solid #EEE6D2"><td style="padding:6px 4px"><b>' + kd[1] + '</b><br><span style="font-size:11px;color:#6B7280">' + s[0] + '</span></td><td>' + t.u + '</td><td>' + t.t + '</td><td>' + (kd[0] === 'mt' ? t.f : '-') + '</td><td>' + (kd[0] === 'mt' && t.f ? (Math.round(t.s / t.f * 10) / 10) + 's' : '-') + '</td></tr>';
+    });
+  });
+  h += '</table></div>';
   h += '<h4 style="margin:16px 0 6px">By day (last 14)</h4><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="text-align:left;border-bottom:1px solid #D9CFB8"><th style="padding:6px 4px">Date</th><th>Sample started</th><th>Finished</th><th>Avg score</th><th>Diagnosis played</th><th>Solved</th></tr>';
   all.slice(-14).reverse().forEach(k => {
     const t = stSum(days, [k]);
@@ -4119,6 +4129,33 @@ async function loadStatsAdmin() {
     h += '</table></div><p class="hint">A puzzle with a low solved % is hard. Consider moving it later or making its clues clearer.</p>';
   }
   body.innerHTML = h;
+  body.insertAdjacentHTML('beforeend', '<div id="st_prem"><p class="hint">Loading member games...</p></div>');
+  loadGameStats();
+}
+// Premium games: read from each member's own games record. Only TODAY is stored per member, so there is no history here.
+async function loadGameStats() {
+  const box = document.getElementById('st_prem'); if (!box) return;
+  try {
+    const today = Math.floor((Date.now() + 19800000) / 86400000);
+    let members = 0, blitzMem = 0, blitzPlays = 0, caseMem = 0, caseAns = 0, caseOk = 0, pearlMem = 0, pearlAns = 0, pearlsAll = 0, anyMem = 0;
+    (await getDocs(collection(db, 'games'))).forEach(d => {
+      const x = d.data() || {}, g = x.g || {}; members++;
+      pearlsAll += Array.isArray(x.pearls) ? x.pearls.length : 0;
+      if (g.day !== today) return;
+      const b = Number(g.b) || 0, c = Object.keys(g.c || {}), r = Object.keys((g.p || {}).r || {});
+      if (b) { blitzMem++; blitzPlays += b; }
+      if (c.length) { caseMem++; caseAns += c.length; c.forEach(k => { if (g.c[k] && g.c[k][0]) caseOk++; }); }
+      if (r.length) { pearlMem++; pearlAns += r.length; }
+      if (b || c.length || r.length) anyMem++;
+    });
+    const row = (n, a, b2, c2) => '<tr style="border-bottom:1px solid #EEE6D2"><td style="padding:6px 4px"><b>' + n + '</b></td><td>' + a + '</td><td>' + b2 + '</td><td>' + c2 + '</td></tr>';
+    box.innerHTML = '<h4 style="margin:16px 0 6px">Premium games today (Indian date)</h4><p class="hint" style="margin-top:0">From the members who have played a member game at least once (' + members + '). ' + anyMem + ' of them played something today. Only today is kept per member, so this shows today, not history. Premium Daily Match is saved on the phone only, so it is not counted here.</p><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="text-align:left;border-bottom:1px solid #D9CFB8"><th style="padding:6px 4px">&nbsp;</th><th>Members today</th><th>Plays / answers</th><th>Extra</th></tr>' +
+      row('One-Liner Blitz', blitzMem, blitzPlays, '') +
+      row('Case Sprint', caseMem, caseAns, caseAns ? stPct(caseOk, caseAns) + ' correct' : '') +
+      row('Pearl Collector', pearlMem, pearlAns, pearlsAll + ' pearls collected in total') + '</table></div>';
+  } catch (e) {
+    box.innerHTML = '<p class="hint">Could not load member games (' + String(e && e.message || e).slice(0, 80) + '). Is the updated firestore.rules published?</p>';
+  }
 }
 document.getElementById('st_reload').addEventListener('click', loadStatsAdmin);
 async function cloudBackup() {
