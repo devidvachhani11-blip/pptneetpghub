@@ -401,19 +401,18 @@ function inlineFmt(raw) {
   return t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 }
 function renderBody(text) {
-  const out = [];
-  String(text || '').replace(/\r/g, '').split(/\n{2,}/).forEach(block => {
-    const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
-    if (!lines.length) return;
-    if (lines.every(l => /^[-*] /.test(l))) { out.push('<ul>' + lines.map(l => '<li>' + inlineFmt(l.slice(2)) + '</li>').join('') + '</ul>'); return; }
-    if (/^## /.test(lines[0])) {
-      out.push('<h2>' + inlineFmt(lines[0].slice(3)) + '</h2>');
-      const rest = lines.slice(1);
-      if (rest.length) out.push(rest.every(l => /^[-*] /.test(l)) ? '<ul>' + rest.map(l => '<li>' + inlineFmt(l.slice(2)) + '</li>').join('') + '</ul>' : '<p>' + rest.map(inlineFmt).join('<br>') + '</p>');
-      return;
-    }
-    out.push('<p>' + lines.map(inlineFmt).join('<br>') + '</p>');
+  // Line-based: headings, bullets and paragraphs work even without blank lines between them.
+  const out = []; let ul = [], para = [];
+  const flushUl = () => { if (ul.length) { out.push('<ul>' + ul.map(l => '<li>' + inlineFmt(l) + '</li>').join('') + '</ul>'); ul = []; } };
+  const flushP = () => { if (para.length) { out.push('<p>' + para.map(inlineFmt).join('<br>') + '</p>'); para = []; } };
+  String(text || '').replace(/\r/g, '').split('\n').forEach(raw => {
+    const l = raw.trim();
+    if (!l) { flushUl(); flushP(); return; }
+    if (/^##\s+/.test(l)) { flushUl(); flushP(); out.push('<h2>' + inlineFmt(l.replace(/^##\s+/, '')) + '</h2>'); return; }
+    if (/^[-*] /.test(l)) { flushP(); ul.push(l.slice(2)); return; }
+    flushUl(); para.push(l);
   });
+  flushUl(); flushP();
   return out.join('\n');
 }
 function niceDate(d) {
