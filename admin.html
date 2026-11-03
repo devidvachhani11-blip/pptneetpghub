@@ -864,6 +864,11 @@
           <button class="btn outline" id="dl_remove">Remove pool</button>
         </div>
         <p class="hint" id="dl_status"></p>
+        <h4 style="margin:16px 0 6px">Public pages for Google (SEO)</h4>
+        <label class="l-all"><input type="checkbox" id="wp_signs" checked> Show the Clinical sign pages (/sign). One page for each of the 30 signs.</label>
+        <label class="l-all" style="margin-top:8px"><input type="checkbox" id="wp_qs"> Show the pool above as public question pages (/q). The answers become public.</label>
+        <div class="t-actions"><button class="btn outline" id="wp_save">Save public pages setting</button></div>
+        <p class="hint" id="wp_status"></p>
       </div>
       <div class="card">
         <h3>Daily Match: free pairs pool</h3>
@@ -2609,7 +2614,7 @@ function sectionOf(r) {
 }
 function catsFor(section) { return section === 'tips' ? TIP_CATS : section === 'counselling' ? COUN_CATS : NEWS_CATS; }
 function newsPath(r) { const s = sectionOf(r); return s === 'tips' ? '/study-tips/' + r.slug : s === 'counselling' ? (r.slug === 'counselling' ? '/counselling' : '/counselling/' + r.slug) : '/news/' + r.slug; }
-const TIP_CATS = ['Study plan', 'Revision', 'Mock tests and PYQs', 'Subject tips', 'Exam day', 'Motivation'];
+const TIP_CATS = ['Study plan', 'Revision', 'Mock tests and PYQs', 'Subject tips', 'Exam day', 'Motivation', 'Ranker Vault', '5-min Ward Revision'];
 const STARTER_TIPS = [{"slug": "neet-pg-revision-plan", "category": "Study plan", "title": "How to build a NEET PG revision plan you can actually follow", "summary": "A simple way to split your time between new topics, revision and tests, so your plan survives a busy week instead of breaking on day three.", "body": "Most revision plans fail for one reason: they are written for an ideal week that never happens. A plan you can follow on a bad day is worth more than a perfect plan you drop after a week.\n\n## Start from the days you have, not the days you wish for\n\nCount the real hours you can study on a normal day, then take away 20 percent. That smaller number is your plan. Anything extra is a bonus, not a promise.\n\n## Split every week into three parts\n\n- **Learn:** new topics or topics you have not covered properly yet.\n- **Revise:** topics you have already read once. This should grow every week.\n- **Test:** practice questions and mock tests, then time to go through the mistakes.\n\nIn the early months, give most of the time to learning. As the exam gets closer, move time from learning to revision and tests.\n\n## Plan by topic, not by clock\n\n\"Study Pharmacology for 3 hours\" is vague. \"Finish autonomic drugs and do 30 questions on them\" has a clear end. When a topic is done, you know you made progress.\n\n## Keep one catch-up slot every week\n\nFix one half day a week as a catch-up slot. Missed sessions move there. Without it, every missed day pushes everything else back and the plan slowly collapses.\n\n## Review the plan every Sunday\n\nSpend 15 minutes looking at what you finished and what you did not. Move the unfinished topics, cut anything unrealistic, and write next week's list. A plan that changes is a plan that works.\n\n## A starting point\n\n- Pick the subjects that carry the most questions and the ones you find hardest. Put them early in the week, when you are fresh.\n- Do a short revision of yesterday's topic before starting something new.\n- End each day by writing the first task for tomorrow.\n\nCheck your own exam's official information for the pattern and dates, and build your plan around those."}, {"slug": "how-to-use-mock-tests", "category": "Mock tests and PYQs", "title": "How to use mock tests to raise your score, not just measure it", "summary": "A mock test is a learning tool. Here is how to attempt it, review it and turn each wrong answer into a point you will not lose next time.", "body": "Many students take a mock test, look at the score, feel good or bad, and move on. The score is the least useful part of a mock. The real value is what you learn from it.\n\n## Attempt it like the real exam\n\n- Sit in one place, with no phone and no notes.\n- Keep to the time limit.\n- Skip questions you cannot solve and come back, instead of getting stuck.\n\nThis trains your pace and your nerves, which a relaxed practice session does not.\n\n## Spend more time on the review than on the test\n\nA good rule: give the review at least as long as the test itself. For every question you got wrong or guessed, find out which of these happened:\n\n- **You did not know the fact.** Revise that topic.\n- **You knew it but misread the question.** Slow down and underline the key words.\n- **You changed a right answer to a wrong one.** Trust your first reasoning unless you find a clear reason to change.\n- **You guessed and were right.** Treat it as wrong. You still do not know it.\n\n## Write down every mistake\n\nKeep one place for mistakes, either a notebook or the Mistake notebook in your library. Write the question, the right answer and why. Revisit the list often. A mistake you have seen three times is a mistake you rarely make again.\n\n## Look for patterns\n\nAfter four or five tests, look at your wrong answers together. If most come from the same two subjects, those are your next study blocks. If most come from careless reading, your fix is a habit, not more content.\n\n## Do not chase the score\n\nScores go up and down between tests. Watch the trend over several tests, and watch how many repeated mistakes you still make. Fewer repeated mistakes means you are improving."}, {"slug": "active-recall-and-spaced-revision", "category": "Revision", "title": "Active recall and spaced revision: remember more in less time", "summary": "Re-reading feels productive but fades fast. Two simple habits, testing yourself and revising at gaps, make facts stay for the exam.", "body": "If you finish a chapter and feel that you know it, that feeling can be misleading. Recognising a page you have just read is easy. Recalling the facts a week later, with the book closed, is what the exam asks.\n\n## Active recall\n\nActive recall means pulling information out of your memory instead of putting it in again.\n\n- Close the book and write down everything you remember about a topic. Then check what you missed.\n- Turn headings into questions and answer them aloud.\n- Use flashcards and answer before you flip the card.\n- Do practice questions on a topic soon after reading it.\n\nIt feels harder than re-reading, and that difficulty is the reason it works.\n\n## Spaced revision\n\nRevise a topic again just as you are starting to forget it, and then again after a longer gap. A simple pattern:\n\n- The next day.\n- After about a week.\n- After about three weeks.\n- Then once a month until the exam.\n\nYou do not need exact dates. What matters is that every topic comes back several times at growing gaps.\n\n## Mark what you got wrong\n\nWhen you recall something wrongly, mark it. Those items get more revision than the ones you know well. Flashcards with a simple \"again\" and \"got it\" button do this for you: the \"again\" cards come back sooner.\n\n## Keep sessions short and mixed\n\nForty-five minutes of focused recall, then a short break, beats three hours of passive reading. Mixing two or three subjects across a day also helps your memory hold on to each one.\n\n## Use tricks and short notes for the hard facts\n\nFor lists and numbers you keep forgetting, make a short memory trick or a one-line note and put it where you will see it often. Then test yourself on it again after a few days."}, {"slug": "week-before-exam-checklist", "category": "Exam day", "title": "The week before your exam: a calm checklist", "summary": "What to do, and what to stop doing, in the last week, so you walk into the exam centre rested and prepared.", "body": "The last week is not for learning new subjects. It is for keeping what you know, staying healthy and removing small problems that can cost you on the day.\n\n## Sort the logistics early\n\n- Check your admit card and the official instructions for what to carry and what is not allowed.\n- Find out how you will reach the centre, how long it takes, and plan to arrive early.\n- If the centre is in another city, book travel and stay in advance.\n- Keep a printed copy of your documents and a spare in a different bag.\n\nAlways follow the official instructions of your exam authority, as rules can change.\n\n## Study smart in the final days\n\n- Revise your short notes, mistake list and flashcards instead of opening big books.\n- Do a few timed practice sets, then stop. One or two tests in the last days are enough.\n- Do not start a new heavy topic now.\n\n## Protect your sleep and health\n\n- Keep a regular sleep time. A rested mind recalls better than a tired one.\n- Eat normal, simple food. Avoid anything new that could upset your stomach.\n- Take short walks and drink enough water.\n\n## Avoid the panic traps\n\n- Stay away from rumours and last-minute \"leaked topic\" messages.\n- Do not compare your preparation with others. It only adds worry.\n- If you feel anxious, slow your breathing for a minute and go back to your list.\n\n## The night before\n\nPack your bag, set two alarms, and sleep on time. You have done the work. Your job now is to show up calm and answer the questions you know."}, {"slug": "stay-consistent-long-preparation", "category": "Motivation", "title": "How to stay consistent during a long NEET PG preparation", "summary": "Motivation comes and goes. Habits and a few simple rules keep you studying on the days you do not feel like it.", "body": "Almost everyone starts with energy. The real test is month four, when the novelty is gone and the exam still feels far away. Consistency is built by small rules, not by mood.\n\n## Make the start small\n\nOn low days, promise yourself only 20 minutes. Starting is the hard part. Once you begin, you will often continue. If you stop after 20 minutes, you still kept the habit.\n\n## Fix a time and a place\n\nStudying at the same time and in the same place removes the daily decision. Your mind learns that this is study time.\n\n## Track the streak, not the hours\n\nMark each day you finished your minimum plan. A visible chain of days is a strong reason not to break it. One missed day is fine. Two in a row is the point to restart quickly.\n\n## Plan rest on purpose\n\nRest is part of the plan. Take one lighter half day each week and one proper break from screens. People who never rest tend to stop suddenly instead of slowing a little.\n\n## Look after the basics\n\n- Sleep enough.\n- Move your body for some time every day.\n- Eat regular meals.\n\nLow energy is often a sleep or food problem, not a motivation problem.\n\n## Keep one person to talk to\n\nShare your weekly goal with a friend, a family member or a study partner. Saying it aloud makes it real, and a short chat on a hard day helps more than you expect.\n\n## When you fall behind\n\nDo not try to cover everything you missed in one day. Drop the least important topics, move the rest into the catch-up slot of your plan, and carry on. Progress is made by continuing, not by being perfect.\n\nIf you feel overwhelmed for many days in a row, talk to someone you trust or a counsellor. Asking for support is part of preparing well."}];
 const NEWS = { rows: [], loaded: false };
 const STARTER_OUTLINE = `## Overview
@@ -2731,6 +2736,13 @@ function openNewsEdit(row, defSection) {
   const sum = edArea('n_summary', r.summary, 3, 200);
   body.appendChild(edField('Short summary (shows in Google, up to 200 characters)', sum));
   const cnt = mk('p', 'hint', (r.summary || '').length + ' / 200'); sum.addEventListener('input', () => { cnt.textContent = sum.value.length + ' / 200'; }); body.appendChild(cnt);
+  const rkWrap = document.createElement('div'); rkWrap.id = 'n_rkWrap';
+  rkWrap.appendChild(mk('p', 'hint', 'Ranker details are shown in a credit box on the tip and in Google. Get the ranker\'s permission first.'));
+  rkWrap.appendChild(edField('Ranker name', edInput('n_rname', r.rankerName || '', 'e.g. Dr. Anjali Sharma')));
+  rkWrap.appendChild(edField('Rank', edInput('n_rrank', r.rankerRank || '', 'e.g. AIR 120')));
+  rkWrap.appendChild(edField('NEET PG year (optional)', edInput('n_ryear', r.rankerYear || '', 'e.g. 2025')));
+  rkWrap.appendChild(edField('Instagram handle (optional)', edInput('n_rinsta', r.rankerInsta || '', '@handle')));
+  body.appendChild(rkWrap);
   const text = edArea('n_body', r.body, 12); text.className = 't-area';
   body.appendChild(edField('Full text', text));
   body.appendChild(mk('p', 'hint', 'Formatting: "## Heading" on its own line, "- " for bullets, a blank line between paragraphs, **bold**, and [link text](https://address).'));
@@ -2758,7 +2770,8 @@ function openNewsEdit(row, defSection) {
     slugHint.textContent = sec === 'counselling' ? 'Opens at /counselling/your-address. Use "counselling" with page type Guide for the main counselling page at /counselling. Changing a slug later breaks old links.'
       : sec === 'tips' ? 'Opens at /study-tips/your-address. Changing a slug later breaks old links.' : 'Opens at /news/your-address. Changing a slug later breaks old links.';
   };
-  secSel.addEventListener('change', sync); sync();
+  const rkSync = () => { rkWrap.style.display = (secSel.value === 'tips' && document.getElementById('n_cat').value === 'Ranker Vault') ? '' : 'none'; };
+  secSel.addEventListener('change', () => { sync(); rkSync(); }); document.getElementById('n_cat').addEventListener('change', rkSync); sync(); rkSync();
   openEditModal(isNew ? (sec0 === 'tips' ? 'New study tip' : sec0 === 'counselling' ? 'New counselling update' : 'New news update') : (sec0 === 'tips' ? 'Edit study tip' : sec0 === 'counselling' ? 'Edit counselling update' : 'Edit news update'));
 }
 
@@ -2770,6 +2783,7 @@ async function saveNewsEdit() {
     title: v('n_title'), section: v('n_section'), type: v('n_section') === 'tips' ? 'tip' : v('n_type'), category: v('n_cat'), slug: v('n_slug').toLowerCase(), date: v('n_date'),
     summary: v('n_summary'), body: document.getElementById('n_body').value.trim(),
     sourceName: v('n_srcname'), sourceUrl: v('n_srcurl'),
+    rankerName: v('n_rname'), rankerRank: v('n_rrank'), rankerYear: v('n_ryear'), rankerInsta: v('n_rinsta'),
     pinned: document.getElementById('n_pinned').checked, published: document.getElementById('n_pub').checked
   };
   if (!data.title) throw soft('Add a title.');
@@ -2782,6 +2796,8 @@ async function saveNewsEdit() {
   if (data.published && /TODO/.test(data.body)) throw soft('The text still has TODO notes. Replace them with real details from the official notice, or untick Published.');
   if (data.slug === 'counselling' && (data.type !== 'guide' || data.section !== 'counselling')) throw soft('The "counselling" address is only for the main Guide page, shown on the Counselling page.');
   if (catsFor(data.section).indexOf(data.category) < 0) throw soft('Choose a category for this page.');
+  if (data.section === 'tips' && data.category === 'Ranker Vault' && (!data.rankerName || !data.rankerRank)) throw soft('Add the ranker name and rank for a Ranker Vault tip.');
+  if (!(data.section === 'tips' && data.category === 'Ranker Vault')) { data.rankerName = ''; data.rankerRank = ''; data.rankerYear = ''; data.rankerInsta = ''; }
   if (row) {
     await updateDoc(doc(db, 'news', row.id), Object.assign({}, data, { updatedAt: serverTimestamp() }));
     showToast(data.published ? '✔ Saved. The public page updates within about 2 minutes.' : '✔ Saved as draft');
@@ -4877,6 +4893,12 @@ async function loadSampleAdmin() {
     ds.textContent = dd && Array.isArray(dd.qs) && dd.qs.length ? 'Saved: ' + dd.qs.length + ' questions, enough for ' + Math.floor(dd.qs.length / 10) + ' days before it repeats.' : 'No pool saved yet. The fixed 10-question sample is used.';
   } catch (e) { document.getElementById('dl_status').textContent = 'Could not load: ' + e.message; }
   try {
+    const wp = await getDoc(doc(db, 'config', 'webpages')), wd = wp.exists() ? wp.data() : {};
+    document.getElementById('wp_signs').checked = wd.signPages !== false;
+    document.getElementById('wp_qs').checked = wd.qPages === true;
+    document.getElementById('wp_status').textContent = 'Pages update on the website within about 10 minutes.';
+  } catch (e) { document.getElementById('wp_status').textContent = 'Could not load: ' + e.message; }
+  try {
     const rows = (await readCardDocs()).filter(x => String(x.fileUrl || '').indexOf('r2:') === 0 && /\.(png|jpe?g|webp)$/i.test(String(x.fileUrl)));
     rows.sort((p, q) => natCompare(seriesNameOf(p), seriesNameOf(q)) || ((Number(p.seq) || 0) - (Number(q.seq) || 0)));
     SM.cards = rows;
@@ -5116,6 +5138,15 @@ document.getElementById('sm_remove').addEventListener('click', removeSampleQs);
 document.getElementById('dl_save').addEventListener('click', saveDailyPool);
 document.getElementById('dl_reload').addEventListener('click', loadSampleAdmin);
 document.getElementById('dl_remove').addEventListener('click', removeDailyPool);
+document.getElementById('wp_save').addEventListener('click', async () => {
+  const btn = document.getElementById('wp_save'); btn.disabled = true;
+  try {
+    const { db, doc, setDoc, serverTimestamp } = window.__fb;
+    await setDoc(doc(db, 'config', 'webpages'), { signPages: document.getElementById('wp_signs').checked, qPages: document.getElementById('wp_qs').checked, updatedAt: serverTimestamp() });
+    document.getElementById('wp_status').textContent = 'Saved. Pages update on the website within about 10 minutes.';
+    showToast('✔ Public pages setting saved');
+  } catch (e) { showToast('Failed: ' + e.message, true); } finally { btn.disabled = false; }
+});
 document.getElementById('sm_csave').addEventListener('click', saveSampleCards);
 document.getElementById('sm_creload').addEventListener('click', loadSampleAdmin);
 document.getElementById('sm_cremove').addEventListener('click', removeSampleCards);

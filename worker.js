@@ -264,7 +264,7 @@ async function handleDelete(request, env, url) {
 const NEWS_CATEGORIES = ['Government', 'NBEMS', 'INICET', 'Seat matrix', 'Exam notice', 'Other'];
 const COUNSELLING_CATEGORIES = ['Central (MCC)', 'State counselling', 'Seat matrix', 'Dates and rounds', 'Documents', 'Other'];
 const LEGACY_COUNSELLING_CATS = ['MCC', 'State counselling', 'Seat matrix'];   // items saved before the Counselling section existed
-const TIP_CATEGORIES = ['Study plan', 'Revision', 'Mock tests and PYQs', 'Subject tips', 'Exam day', 'Motivation'];
+const TIP_CATEGORIES = ['Study plan', 'Revision', 'Mock tests and PYQs', 'Subject tips', 'Exam day', 'Motivation', 'Ranker Vault', '5-min Ward Revision'];
 const FRESH_SECONDS = 120;
 
 function h(s) {
@@ -343,6 +343,7 @@ function decodeNews(doc) {
     category: s('category') || 'Other', summary: s('summary'), body: s('body'),
     sourceUrl: s('sourceUrl'), sourceName: s('sourceName'), date,
     pinned: !!(f.pinned && f.pinned.booleanValue),
+    rankerName: s('rankerName'), rankerRank: s('rankerRank'), rankerYear: s('rankerYear'), rankerInsta: s('rankerInsta'),
     updatedAt: t('updatedAt') || t('createdAt') || (date ? date + 'T00:00:00Z' : '')
   };
   // Which page it belongs to: news, counselling or tips. Older items without the field are sorted by their type and category.
@@ -455,7 +456,7 @@ function soonify(site, html) {
   if (!site.soon) return html;
   const drop = (s, x) => s.split(x).join('');      // every copy, not just the first
   let out = html;
-  [ '<a class="hide" href="/calculators">Calculators</a>', '<a href="/calculators">Calculators</a>',
+  [ '<a class="hide" href="/calculators">Calculators</a>', '<a href="/calculators">Calculators</a>', '<a href="/sign">Signs</a>',
     '<a href="/#features">What you get</a>',
     '<a href="/#pricing">Pricing</a>',
     '<a href="/#faq">FAQ</a>',
@@ -481,7 +482,7 @@ function shellFull(site, o) {
       '<details class="menu"><summary aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></summary><div class="panel">' +
       '<a href="/">Home</a><a href="/#features">What you get</a><a href="/#pricing">Pricing</a><a href="/news">News</a><a href="/study-tips">Study tips</a><a href="/calculators">Calculators</a><a href="/counselling">Counselling</a><a href="/#faq">FAQ</a><hr><a href="/" style="color:#D4AF55;font-weight:700">Member sign in</a></div></details></nav></div></header>' +
     '<main>' + o.body + '</main>' +
-    '<footer><div><a href="/">Home</a><a href="/news">News</a><a href="/study-tips">Study tips</a><a href="/calculators">Calculators</a><a href="/counselling">Counselling</a><a href="/#pricing">Pricing</a></div><div class="legal"><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/refund">Refunds</a></div><p>Summaries of official notices. Always confirm dates and rules on the official website before acting.</p></footer><script>document.addEventListener("click",function(e){var d=document.querySelector("details.menu");if(d&&d.open&&!d.contains(e.target))d.open=false;});</script></body></html>';
+    '<footer><div><a href="/">Home</a><a href="/news">News</a><a href="/study-tips">Study tips</a><a href="/calculators">Calculators</a><a href="/sign">Signs</a><a href="/counselling">Counselling</a><a href="/#pricing">Pricing</a></div><div class="legal"><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/refund">Refunds</a></div><p>Summaries of official notices. Always confirm dates and rules on the official website before acting.</p></footer><script>document.addEventListener("click",function(e){var d=document.querySelector("details.menu");if(d&&d.open&&!d.contains(e.target))d.open=false;});</script></body></html>';
 }
 function ctaBox() {
   return '<div class="cta"><b>Preparing for NEET PG?</b><p>Notes, PYQs, flash cards and timed tests, released step by step.</p><a class="btn" href="/#join">Go Premium</a></div>';
@@ -498,8 +499,16 @@ function pathOf(n) {
   if (n.section === 'counselling') return n.slug === 'counselling' ? '/counselling' : '/counselling/' + h(n.slug);
   return '/news/' + h(n.slug);
 }
-function itemCard(n) {
+function itemCardBase(n) {
   return '<a class="item" href="' + pathOf(n) + '"><span class="pill' + (n.type === 'guide' ? ' g' : n.section === 'tips' ? ' t' : '') + '">' + h(n.type === 'guide' ? 'Guide' : n.category) + '</span><span class="meta">' + h(niceDate(n.date)) + '</span><b>' + h(n.title) + '</b><span class="s">' + h(clip(n.summary, 170)) + '</span></a>';
+}
+function itemCard(n) {
+  let out = itemCardBase(n);
+  const extra = n.category === '5-min Ward Revision' ? '<span class="pill">5 min</span>' : '';
+  const by = n.rankerName ? '<span class="meta"> by ' + h(n.rankerName) + (n.rankerRank ? ' · ' + h(n.rankerRank) : '') + '</span>' : '';
+  if (extra) out = out.replace('</span>', '</span>' + extra);
+  if (by) out = out.replace('<b>', by + '<b>');
+  return out;
 }
 function orgLd(site) { return { '@type': 'Organization', name: 'PPTNEETPGHUB', url: site }; }
 function crumbLd(site, trail) {
@@ -687,7 +696,7 @@ async function tipsListPage(env, url) {
   const list = all.filter(n => !cat || n.category === cat);
   const pinned = list.filter(n => n.pinned && !cat), rest = list.filter(n => !(n.pinned && !cat));
   const chips = '<div class="chips"><a href="/study-tips"' + (!cat ? ' class="on"' : '') + '>All</a>' +
-    TIP_CATEGORIES.map(c => '<a href="/study-tips?c=' + encodeURIComponent(c) + '"' + (cat === c ? ' class="on"' : '') + '>' + h(c) + '</a>').join('') + '</div>';
+    TIP_CATEGORIES.map(c => '<a href="' + (CAT_PAGES[c] || ('/study-tips?c=' + encodeURIComponent(c))) + '"' + (cat === c ? ' class="on"' : '') + '>' + h(c) + '</a>').join('') + '</div>';
   const body = '<div class="crumbs"><a href="/">Home</a> › Study tips</div><h1>NEET PG study tips</h1>' +
     '<p class="lead">Simple, practical advice on planning, revision, mock tests and staying consistent.</p>' + chips +
     (list.length ? pinned.concat(rest).map(itemCard).join('') : '<p>No study tips here yet. Check back soon.</p>') + tipsCta();
@@ -712,13 +721,13 @@ async function tipPage(env, url, slug) {
   const body = '<div class="crumbs"><a href="/">Home</a> › <a href="/study-tips">Study tips</a> › ' + h(clip(n.title, 50)) + '</div>' +
     '<span class="pill t">' + h(n.category) + '</span>' +
     '<span class="meta">' + (n.date ? h(niceDate(n.date)) : '') + (updated && updated !== n.date ? ' · Updated: ' + h(niceDate(updated)) : '') + '</span>' +
-    '<h1>' + h(n.title) + '</h1><p class="lead">' + h(n.summary) + '</p><div class="body">' + renderBody(n.body) + '</div>' +
+    '<h1>' + h(n.title) + '</h1><p class="lead">' + h(n.summary) + '</p>' + rankerBox(n) + '<div class="body">' + renderBody(n.body) + '</div>' +
     (/^https?:\/\//.test(n.sourceUrl) ? '<div class="src"><b>Source:</b> <a href="' + h(n.sourceUrl) + '" target="_blank" rel="noopener">' + h(n.sourceName || n.sourceUrl) + '</a></div>' : '') +
     tipsCta() + (related.length ? '<h2>More study tips</h2>' + related.map(itemCard).join('') : '');
   return htmlResponse(shell(site, {
     title: clip(n.title, 60) + ' | PPTNEETPGHUB', desc: clip(n.summary || n.title, 160), path, ogType: 'article', body,
     ld: [{ '@context': 'https://schema.org', '@type': 'Article', headline: clip(n.title, 110), description: clip(n.summary, 200),
-      datePublished: n.date || undefined, dateModified: updated || n.date || undefined, mainEntityOfPage: site + path, author: orgLd(site), publisher: orgLd(site) },
+      datePublished: n.date || undefined, dateModified: updated || n.date || undefined, mainEntityOfPage: site + path, author: authorLd(n, site), publisher: orgLd(site) },
       crumbLd(site, [['Home', '/'], ['Study tips', '/study-tips'], [clip(n.title, 60), path]])]
   }));
 }
@@ -794,6 +803,7 @@ async function sitemapXml(env, url) {
     ? [{ loc: '/news', mod: last(news) }, { loc: '/counselling', mod: guide ? (guide.updatedAt || '').slice(0, 10) : last(coun) }, { loc: '/study-tips', mod: last(tips) }]
     : [{ loc: '/', mod: '' }, { loc: '/terms', mod: '' }, { loc: '/privacy', mod: '' }, { loc: '/refund', mod: '' }, { loc: '/calculators', mod: '' }, { loc: '/news', mod: last(news) }, { loc: '/counselling', mod: guide ? (guide.updatedAt || '').slice(0, 10) : last(coun) }, { loc: '/study-tips', mod: last(tips) }];
   if (!site.soon) CALCS.forEach(c => rows.push({ loc: '/calculators/' + c.slug, mod: '' }));
+  if (!site.soon) { try { await addSeoRows(env, rows, tips); } catch (e) { /* the rest of the sitemap still works */ } }
   news.forEach(n => rows.push({ loc: '/news/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
   coun.forEach(n => rows.push({ loc: '/counselling/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
   tips.forEach(n => rows.push({ loc: '/study-tips/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
@@ -940,6 +950,210 @@ async function calcPage(env, url, slug) {
       { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: c.faq.map(q => ({ '@type': 'Question', name: q[0], acceptedAnswer: { '@type': 'Answer', text: q[1] } })) }] }));
 }
 
+// ---------- SEO pages: Clinical signs, free questions, Ranker Vault, 5-min Ward Revision ----------
+const RANKER_CAT = 'Ranker Vault', WARD_CAT = '5-min Ward Revision';
+const CAT_PAGES = { 'Ranker Vault': '/rankers', '5-min Ward Revision': '/ward-revision' };
+const CAT_PAGE_INFO = {
+  '/rankers': { cat: RANKER_CAT, title: 'NEET PG ranker tips: how toppers prepared', h1: 'NEET PG Ranker Vault: how toppers prepared',
+    desc: 'Detailed NEET PG preparation tips and strategies from rankers, in their own words and with credit: subject plans, revision and mock tests.',
+    lead: 'Detailed tips and strategies from NEET PG rankers, in their own words and with credit. See how they planned subjects, revised and used mock tests.',
+    empty: 'Ranker tips are coming soon. Check back shortly.' },
+  '/ward-revision': { cat: WARD_CAT, title: '5-minute NEET PG revision cards for duty hours', h1: '5-min Ward Revision for NEET PG',
+    desc: 'Short NEET PG revision cards you can finish in about 5 minutes between patients or duties. One topic, a few high-yield points.',
+    lead: 'Short revision cards you can finish in about 5 minutes between patients or duties. One topic, a few high-yield points each.',
+    empty: 'The first revision cards are coming soon. Check back shortly.' }
+};
+const SIGNS = [["Cullen sign", "Acute haemorrhagic pancreatitis", "Bluish discolouration around the umbilicus from retroperitoneal bleeding."], ["Grey Turner sign", "Acute haemorrhagic pancreatitis", "Bruising over the flanks from retroperitoneal bleeding."], ["Murphy sign", "Acute cholecystitis", "Breath stops on deep inspiration while the RUQ is pressed."], ["Courvoisier law", "Carcinoma head of pancreas / periampullary", "Palpable non-tender gallbladder with painless jaundice. Stones are unlikely."], ["Charcot triad", "Ascending cholangitis", "Fever, jaundice and RUQ pain."], ["Reynolds pentad", "Severe ascending cholangitis", "Charcot triad plus hypotension and altered mental status."], ["Rovsing sign", "Acute appendicitis", "Pain in the right iliac fossa when the left iliac fossa is pressed."], ["Psoas sign", "Retrocaecal appendicitis", "Pain on extending the right hip."], ["Obturator sign", "Pelvic appendicitis", "Pain on internal rotation of the flexed hip."], ["Kehr sign", "Splenic rupture", "Left shoulder tip pain from diaphragmatic irritation."], ["Trousseau sign (latent tetany)", "Hypocalcaemia", "Carpal spasm after inflating a BP cuff above systolic pressure for 3 minutes."], ["Chvostek sign", "Hypocalcaemia", "Facial twitch on tapping the facial nerve in front of the ear."], ["Kussmaul sign", "Constrictive pericarditis", "JVP rises instead of falling on inspiration."], ["Pulsus paradoxus", "Cardiac tamponade", "Systolic BP falls by more than 10 mmHg on inspiration."], ["Beck triad", "Cardiac tamponade", "Hypotension, raised JVP and muffled heart sounds."], ["Argyll Robertson pupil", "Neurosyphilis", "Pupil accommodates but does not react to light."], ["Cushing triad", "Raised intracranial pressure", "Hypertension, bradycardia and irregular breathing."], ["Babinski sign", "Upper motor neuron lesion", "Great toe goes up on stroking the sole."], ["Kernig sign", "Meningitis", "Cannot fully extend the knee when the hip is flexed."], ["Brudzinski sign", "Meningitis", "Bending the neck makes the hips and knees flex."], ["Romberg sign", "Sensory (dorsal column) ataxia", "Loses balance with eyes closed, but not with eyes open."], ["Gowers sign", "Duchenne muscular dystrophy", "Child climbs up his own legs to stand, from proximal muscle weakness."], ["Homan sign", "Deep vein thrombosis", "Calf pain on dorsiflexion of the foot. Not a reliable sign."], ["Hutchinson sign", "Herpes zoster ophthalmicus", "Vesicles on the tip of the nose show nasociliary nerve involvement."], ["Koplik spots", "Measles", "Small white spots on the buccal mucosa before the rash."], ["Auspitz sign", "Psoriasis", "Pinpoint bleeding when a scale is scraped off."], ["Nikolsky sign", "Pemphigus vulgaris", "Top layer of skin slips off with sideways pressure."], ["Lhermitte sign", "Multiple sclerosis", "Electric shock down the spine on bending the neck."], ["Trendelenburg sign", "Weak gluteus medius (superior gluteal nerve) or hip disease", "Pelvis drops on the opposite side when standing on the affected leg."], ["Dalrymple sign", "Graves disease (thyroid eye disease)", "Upper eyelid retraction that shows the white above the iris."]];
+// extra teaching text per sign, same order as SIGNS. g = group (so two options never mean the same disease), r = related signs
+const SIGN_X = [
+  { g: 'panc', sub: 'Surgery', how: 'Look at the skin around the umbilicus. Blood from the inflamed retroperitoneum tracks along the falciform ligament to the umbilicus and shows as bluish discolouration.', pearl: 'Cullen = Centre (umbilicus). Both Cullen and Grey Turner signs are late and uncommon, and suggest severe necrotising pancreatitis. Cullen sign was first described in ruptured ectopic pregnancy.', r: ['Grey Turner sign'] },
+  { g: 'panc', sub: 'Surgery', how: 'Look at the flanks. Blood tracks through the retroperitoneal planes to the flank skin and causes bruising.', pearl: 'Grey Turner = flank. It usually appears a day or more after the onset of pancreatitis, so its absence on day 1 does not rule out severe disease.', r: ['Cullen sign'] },
+  { g: 'chole', sub: 'Surgery', how: 'Press the right subcostal area (gallbladder point) and ask the patient to breathe in deeply. The inflamed gallbladder touches the examining hand and the patient suddenly stops inspiring.', pearl: 'Positive Murphy sign = inspiratory arrest. The sonographic Murphy sign is the same test done with the ultrasound probe over the gallbladder.', r: ['Charcot triad', 'Courvoisier law'] },
+  { g: 'pca', sub: 'Surgery', how: 'In a patient with jaundice, feel for the gallbladder in the right upper abdomen. It is felt as a smooth, non-tender, distended lump.', pearl: 'A gallbladder already scarred by stones cannot distend, so a palpable non-tender gallbladder with painless jaundice points to malignant obstruction such as carcinoma of the head of the pancreas. Exceptions exist, so it is a law, not an absolute rule.', r: ['Murphy sign'] },
+  { g: 'angio', sub: 'Surgery', how: 'It is a clinical triad: fever (often with chills), jaundice and right upper quadrant pain.', pearl: 'Charcot triad = ascending cholangitis. Do not confuse it with the Charcot triad of multiple sclerosis (scanning speech, intention tremor, nystagmus).', r: ['Reynolds pentad'] },
+  { g: 'angio', sub: 'Surgery', how: 'It is the Charcot triad plus hypotension and altered mental status.', pearl: 'Reynolds pentad marks severe (suppurative) cholangitis and needs urgent biliary drainage along with antibiotics and resuscitation.', r: ['Charcot triad'] },
+  { g: 'app', sub: 'Surgery', how: 'Press deeply in the left iliac fossa. Pain is felt in the right iliac fossa. It is called indirect tenderness.', pearl: 'Rovsing sign is an indirect sign. The other classic appendicitis signs are the Psoas sign (retrocaecal) and the Obturator sign (pelvic).', r: ['Psoas sign', 'Obturator sign'] },
+  { g: 'app', sub: 'Surgery', how: 'Lay the patient on the left side and extend the right hip. Pain suggests an inflamed appendix lying on the psoas muscle.', pearl: 'Psoas sign = retrocaecal (retroperitoneal) appendix. The patient often lies with the right hip flexed to ease the pain.', r: ['Rovsing sign', 'Obturator sign'] },
+  { g: 'app', sub: 'Surgery', how: 'Flex the hip and knee, then rotate the hip internally. Pain in the hypogastrium points to an inflamed appendix touching the obturator internus.', pearl: 'Obturator sign = pelvic appendix. It can also be positive with other pelvic inflammation touching the obturator internus.', r: ['Psoas sign', 'Rovsing sign'] },
+  { g: 'spleen', sub: 'Surgery', how: 'Ask about pain at the tip of the left shoulder. It is often noticed when the patient lies flat or with the legs raised.', pearl: 'Kehr sign is referred pain through the phrenic nerve (C3 to C5) from blood or irritation under the diaphragm. It can also occur with a ruptured ectopic pregnancy or other causes of diaphragmatic irritation.', r: [] },
+  { g: 'ca', sub: 'Medicine', how: 'Inflate a blood pressure cuff above the systolic pressure for about 3 minutes. Carpal spasm follows, with flexed wrist and fingers and an adducted thumb (obstetrician hand).', pearl: 'Trousseau sign is more specific for hypocalcaemia than Chvostek sign. Do not confuse it with the Trousseau sign of malignancy (migratory thrombophlebitis).', r: ['Chvostek sign'] },
+  { g: 'ca', sub: 'Medicine', how: 'Tap over the facial nerve just in front of the ear. The facial muscles on that side twitch.', pearl: 'Chvostek sign is less specific because some healthy people have it. Both signs show neuromuscular irritability from low ionised calcium.', r: ['Trousseau sign (latent tetany)'] },
+  { g: 'peri', sub: 'Medicine', how: 'Watch the jugular venous pressure while the patient breathes. It rises, or fails to fall, during inspiration.', pearl: 'Kussmaul sign is seen in constrictive pericarditis, restrictive cardiomyopathy and right heart failure. Do not confuse it with Kussmaul breathing (deep, fast breathing of metabolic acidosis).', r: ['Pulsus paradoxus'] },
+  { g: 'tamp', sub: 'Medicine', how: 'Measure the systolic pressure with a cuff while the patient breathes normally and compare it between expiration and inspiration. A fall of more than 10 mmHg on inspiration is abnormal.', pearl: 'Classic in cardiac tamponade. It is also seen in severe asthma and COPD. It is an exaggeration of a normal fall in pressure on inspiration, not a truly paradoxical pulse.', r: ['Beck triad', 'Kussmaul sign'] },
+  { g: 'tamp', sub: 'Medicine', how: 'Look for three findings together: low blood pressure, raised jugular venous pressure and muffled heart sounds.', pearl: 'Beck triad is the classic picture of acute cardiac tamponade. Pericardiocentesis is the life-saving treatment.', r: ['Pulsus paradoxus'] },
+  { g: 'syph', sub: 'Medicine', how: 'Shine a light in the eye, then ask the patient to look at a near object. The small, irregular pupil constricts for near but not to light (light-near dissociation).', pearl: 'Argyll Robertson pupil: the Accommodation Reflex is Present but the light reflex is absent (ARP). Neurosyphilis is the classic cause.', r: [] },
+  { g: 'icp', sub: 'Medicine', how: 'Look for hypertension (often with a wide pulse pressure), bradycardia and irregular breathing.', pearl: 'Cushing triad is a late sign of raised intracranial pressure and impending herniation.', r: [] },
+  { g: 'umn', sub: 'Medicine', how: 'Stroke the outer edge of the sole from the heel towards the toes. The great toe goes up (extends) and the other toes fan out.', pearl: 'A Babinski response is normal in infants up to about 2 years. In older children and adults it points to an upper motor neuron lesion.', r: [] },
+  { g: 'mening', sub: 'Medicine', how: 'With the patient lying down, flex the hip and knee to 90 degrees, then try to extend the knee. Pain and hamstring resistance make it positive.', pearl: 'Kernig = Knee (leg). Brudzinski = neck. Both signs have low sensitivity, so a negative test does not rule out meningitis.', r: ['Brudzinski sign'] },
+  { g: 'mening', sub: 'Medicine', how: 'Passively flex the patient neck. The hips and knees flex on their own.', pearl: 'Brudzinski neck sign = neck. Kernig sign = leg. Both are low-sensitivity signs of meningeal irritation.', r: ['Kernig sign'] },
+  { g: 'ataxia', sub: 'Medicine', how: 'Ask the patient to stand with the feet together. Compare balance with eyes open and eyes closed. Swaying or falling with eyes closed is positive.', pearl: 'Positive Romberg = loss of proprioception (dorsal column disease such as tabes dorsalis or vitamin B12 deficiency). In cerebellar ataxia the patient is unsteady even with eyes open.', r: [] },
+  { g: 'dmd', sub: 'Paediatrics', how: 'Ask the child to stand up from the floor. The child places the hands on the knees and thighs and pushes up.', pearl: 'Gowers sign shows proximal (pelvic girdle) muscle weakness. In Duchenne muscular dystrophy, look also for calf pseudohypertrophy and a very high serum CK.', r: [] },
+  { g: 'dvt', sub: 'Surgery', how: 'With the knee straight, passively dorsiflex the foot. Pain in the calf is called a positive sign.', pearl: 'Homan sign is unreliable because it has low sensitivity and specificity. Diagnosis of DVT depends on the Wells score, D-dimer and a Doppler ultrasound.', r: [] },
+  { g: 'hzo', sub: 'Medicine', how: 'In a patient with herpes zoster of the forehead, look at the tip and side of the nose for vesicles.', pearl: 'Hutchinson sign predicts eye involvement because the nasociliary nerve supplies both the nasal tip and the eye. Do not confuse it with Hutchinson teeth (congenital syphilis).', r: [] },
+  { g: 'measles', sub: 'Paediatrics', how: 'Look at the inside of the cheek opposite the molars. Tiny white spots on a red base appear, often described as grains of salt.', pearl: 'Koplik spots are pathognomonic of measles and appear 1 to 2 days before the rash. The rash begins on the face and behind the ears.', r: [] },
+  { g: 'psor', sub: 'Dermatology', how: 'Scrape a psoriatic scale gently. After the scale layers are removed, tiny bleeding points appear.', pearl: 'Auspitz sign is typical of psoriasis. Other classic signs are the candle grease sign and the Koebner phenomenon.', r: [] },
+  { g: 'pem', sub: 'Dermatology', how: 'Apply sideways pressure to normal-looking skin near a blister. The top layer of the skin slips off.', pearl: 'Nikolsky sign is positive in pemphigus vulgaris, toxic epidermal necrolysis and staphylococcal scalded skin syndrome. It is usually negative in bullous pemphigoid.', r: [] },
+  { g: 'ms', sub: 'Medicine', how: 'Flex the patient neck. An electric shock-like sensation runs down the spine and sometimes into the limbs.', pearl: 'Lhermitte sign comes from dorsal column (cervical cord) demyelination. It is seen in multiple sclerosis, and also in vitamin B12 deficiency, cervical spondylosis and radiation myelopathy.', r: [] },
+  { g: 'trend', sub: 'Orthopaedics', how: 'Ask the patient to stand on one leg. In a positive test the pelvis drops on the opposite, unsupported side.', pearl: 'The weak side is the side of the standing leg (hip abductors, gluteus medius, superior gluteal nerve). It is seen in developmental dysplasia of the hip, polio and coxa vara.', r: [] },
+  { g: 'graves', sub: 'Medicine', how: 'Look at the eyes. The upper eyelid sits higher than normal and the white of the eye (sclera) shows above the iris.', pearl: 'Dalrymple sign is lid retraction. Other thyroid eye signs are the Von Graefe sign (lid lag), Stellwag sign (infrequent blinking) and Joffroy sign (no forehead wrinkling on looking up).', r: [] }
+];
+function sSlug(name) { return String(name).replace(/\(.*?\)/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
+function signRows() { return SIGNS.map((s, i) => Object.assign({ i: i, slug: sSlug(s[0]), name: s[0], disease: s[1], desc: s[2] }, SIGN_X[i] || { g: 'x' + i, sub: 'Clinical', how: '', pearl: '', r: [] })); }
+
+// ---- reading the public question pool (the same one that feeds Daily 10) ----
+async function fsGetDoc(env, path) {
+  const res = await fetch('https://firestore.googleapis.com/v1/projects/' + env.PROJECT_ID + '/databases/(default)/documents/' + path);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error('Firestore ' + res.status);
+  return await res.json();
+}
+function fsVal(v) {
+  if (!v) return null;
+  if ('stringValue' in v) return v.stringValue;
+  if ('integerValue' in v) return Number(v.integerValue);
+  if ('doubleValue' in v) return Number(v.doubleValue);
+  if ('booleanValue' in v) return v.booleanValue;
+  if (v.arrayValue) return (v.arrayValue.values || []).map(fsVal);
+  if (v.mapValue) { const o = {}; Object.keys(v.mapValue.fields || {}).forEach(k => { o[k] = fsVal(v.mapValue.fields[k]); }); return o; }
+  return null;
+}
+// Admin switches (config/webpages). Signs are on unless switched off. Question pages stay off until you switch them on.
+async function webFlags(env) {
+  try {
+    const d = await fsGetDoc(env, 'config/webpages');
+    const f = d ? fsVal({ mapValue: { fields: d.fields || {} } }) : {};
+    return { signs: f.signPages !== false, qs: f.qPages === true };
+  } catch (e) { return { signs: true, qs: false }; }
+}
+async function freeQuestions(env) {
+  const d = await fsGetDoc(env, 'sample/daily10');
+  if (!d) return [];
+  const f = fsVal({ mapValue: { fields: d.fields || {} } });
+  return (Array.isArray(f.qs) ? f.qs : []).map((q, i) => ({ n: i + 1, q: String(q.q || ''), o: Array.isArray(q.o) ? q.o.map(String) : [], a: Number(q.a), e: String(q.e || ''), s: String(q.s || 'General') }))
+    .filter(q => q.q && q.o.length >= 2 && Number.isInteger(q.a) && q.a >= 0 && q.a < q.o.length);
+}
+const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
+function mcqHtml(q, opts, ans, expl) {
+  return '<div class="item" style="cursor:default"><b>' + h(q) + '</b>' +
+    '<ol type="A" style="margin:8px 0 6px 20px;padding:0">' + opts.map(o => '<li style="margin:3px 0">' + h(o) + '</li>').join('') + '</ol>' +
+    '<details><summary style="cursor:pointer;font-weight:700;color:#0F8F83">Show answer</summary><p><b>Correct answer: ' + LETTERS[ans] + '. ' + h(opts[ans]) + '</b></p>' + (expl ? '<p>' + h(expl) + '</p>' : '') + '</details></div>';
+}
+function seoNotFound(site, path, what) {
+  return htmlResponse(shell(site, { title: 'Page not found | PPTNEETPGHUB', desc: 'This page was not found.', path, noindex: true,
+    body: '<h1>Page not found</h1><p class="lead">That ' + what + ' page does not exist or is not published.</p><p><a href="/">Back to home</a></p>' }), 404);
+}
+
+// ---- /sign and /sign/<name> ----
+function signMcq(rows, s) {
+  const pool = rows.filter(x => x.g !== s.g);
+  const picked = [], seen = { [s.g]: 1 };
+  for (let k = 0; k < pool.length * 2 && picked.length < 3; k++) {
+    const x = pool[(s.i * 7 + k * 5) % pool.length];
+    if (!seen[x.g]) { seen[x.g] = 1; picked.push(x.disease); }
+  }
+  const pos = s.i % 4, opts = picked.slice(); opts.splice(pos, 0, s.disease);
+  return { opts, ans: pos };
+}
+async function signIndexPage(env, url) {
+  const site = siteOf(env, url);
+  if (!(await webFlags(env)).signs) return seoNotFound(site, '/sign', 'sign');
+  const rows = signRows();
+  const body = '<div class="crumbs"><a href="/">Home</a> › Clinical signs</div><h1>Clinical signs for NEET PG</h1>' +
+    '<p class="lead">Classic named signs with the condition they point to, how they are elicited and a quick exam pearl. Open any sign for a one-minute revision and a practice question.</p>' +
+    rows.map(s => '<a class="item" href="/sign/' + s.slug + '"><span class="pill t">' + h(s.sub) + '</span><b>' + h(s.name) + '</b><span class="s">' + h(s.disease) + '</span></a>').join('') + tipsCta();
+  return htmlResponse(shell(site, { title: 'Clinical signs for NEET PG: quick revision | PPTNEETPGHUB',
+    desc: 'Classic clinical signs for NEET PG with the condition, how to elicit each sign and an exam pearl. Quick one-minute revision pages with a practice question.',
+    path: '/sign', body, ld: [crumbLd(site, [['Home', '/'], ['Clinical signs', '/sign']])] }));
+}
+async function signPage(env, url, slug) {
+  const site = siteOf(env, url);
+  if (!(await webFlags(env)).signs) return seoNotFound(site, '/sign', 'sign');
+  const rows = signRows(), s = rows.find(x => x.slug === slug);
+  if (!s) return seoNotFound(site, '/sign', 'sign');
+  const path = '/sign/' + s.slug, mq = signMcq(rows, s);
+  const rel = (s.r || []).map(n => rows.find(x => x.name === n)).filter(Boolean);
+  const prev = rows[(s.i + rows.length - 1) % rows.length], next = rows[(s.i + 1) % rows.length];
+  const body = '<div class="crumbs"><a href="/">Home</a> › <a href="/sign">Clinical signs</a> › ' + h(s.name) + '</div>' +
+    '<span class="pill t">Clinical sign</span><span class="meta">' + h(s.sub) + '</span>' +
+    '<h1>' + h(s.name) + '</h1><p class="lead">' + h(s.name) + ' is a classic finding seen in ' + h(s.disease) + '.</p>' +
+    '<div class="body"><h2>What it means</h2><p>' + h(s.desc) + '</p>' +
+    '<h2>How it is elicited or recognised</h2><p>' + h(s.how) + '</p></div>' +
+    '<div class="src" style="border-left-color:#C9A24B"><b>NEET PG pearl:</b> ' + h(s.pearl) + '</div>' +
+    '<div class="body"><h2>Quick answers</h2><p><b>What is the ' + h(s.name) + '?</b><br>' + h(s.desc) + '</p>' +
+    '<p><b>Which condition is the ' + h(s.name) + ' linked to?</b><br>' + h(s.disease) + '.</p></div>' +
+    (rel.length ? '<h2>Related signs</h2>' + rel.map(x => '<a class="item" href="/sign/' + x.slug + '"><b>' + h(x.name) + '</b><span class="s">' + h(x.disease) + '</span></a>').join('') : '') +
+    '<h2>Practice question</h2>' + mcqHtml('Which condition is classically associated with the ' + s.name + '?', mq.opts, mq.ans, s.name + ': ' + s.desc) +
+    '<p class="meta"><a href="/sign/' + prev.slug + '">← ' + h(prev.name) + '</a> · <a href="/sign">All signs</a> · <a href="/sign/' + next.slug + '">' + h(next.name) + ' →</a></p>' +
+    '<p class="note">For exam revision only. Please cross-check with standard textbooks.</p>' + tipsCta();
+  return htmlResponse(shell(site, { title: clip(s.name + ': meaning and NEET PG pearl', 60) + ' | PPTNEETPGHUB', desc: clip(s.name + ': ' + s.desc + ' Seen in ' + s.disease + '.', 160), path, body,
+    ld: [crumbLd(site, [['Home', '/'], ['Clinical signs', '/sign'], [s.name, path]]),
+      { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: [
+        { '@type': 'Question', name: 'What is the ' + s.name + '?', acceptedAnswer: { '@type': 'Answer', text: s.desc } },
+        { '@type': 'Question', name: 'Which condition is the ' + s.name + ' linked to?', acceptedAnswer: { '@type': 'Answer', text: s.disease + '.' } }] }] }));
+}
+
+// ---- /q and /q/<number> (free questions, switched on from admin) ----
+async function qIndexPage(env, url) {
+  const site = siteOf(env, url);
+  if (!(await webFlags(env)).qs) return seoNotFound(site, '/q', 'question');
+  const qs = await freeQuestions(env);
+  if (!qs.length) return seoNotFound(site, '/q', 'question');
+  const subs = []; qs.forEach(q => { if (subs.indexOf(q.s) < 0) subs.push(q.s); });
+  const body = '<div class="crumbs"><a href="/">Home</a> › Free questions</div><h1>Free NEET PG practice questions with answers</h1>' +
+    '<p class="lead">' + qs.length + ' free questions with answers and short explanations, grouped by subject. Try each one first, then open the answer.</p>' +
+    subs.map(sub => '<h2>' + h(sub) + '</h2>' + qs.filter(q => q.s === sub).map(q => '<a class="item" href="/q/' + q.n + '"><span class="meta">Question ' + q.n + '</span><b>' + h(clip(q.q, 110)) + '</b></a>').join('')).join('') + tipsCta();
+  return htmlResponse(shell(site, { title: 'Free NEET PG practice questions with answers | PPTNEETPGHUB',
+    desc: 'Free NEET PG practice questions with answers and short explanations, grouped by subject. Try each question first, then check the answer.',
+    path: '/q', body, ld: [crumbLd(site, [['Home', '/'], ['Free questions', '/q']])] }));
+}
+async function qPage(env, url, n) {
+  const site = siteOf(env, url);
+  if (!(await webFlags(env)).qs) return seoNotFound(site, '/q', 'question');
+  const qs = await freeQuestions(env), q = qs.find(x => x.n === n);
+  if (!q) return seoNotFound(site, '/q', 'question');
+  const path = '/q/' + q.n, same = qs.filter(x => x.s === q.s && x.n !== q.n).slice(0, 5);
+  const idx = qs.indexOf(q), prev = qs[idx - 1], next = qs[idx + 1];
+  const body = '<div class="crumbs"><a href="/">Home</a> › <a href="/q">Free questions</a> › Question ' + q.n + '</div>' +
+    '<span class="pill t">' + h(q.s) + '</span><span class="meta">Question ' + q.n + '</span><h1>NEET PG practice question ' + q.n + '</h1>' +
+    '<p class="lead">Try the question first, then open the answer and explanation.</p>' + mcqHtml(q.q, q.o, q.a, q.e) +
+    (same.length ? '<h2>More ' + h(q.s) + ' questions</h2>' + same.map(x => '<a class="item" href="/q/' + x.n + '"><span class="meta">Question ' + x.n + '</span><b>' + h(clip(x.q, 110)) + '</b></a>').join('') : '') +
+    '<p class="meta">' + (prev ? '<a href="/q/' + prev.n + '">← Question ' + prev.n + '</a> · ' : '') + '<a href="/q">All questions</a>' + (next ? ' · <a href="/q/' + next.n + '">Question ' + next.n + ' →</a>' : '') + '</p>' +
+    '<p class="note">For exam practice only. Please cross-check with standard textbooks.</p>' + tipsCta();
+  return htmlResponse(shell(site, { title: clip('NEET PG ' + q.s + ' question ' + q.n + ': ' + q.q, 60) + ' | PPTNEETPGHUB', desc: clip(q.q + ' Try it, then see the answer and explanation.', 160), path, body,
+    ld: [crumbLd(site, [['Home', '/'], ['Free questions', '/q'], ['Question ' + q.n, path]])] }));
+}
+
+// ---- /rankers and /ward-revision (lists of study tips in one category) ----
+async function catListPage(env, url, path) {
+  const site = siteOf(env, url), info = CAT_PAGE_INFO[path];
+  const list = (await allTips(env)).filter(n => n.category === info.cat);
+  const body = '<div class="crumbs"><a href="/">Home</a> › <a href="/study-tips">Study tips</a> › ' + h(info.h1) + '</div><h1>' + h(info.h1) + '</h1><p class="lead">' + h(info.lead) + '</p>' +
+    (list.length ? list.map(itemCard).join('') : '<p>' + h(info.empty) + '</p>') + tipsCta();
+  return htmlResponse(shell(site, { title: info.title + ' | PPTNEETPGHUB', desc: info.desc, path, body, noindex: !list.length,
+    ld: [crumbLd(site, [['Home', '/'], ['Study tips', '/study-tips'], [info.h1, path]])] }));
+}
+function rankerBox(n) {
+  if (!n.rankerName) return '';
+  const insta = /^@?[A-Za-z0-9._]{2,40}$/.test(n.rankerInsta) ? '<a href="https://www.instagram.com/' + h(n.rankerInsta.replace(/^@/, '')) + '/" target="_blank" rel="noopener nofollow">@' + h(n.rankerInsta.replace(/^@/, '')) + ' on Instagram</a>' : '';
+  return '<div class="src" style="border-left-color:#C9A24B"><b>Tip by ' + h(n.rankerName) + '</b><br>' + h([n.rankerRank, n.rankerYear ? 'NEET PG ' + n.rankerYear : ''].filter(Boolean).join(' · ')) + (insta ? '<br>' + insta : '') + '</div>';
+}
+function authorLd(n, site) {
+  if (!n.rankerName) return orgLd(site);
+  const p = { '@type': 'Person', name: n.rankerName, description: [n.rankerRank, n.rankerYear ? 'NEET PG ' + n.rankerYear : ''].filter(Boolean).join(', ') };
+  if (/^@?[A-Za-z0-9._]{2,40}$/.test(n.rankerInsta)) p.sameAs = 'https://www.instagram.com/' + n.rankerInsta.replace(/^@/, '') + '/';
+  return p;
+}
+async function addSeoRows(env, rows, tips) {
+  const flags = await webFlags(env);
+  if (tips.some(n => n.category === RANKER_CAT)) rows.push({ loc: '/rankers', mod: (tips.filter(n => n.category === RANKER_CAT)[0].updatedAt || '').slice(0, 10) });
+  if (tips.some(n => n.category === WARD_CAT)) rows.push({ loc: '/ward-revision', mod: (tips.filter(n => n.category === WARD_CAT)[0].updatedAt || '').slice(0, 10) });
+  if (flags.signs) { rows.push({ loc: '/sign', mod: '' }); signRows().forEach(s => rows.push({ loc: '/sign/' + s.slug, mod: '' })); }
+  if (flags.qs) {
+    try { const qs = await freeQuestions(env); if (qs.length) { rows.push({ loc: '/q', mod: '' }); qs.forEach(q => rows.push({ loc: '/q/' + q.n, mod: '' })); } } catch (e) { /* skip */ }
+  }
+}
+
+
 async function handlePublic(request, env, url) {
   const p = url.pathname;
   if (p.length > 1 && p.endsWith('/')) return Response.redirect(url.origin + p.replace(/\/+$/, '') + url.search, 301);
@@ -954,6 +1168,15 @@ async function handlePublic(request, env, url) {
       const km = /^\/calculators\/([a-z0-9-]{3,80})$/.exec(p);
       if (km) return await cachedPage(request, 3600, () => calcPage(env, url, km[1]));
       if (p.startsWith('/calculators/')) return calcNotFound(site);
+      if (p === '/rankers' || p === '/ward-revision') return await cachedPage(request, FRESH_SECONDS, () => catListPage(env, url, p));
+      if (p === '/sign') return await cachedPage(request, 3600, () => signIndexPage(env, url));
+      const sgm = /^\/sign\/([a-z0-9-]{3,80})$/.exec(p);
+      if (sgm) return await cachedPage(request, 3600, () => signPage(env, url, sgm[1]));
+      if (p.startsWith('/sign/')) return seoNotFound(site, '/sign', 'sign');
+      if (p === '/q') return await cachedPage(request, 600, () => qIndexPage(env, url));
+      const qqm = /^\/q\/(\d{1,4})$/.exec(p);
+      if (qqm) return await cachedPage(request, 600, () => qPage(env, url, Number(qqm[1])));
+      if (p.startsWith('/q/')) return seoNotFound(site, '/q', 'question');
     }
     if (p === '/api/study-tips') return await cachedPage(request, 60, () => tipsLatestJson(env, url));
     if (p === '/study-tips') return await cachedPage(request, FRESH_SECONDS, () => tipsListPage(env, url));
