@@ -1983,7 +1983,8 @@
   #landingView .offer{order:8!important;margin-bottom:34px!important}
   #landingView .stats{order:9!important;margin-bottom:-52px!important;position:relative!important;z-index:2}
   #landingView .hero-end{display:none!important}
-  #landingView .hero-logo{width:84px!important;height:84px!important;margin:0 0 14px!important}
+  @media (min-width:900px){#landingView .hero-cta{max-width:560px}#landingView .offer{max-width:none}}
+  @media (max-width:899px){#landingView .hero-logo{width:92px!important;height:92px!important;margin:0 0 14px!important}}
   #landingView .tag{background:none!important;border:0!important;padding:0!important;color:#D4AF55!important;letter-spacing:.26em!important;font-size:10.5px!important}
   #landingView .hero h1{font-family:var(--lora)!important;font-weight:600!important;font-size:36px!important;line-height:1.15!important}
   #landingView .hero h1 span{font-style:italic}
