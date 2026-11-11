@@ -4733,7 +4733,7 @@ async function publishPracticePool(auto) {
     }
     await window.__fb.setDoc(doc(db, 'practice', 'index'), { subjects: index, total: total, v: 3, modes: st.modes, daily: st.daily, exams: { neet: st.neet, inicet: st.inicet }, updatedAt: serverTimestamp() });
     const old = await getDocs(collection(db, 'practice'));
-    const gone = []; old.forEach(d => { if (!keep.has(d.id)) gone.push(d.id); });
+    const gone = []; old.forEach(d => { if (/^pr_/.test(d.id) && !keep.has(d.id)) gone.push(d.id); });   // only old question parts: the game pools (g_blitz, g_cases, ...) live in the same collection and must stay
     for (let i = 0; i < gone.length; i += 400) {
       const batch = writeBatch(db);
       gone.slice(i, i + 400).forEach(id => batch.delete(doc(db, 'practice', id)));
