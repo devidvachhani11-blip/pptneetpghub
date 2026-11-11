@@ -5983,9 +5983,9 @@ function renderHub() {
   document.getElementById("hubTIb").style.display = libLoaded && !hasIni ? "" : "none";
   const box = document.getElementById("hubTiles"); box.innerHTML = "";
   const L = libLoaded && !libError, c = L ? hubCounts() : { res: 0, resNew: 0, tests: 0, decks: 0 };
-  let pb = "", ps = ini ? "Coming soon" : "Pool, games, duels";
+  let pb = "", ps = ini ? (prHasIni() ? "Questions for INICET" : "Coming soon") : "Pool, games, duels";
   if (PR.index && PR.index.daily > 0) { try { pb = "Today " + (PR.index.daily - prLeft()) + "/" + PR.index.daily; } catch (e) {} }
-  if (ini) pb = "Soon"; else if (!(PR.index && PR.index.total)) pb = "";
+  if (ini && !prHasIni()) pb = "Soon"; else if (!(PR.index && PR.index.total)) pb = "";
   hbTile(box, { icon: "target", title: "Daily Practice", sub: ps, badge: pb, exam: 1, go: () => hubGo("practice") });
   hbTile(box, { icon: "book", title: "Resources", sub: !L ? "Opening…" : c.res ? c.res + (c.res === 1 ? " file" : " files") : "Coming soon", badge: L && c.resNew ? c.resNew + " new" : (L && !c.res ? "Soon" : ""), exam: 1, go: () => hubGo("resources") });
   hbTile(box, { icon: "cards", title: "Card Decks", sub: !L ? "Opening…" : c.decks ? c.decks + (c.decks === 1 ? " deck" : " decks") : "Coming soon", badge: L && !c.decks ? "Soon" : "", exam: 1, go: () => hubGo("decks") });
@@ -6010,10 +6010,11 @@ function paintHubNew() {
   const go = libEl("button", "go", it.type === "test" ? "Start" : "View"); go.onclick = () => hubOpenItem(it); row.appendChild(go);
   box.appendChild(row);
 }
+function prHasIni() { return !!(PR.index && PR.index.subjects && PR.index.subjects.some(x => /inicet/i.test(x.subject || ""))); }
 function paintHubPlay() {
   const box = document.getElementById("hubPlay"); if (!box) return;
   box.innerHTML = "";
-  if (lib.exam === "INICET") { const c = libEl("div", "hb-soon"); c.innerHTML = '<div class="ib">' + hbIcon("target", 26) + "</div><b>INICET practice pool</b>Coming soon. It will have its own questions, separate from NEET PG."; box.appendChild(c); return; }
+  if (lib.exam === "INICET") { if (prHasIni()) return; const c = libEl("div", "hb-soon"); c.innerHTML = '<div class="ib">' + hbIcon("target", 26) + "</div><b>INICET practice pool</b>Coming soon. It will have its own questions, separate from NEET PG."; box.appendChild(c); return; }
   box.appendChild(libEl("div", "hb-sec", "DAILY GAMES"));
   if (!GM.P && !GM.loading) gmEnsure().then(() => { if (HUB.page === "practice" && libView === "library") paintHubPlay(); });
   const g = libEl("div", "hb-grid"), I = gmInfo(), P = GM.P;
@@ -6040,7 +6041,7 @@ renderHeading = function () {
   if (libView !== "library") return;
   const nm = { practice: "Daily Practice", resources: "Resources", decks: "Card Decks", tests: "Tests" }[HUB.page];
   T.textContent = lib.exam + " · " + nm + ((HUB.page === "resources" || HUB.page === "tests") && lib.subject !== "All" ? " · " + subjLabel(lib.subject) : "");
-  if (HUB.page === "practice") { S.textContent = lib.exam === "INICET" ? "Coming soon" : "Questions, games and duels"; paintHubPlay(); }
+  if (HUB.page === "practice") { S.textContent = lib.exam === "INICET" && !prHasIni() ? "Coming soon" : "Questions, games and duels"; paintHubPlay(); }
   else if (HUB.page === "decks") { const n = seriesGroups("Series", lib.q).length + seriesGroups("Card Test", lib.q).length; S.textContent = libLoaded ? n + (n === 1 ? " deck" : " decks") : "Opening…"; }
 };
 
@@ -6578,6 +6579,7 @@ function prLoadIndex() {
     } catch (e) { console.error("Could not load practice", e); PR.index = null; }
     PR.loading = null;
     paintPractice();
+    try { if (HUB.page === "practice" && libView === "library") { paintHubPlay(); render(); } } catch (e) {}
   })();
   return PR.loading;
 }
@@ -6616,7 +6618,7 @@ function paintPractice() {
   const box = document.getElementById("libPractice");
   if (!box) return;
   const ix = PR.index;
-  if (lib.exam === "INICET" || !ix || !ix.total || !libLoaded || libError || !currentUser || lib.q) { box.style.display = "none"; return; }
+  if ((lib.exam === "INICET" && !prHasIni()) || !ix || !ix.total || !libLoaded || libError || !currentUser || lib.q) { box.style.display = "none"; return; }
   box.innerHTML = ""; box.style.display = "";
   box.appendChild(libEl("h4", null, "Practice"));
   box.appendChild(libEl("p", "sub", "Random questions from our whole question bank, new ones first. Your wrong answers go to the Mistake notebook."));
