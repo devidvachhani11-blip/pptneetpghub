@@ -466,10 +466,11 @@ function soonify(site, html) {
     .replace(/<div class="legal">.*?<\/div>/g, '')
     .replace(/<div class="cta"><b>Preparing for NEET PG\?<\/b>.*?<\/div>/g, '');
 }
+const GA_TAG = '<script async src="https://www.googletagmanager.com/gtag/js?id=G-0JCWHXMBWN"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-0JCWHXMBWN");</script>';
 function shellFull(site, o) {
   const canonical = site + (o.path || '/');
   const ld = (o.ld || []).map(x => '<script type="application/ld+json">' + JSON.stringify(x).replace(/</g, '\\u003c') + '</script>').join('\n');
-  return '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+  return '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' + GA_TAG +
     '<title>' + h(o.title) + '</title><meta name="description" content="' + h(o.desc) + '">' +
     '<link rel="canonical" href="' + h(canonical) + '">' +
     (o.noindex ? '<meta name="robots" content="noindex,follow">' : '<meta name="robots" content="index,follow,max-image-preview:large">') +
