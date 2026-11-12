@@ -182,6 +182,22 @@ async function handleGet(request, env, url) {
   return new Response(obj.body, { headers });
 }
 
+// Free PDFs: any signed-in user may read files under free-pdf/ only (premium files stay members-only)
+async function handleFreeFile(request, env, url) {
+  const user = await requireUser(request, env);
+  const key = cleanKey(url.searchParams.get('key'));
+  if (key.indexOf('free-pdf/') !== 0 || key.split('.').pop() !== 'pdf') throw new HttpError(404, 'File not found');
+  const obj = await env.FILES.get(key);
+  if (!obj) throw new HttpError(404, 'File not found');
+  const headers = new Headers();
+  headers.set('Content-Type', 'application/pdf');
+  headers.set('Cache-Control', 'private, no-store');
+  headers.set('X-Content-Type-Options', 'nosniff');
+  headers.set('Content-Security-Policy', 'sandbox');
+  headers.set('Content-Disposition', 'attachment');
+  return new Response(obj.body, { headers });
+}
+
 async function handleUpload(request, env, url) {
   const user = await requireUser(request, env);
   if (!user.isAdmin) throw new HttpError(403, 'Admin only');
@@ -685,7 +701,7 @@ function tipNotFound(site) {
     body: '<h1>Page not found</h1><p class="lead">That study tip does not exist or is no longer published.</p><p><a href="/study-tips">See all study tips</a></p>' }), 404);
 }
 function tipsCta() {
-  return '<div class="cta"><b>Turn tips into marks.</b><p>Try 10 free questions, then practise by subject with instant answers.</p><div class="cta-row"><a class="btn" href="/#sampleSec">Try the free sample</a><a class="btn" href="/#join">Go Premium</a></div></div>';
+  return '<div class="cta"><b>Turn tips into marks.</b><p>Sign in with Gmail for 20 free questions every day and a free mock test every week.</p><div class="cta-row"><a class="btn" href="/#freeHub">Start free practice</a><a class="btn" href="/#join">Go Premium</a></div></div>';
 }
 const allTips = (env) => allPublished(env).then(list => list.filter(n => n.section === 'tips'));
 
@@ -1631,6 +1647,7 @@ export default {
       if (url.pathname === '/api/stat' && request.method === 'POST') return await handleStat(request, env);
       if (url.pathname === '/api/stats' && request.method === 'GET') return await handleStats(request, env);
       if (url.pathname === '/api/sample-card' && request.method === 'GET') return await handleSampleCard(env, url);
+      if (url.pathname === '/api/free-file' && request.method === 'GET') return await handleFreeFile(request, env, url);
       if (url.pathname === '/api/file' && request.method === 'GET') return await handleGet(request, env, url);
       if (url.pathname === '/api/file' && request.method === 'DELETE') return await handleDelete(request, env, url);
       if (url.pathname === '/api/upload' && request.method === 'PUT') return await handleUpload(request, env, url);
