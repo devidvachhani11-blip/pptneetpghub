@@ -2104,6 +2104,76 @@
 </header>
 <div class="inapp" id="inappBar" hidden></div>
 <div class="renew-bar" id="renewBar" hidden></div>
+<style>
+  #sampleSec{display:none!important}
+  .fh-login{background:linear-gradient(135deg,#0A1830,#16305f);color:#fff;border-radius:22px;padding:20px 18px;margin-bottom:14px;border:1px solid #D4AF55}
+  .fh-lead{margin:0 0 10px;font-weight:700;color:#EACF85;font-size:15px}
+  .fh-list{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:9px}
+  .fh-list li{display:flex;flex-direction:column;gap:1px}
+  .fh-list b{font-size:14.5px}
+  .fh-list span{font-size:13px;color:#C9D3E6;line-height:1.4}
+  .fh-small{margin:10px 0 0;font-size:12px;color:#AEBBD2}
+  #landingView.free-mode > *:not(.l-header):not(#freeDash):not(.l-footer):not(.sg-ov):not(#dailySec):not(#inappBar):not(#renewBar):not(#fdBack):not(#fdViewer){display:none!important}
+  #landingView.free-mode .l-nav,#landingView.free-mode .l-actions .btn-gold,#landingView.free-mode .l-menu-panel a[href^="#"]{display:none!important}
+  #freeDash{display:none;padding:18px 0 40px;background:#FAF7F0;min-height:70vh;color:#14213d}
+  #landingView.free-mode #freeDash{display:block}
+  .fd-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:14px}
+  .fd-top h1{margin:0;font-size:24px;font-family:var(--lora,Georgia,serif);font-weight:600}
+  .fd-top p{margin:3px 0 0;font-size:12.5px;color:#6b7280;overflow-wrap:anywhere}
+  .fd-btn{border:1px solid #D4AF55;background:#fff;color:#0A1830;border-radius:99px;padding:8px 14px;font-weight:700;font-size:13px;cursor:pointer}
+  .fd-btn.gold{background:#D4AF55}
+  .fd-btn.navy{background:#0A1830;color:#EACF85;border-color:#0A1830}
+  .fd-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .fd-t{position:relative;text-align:left;border:1px solid #E5D8B5;background:#fff;border-radius:18px;padding:14px 13px;min-height:108px;display:flex;flex-direction:column;gap:4px;cursor:pointer;color:inherit;text-decoration:none;font:inherit}
+  .fd-t b{font-size:15px;padding-right:44px}
+  .fd-t small{font-size:12px;color:#6b7280;line-height:1.35}
+  .fd-t i{position:absolute;top:10px;right:10px;font-style:normal;font-size:10px;font-weight:800;letter-spacing:.08em;background:#D4AF55;color:#0A1830;border-radius:99px;padding:3px 8px}
+  .fd-t i.d{background:#e3efe6;color:#256c3a}
+  .fd-t.off{opacity:.6}
+  .fd-note{margin:16px 0 0;font-size:12.5px;color:#6b7280;text-align:center}
+  .fd-card{background:#fff;border:1px solid #E5D8B5;border-radius:20px;padding:16px;margin-top:14px}
+  .fd-card h2{margin:0 0 6px;font-size:19px;font-family:var(--lora,Georgia,serif);font-weight:600}
+  .fd-card p{margin:0 0 10px;font-size:14px;line-height:1.5;color:#374151}
+  .fd-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .fd-prog{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;margin-bottom:10px;gap:8px}
+  .fd-timer{background:#0A1830;color:#EACF85;border-radius:99px;padding:5px 12px;font-variant-numeric:tabular-nums}
+  .fd-chip{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.06em;background:#f1ead6;color:#6b5a1f;border-radius:99px;padding:3px 9px;margin-bottom:8px}
+  .fd-q{font-size:16.5px;line-height:1.5;font-weight:600;margin:0 0 12px}
+  .fd-opt{display:block;width:100%;text-align:left;border:1.5px solid #E5D8B5;background:#fff;border-radius:14px;padding:11px 13px;margin-bottom:8px;font:inherit;font-size:15px;cursor:pointer;color:inherit}
+  .fd-opt.sel{border-color:#0A1830;background:#eef2fb}
+  .fd-opt.ok{border-color:#2f9e5a;background:#e6f5ec}
+  .fd-opt.bad{border-color:#d1493f;background:#fdeceb}
+  .fd-exp{background:#faf4de;border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.5;margin:6px 0 10px}
+  .fd-trapn{background:#fdeceb;border-radius:12px;padding:9px 12px;font-size:13.5px;margin:6px 0 10px}
+  .fd-pal{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+  .fd-pal button{width:34px;height:34px;border-radius:10px;border:1px solid #E5D8B5;background:#fff;font-weight:700;cursor:pointer}
+  .fd-pal button.a{background:#0A1830;color:#fff}
+  .fd-pal button.c{outline:2px solid #D4AF55}
+  .fd-big{font-size:46px;font-weight:800;font-family:var(--lora,Georgia,serif);color:#0A1830;line-height:1}
+  .fd-stats{display:flex;gap:10px;margin:10px 0;flex-wrap:wrap}
+  .fd-stats div{flex:1;min-width:80px;background:#faf7f0;border-radius:12px;padding:8px 10px;text-align:center;font-size:12px;color:#6b7280}
+  .fd-stats b{display:block;font-size:20px;color:#0A1830}
+  .fd-sub{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px dashed #e8dfc4}
+  .fd-rev{border-top:1px solid #eee3c4;padding:12px 0}
+  .fd-rev h4{margin:0 0 5px;font-size:14.5px;line-height:1.45}
+  .fd-rev .y{color:#256c3a;font-weight:700}.fd-rev .n{color:#b3362d;font-weight:700}
+  #fdBack{position:fixed;left:12px;bottom:14px;z-index:90;display:none;box-shadow:0 6px 20px rgba(10,24,48,.25)}
+  #fdViewer{position:fixed;inset:0;z-index:200;background:#1d2433;display:none;flex-direction:column}
+  #fdViewer.on{display:flex}
+  .fdv-top{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#0A1830;color:#fff;gap:8px;font-size:14px;font-weight:700}
+  .fdv-body{position:relative;flex:1;overflow:auto;padding:10px;-webkit-overflow-scrolling:touch}
+  .fdv-body canvas{display:block;margin:0 auto 10px;max-width:100%;background:#fff;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  .fdv-wm{position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;z-index:3}
+  @media print{#fdViewer{display:none!important}}
+</style>
+<section id="freeDash">
+  <div class="container">
+    <div class="fd-top"><div><h1>Your free space</h1><p id="fdWho"></p></div><button class="fd-btn" id="fdPrem" type="button">Premium plans</button></div>
+    <div id="fdMain"></div>
+  </div>
+</section>
+<button class="fd-btn navy" id="fdBack" type="button">&larr; My free space</button>
+<div id="fdViewer" role="dialog" aria-label="Free PDF"><div class="fdv-top"><span id="fdvTitle"></span><button class="fd-btn" id="fdvX" type="button">Close</button></div><div class="fdv-body" id="fdvBody"><div class="fdv-wm" id="fdvWm"></div></div></div>
 
 <section class="tkr" id="tkr" aria-label="Latest from PPTNEETPGHUB">
   <div class="tkr-track" id="tkrTrack"></div>
@@ -2139,25 +2209,38 @@
 
 <section class="sample-sec" id="freeHub">
   <div class="container">
-    <div class="fh-head"><h2>Free today</h2><span>New every day</span></div>
-    <div class="fh-streak" id="fhStreak" style="display:none;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z"/></svg><b id="fhSn"></b><div class="fh-bar"><i id="fhBar"></i></div><span id="fhDone"></span></div>
+    <div class="fh-head"><h2>Free with your Gmail</h2><span>No payment</span></div>
+    <div class="fh-login">
+      <p class="fh-lead">Sign in with Google and get these free, every week:</p>
+      <ul class="fh-list">
+        <li><b>Daily Practice</b><span>20 fresh questions every day, 3 of them trap questions. Instant feedback or timer mode.</span></li>
+        <li><b>Free mock test</b><span>One every week with a timer, then a score card with our logo that you can share.</span></li>
+        <li><b>Free PDF</b><span>A short revision PDF every week, view-only.</span></li>
+        <li><b>Daily Diagnosis and Daily Match</b><span>Two quick daily games.</span></li>
+      </ul>
+      <button class="btn btn-gold" id="fhGmail" type="button">Continue with Gmail</button>
+      <p class="fh-small">Free account. Any Gmail works. Premium is separate and optional.</p>
+    </div>
     <div class="fh-grid">
-      <button class="fh-t" id="fhD10" type="button" style="display:none;"><span class="fh-bd" id="fhD10B"></span><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span><span class="fh-tx"><b>Daily 10</b><em>10 free questions</em></span></button>
-      <button class="fh-t" id="fhDx" type="button" style="display:none;"><span class="fh-bd" id="fhDxB"></span><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3v6a4 4 0 0 0 8 0V3"/><path d="M10 13v2a5 5 0 0 0 10 0v-2"/><circle cx="20" cy="11" r="2"/></svg></span><span class="fh-tx"><b>Daily Diagnosis</b><em>Guess from clues</em></span></button>
-      <button class="fh-t" id="fhMt" type="button" style="display:none;"><span class="fh-bd" id="fhMtB"></span><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4a2 2 0 1 1 4 0v2h4v4h-2a2 2 0 1 0 0 4h2v4h-4v-2a2 2 0 1 0-4 0v2H6v-4h2a2 2 0 1 0 0-4H6V6h4z"/></svg></span><span class="fh-tx"><b>Daily Match</b><em>6 pairs, be quick</em></span></button>
       <button class="fh-t" id="fhSg" type="button"><span class="fh-bd" id="fhSgB"></span><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="fh-tx"><b>Today&#39;s Sign</b><em>One sign a day</em></span></button>
-      <a class="fh-t" id="fhPdf" href="/sample-PYT-Medicine-Part1.pdf" target="_blank" rel="noopener"><span class="fh-bd" id="fhPdfB"></span><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5"/></svg></span><span class="fh-tx"><b>Free sample PDF</b><em>First 4 pages</em></span></a>
       <a class="fh-t" id="fhTips" href="/study-tips"><span class="fh-bd" id="fhTipsB"></span><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span><span class="fh-tx"><b>Study tips</b><em>Tips and updates</em></span></a>
       <a class="fh-t" id="fhCalc" href="/calculators" style="grid-column:1/-1;min-height:0;flex-direction:row;align-items:center;justify-content:flex-start;gap:12px"><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M12 12h2M16 12h0M8 16h2M12 16h2M16 16h0"/></svg></span><span class="fh-tx"><b>Quick calculators</b><em>CURB-65, Wells, GCS, Apgar</em></span></a>
     </div>
-    <p class="fh-note">Free tools open right here. No payment needed.</p>
+    <div id="fhLegacy" style="display:none" aria-hidden="true">
+    <div class="fh-streak" id="fhStreak" style="display:none;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z"/></svg><b id="fhSn"></b><div class="fh-bar"><i id="fhBar"></i></div><span id="fhDone"></span></div>
+      <button class="fh-t" id="fhD10" type="button" style="display:none;"><span class="fh-bd" id="fhD10B"></span><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span><span class="fh-tx"><b>Daily 10</b><em>10 free questions</em></span></button>
+      <button class="fh-t" id="fhDx" type="button" style="display:none;"><span class="fh-bd" id="fhDxB"></span><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3v6a4 4 0 0 0 8 0V3"/><path d="M10 13v2a5 5 0 0 0 10 0v-2"/><circle cx="20" cy="11" r="2"/></svg></span><span class="fh-tx"><b>Daily Diagnosis</b><em>Guess from clues</em></span></button>
+      <button class="fh-t" id="fhMt" type="button" style="display:none;"><span class="fh-bd" id="fhMtB"></span><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4a2 2 0 1 1 4 0v2h4v4h-2a2 2 0 1 0 0 4h2v4h-4v-2a2 2 0 1 0-4 0v2H6v-4h2a2 2 0 1 0 0-4H6V6h4z"/></svg></span><span class="fh-tx"><b>Daily Match</b><em>6 pairs, be quick</em></span></button>
+      <a class="fh-t" id="fhPdf" href="/sample-PYT-Medicine-Part1.pdf" target="_blank" rel="noopener"><span class="fh-bd" id="fhPdfB"></span><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5"/></svg></span><span class="fh-tx"><b>Free sample PDF</b><em>First 4 pages</em></span></a>
+    </div>
+    <p class="fh-note">Study tips, calculators and Today's Sign are open to everyone.</p>
   </div>
 </section>
 
 <section class="sample-sec" id="homeInstallSec" style="display:none;">
   <div class="container">
     <div class="sample-box">
-      <div><h2>Get the free app</h2><p>Keep the Daily Diagnosis and the free sample on your phone, one tap away.</p></div>
+      <div><h2>Get the free app</h2><p>Keep your free practice and Daily Diagnosis on your phone, one tap away.</p></div>
       <button class="btn btn-gold" id="homeInstallBtn" type="button">Install free app</button>
       <p class="inst-safe">This is a safe web app, not a Play Store app. It installs straight from our website, takes almost no space and needs no extra permissions. We never ask for your contacts, photos or location.</p>
     </div>
@@ -2241,10 +2324,6 @@
       <p class="sg-m" id="sgMean"></p>
       <a id="sgPage" href="/sign" style="display:block;margin:6px 0 10px;font-size:13px;color:inherit;text-decoration:underline">Read more about this sign</a>
       <button class="btn btn-gold" id="sgMore" type="button">Get the full Signs PDF with Premium</button>
-    </div>
-    <div class="sample-box" style="margin-top:14px;">
-      <div><h2>Free sample PDF</h2><p>Read the first 4 pages of our NEET PG 2027 Medicine PYT sheet (Cardiology &amp; Hypertension). Made for phone reading.</p></div>
-      <a class="btn btn-gold" href="/sample-PYT-Medicine-Part1.pdf" target="_blank" rel="noopener">Open free sample PDF</a>
     </div>
   </div>
 </section>
@@ -2901,6 +2980,333 @@ function showInApp(failed) {
   inn.appendChild(x); bar.appendChild(inn); bar.hidden = false;
 }
 
+// =====================================================================
+// FREE TIER (new code). Reads only freepool / freemock / freepdf.
+// It never reads or writes any premium collection.
+// =====================================================================
+const FD = { off: false, was: false, pool: undefined, mock: undefined, pdfs: undefined, run: null, tick: null };
+function fdOn() { return !!(authResolved && currentUser && membershipChecked && !isPaidMember && !forceJoin && !FD.off && !(paymentInfo.latest && paymentInfo.latest.status === "pending")); }
+function fdEmail() { return String((currentUser && currentUser.email) || "").toLowerCase(); }
+function fdKey(k) { return "pptFree:" + fdEmail() + ":" + k; }
+function fdGet(k) { try { return JSON.parse(localStorage.getItem(fdKey(k)) || "null"); } catch (e) { return null; } }
+function fdSet(k, v) { try { localStorage.setItem(fdKey(k), JSON.stringify(v)); } catch (e) {} }
+function fdEl(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+function fdMain() { return document.getElementById("freeDash") ? document.getElementById("fdMain") : null; }
+
+// Called from updateView(). Shows or hides the free space.
+function fdSync() {
+  const lv = document.getElementById("landingView");
+  if (!lv) return;
+  const on = fdOn();
+  lv.classList.toggle("free-mode", on);
+  const back = document.getElementById("fdBack");
+  if (back) back.style.display = (authResolved && currentUser && membershipChecked && !isPaidMember && FD.off) ? "block" : "none";
+  if (on && !FD.was) { FD.was = true; FD.pool = undefined; FD.mock = undefined; FD.pdfs = undefined; FD.run = null; fdHome(); fdLoadAll(); window.scrollTo(0, 0); }
+  if (!on && FD.was) { FD.was = false; fdStopTimer(); }
+  if (on) { const w = document.getElementById("fdWho"); if (w) w.textContent = "Signed in as " + fdEmail() + " · Free account"; }
+}
+function fdGoPremium() { FD.off = true; fdStopTimer(); updateView(); setTimeout(() => { const j = document.getElementById("pricing") || document.getElementById("join"); if (j) j.scrollIntoView(); }, 50); }
+function fdBackToFree() { FD.off = false; updateView(); }
+
+// ---------- data ----------
+async function fdLoadAll() {
+  if (!window.__fb) return;
+  const { db, collection, getDocs, doc, getDoc } = window.__fb;
+  try {
+    const snap = await getDocs(collection(db, "freepool"));
+    let meta = null; const parts = [];
+    snap.forEach(d => { if (d.id === "meta") meta = d.data(); else if (/^fp_\d+$/.test(d.id)) parts.push([parseInt(d.id.slice(3), 10), d.data().q || []]); });
+    parts.sort((a, b) => a[0] - b[0]);
+    const all = []; parts.forEach(p => p[1].forEach(q => all.push(q)));
+    FD.pool = (meta && all.length >= 20) ? all : null;
+  } catch (e) { console.error("free pool", e); FD.pool = null; }
+  try { const m = await getDoc(doc(db, "freemock", "current")); FD.mock = m.exists() ? m.data() : null; } catch (e) { FD.mock = null; }
+  try { const p = await getDoc(doc(db, "freepdf", "list")); FD.pdfs = p.exists() ? (p.data().items || []) : []; } catch (e) { FD.pdfs = []; }
+  if (fdOn() && !FD.run && FD.view === "home") fdHome();
+}
+
+// ---------- today's 20 (same for everyone) ----------
+function fdRand(seed) { let a = seed >>> 0; return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function fdShuffle(arr, seed) { const r = fdRand(seed), a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function fdToday20(pool, day) {
+  const traps = fdShuffle(pool.filter(q => q.t), 7), rest = fdShuffle(pool.filter(q => !q.t), 11);
+  const nt = Math.min(3, traps.length), no = Math.min(20 - nt, rest.length);
+  const cycle = Math.max(1, Math.floor(rest.length / Math.max(1, no)));
+  const slot = ((day % cycle) + cycle) % cycle;
+  const pick = [];
+  for (let j = 0; j < nt; j++) pick.push(traps[(slot * nt + j) % traps.length]);
+  for (let j = 0; j < no; j++) pick.push(rest[(slot * no + j) % rest.length]);
+  return fdShuffle(pick, day * 31 + 5);
+}
+
+// ---------- home of the free space ----------
+function fdTile(title, sub, badge, done, fn, off) {
+  const b = fdEl("button", "fd-t" + (off ? " off" : "")); b.type = "button";
+  if (badge) b.appendChild(fdEl("i", done ? "d" : "", badge));
+  b.appendChild(fdEl("b", null, title)); b.appendChild(fdEl("small", null, sub));
+  b.onclick = fn; return b;
+}
+function fdHome() {
+  fdStopTimer(); FD.run = null; FD.view = "home";
+  const m = fdMain(); if (!m) return;
+  m.innerHTML = "";
+  const day = istDay(Date.now());
+  const g = fdEl("div", "fd-grid");
+  const pDone = fdGet("p:" + day);
+  const loading = FD.pool === undefined;
+  g.appendChild(fdTile("Daily Practice", loading ? "Loading…" : (FD.pool ? "20 questions today, 3 trap" : "Coming soon"), FD.pool ? (pDone ? "DONE" : "NEW") : "", !!pDone, fdPracticeStart, !FD.pool));
+  const mk = FD.mock, mDone = mk ? fdGet("m:" + mk.id) : null;
+  g.appendChild(fdTile("Free mock test", loading ? "Loading…" : (mk ? (mk.title + " · " + mk.qs.length + " Q · " + mk.min + " min") : "New one every week"), mk ? (mDone ? "DONE" : "NEW") : "", !!mDone, fdMockStart, !mk));
+  const np = (FD.pdfs || []).length;
+  g.appendChild(fdTile("Free PDF", FD.pdfs === undefined ? "Loading…" : (np ? np + " short PDF" + (np > 1 ? "s" : "") + ", view-only" : "New one every week"), np ? "NEW" : "", false, fdPdfList, !np));
+  g.appendChild(fdTile("Daily Diagnosis", "Guess the diagnosis from clues", "", false, () => { const b = document.getElementById("fhDx"); if (b) b.click(); }));
+  g.appendChild(fdTile("Daily Match", "Match 6 pairs, be quick", "", false, () => { try { mtOpen(false); } catch (e) {} }));
+  g.appendChild(fdTile("Today's Sign", "One clinical sign a day", "", false, () => { const b = document.getElementById("fhSg"); if (b) b.click(); }));
+  const t1 = fdEl("a", "fd-t"); t1.href = "/study-tips"; t1.appendChild(fdEl("b", null, "Study tips")); t1.appendChild(fdEl("small", null, "Short, high-yield reads")); g.appendChild(t1);
+  const t2 = fdEl("a", "fd-t"); t2.href = "/calculators"; t2.appendChild(fdEl("b", null, "Quick calculators")); t2.appendChild(fdEl("small", null, "Clinical calculators")); g.appendChild(t2);
+  m.appendChild(g);
+  const up = fdEl("div", "fd-card");
+  up.appendChild(fdEl("h2", null, "Want everything?"));
+  up.appendChild(fdEl("p", null, "Premium adds the full question bank, tests, notes, flashcards and more. Your free space stays free forever."));
+  const ub = fdEl("button", "fd-btn gold", "See Premium"); ub.type = "button"; ub.onclick = fdGoPremium; up.appendChild(ub);
+  m.appendChild(up);
+}
+
+// ---------- question runner (used by practice and mock) ----------
+function fdStopTimer() { if (FD.tick) { clearInterval(FD.tick); FD.tick = null; } }
+function fdFmt(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
+function fdRunStart(cfg) {
+  fdStopTimer();
+  FD.view = "run";
+  FD.run = { cfg, i: 0, ans: cfg.qs.map(() => -1), locked: cfg.qs.map(() => false), t0: Date.now(), left: cfg.secs || 0, done: false };
+  if (cfg.mode === "timer") {
+    FD.tick = setInterval(() => {
+      const r = FD.run; if (!r || r.done) return fdStopTimer();
+      r.left = Math.max(0, r.cfg.secs - Math.floor((Date.now() - r.t0) / 1000));
+      const t = document.getElementById("fdTimer"); if (t) t.textContent = fdFmt(r.left);
+      if (r.left <= 0) fdFinish();
+    }, 500);
+  }
+  fdRunPaint(); window.scrollTo(0, 0);
+}
+function fdRunPaint() {
+  const r = FD.run, m = fdMain(); if (!r || !m) return;
+  const c = r.cfg, q = c.qs[r.i], timer = c.mode === "timer";
+  m.innerHTML = "";
+  const card = fdEl("div", "fd-card");
+  const pg = fdEl("div", "fd-prog");
+  pg.appendChild(fdEl("span", null, c.title + " · " + (r.i + 1) + "/" + c.qs.length));
+  if (timer) { const t = fdEl("span", "fd-timer", fdFmt(r.left)); t.id = "fdTimer"; pg.appendChild(t); }
+  card.appendChild(pg);
+  card.appendChild(fdEl("span", "fd-chip", String(q.s || "General").toUpperCase()));
+  card.appendChild(fdEl("p", "fd-q", q.q));
+  q.o.forEach((txt, k) => {
+    const b = fdEl("button", "fd-opt", String.fromCharCode(65 + k) + ".  " + txt); b.type = "button";
+    if (r.locked[r.i]) { if (k === q.a) b.classList.add("ok"); else if (k === r.ans[r.i]) b.classList.add("bad"); }
+    else if (r.ans[r.i] === k) b.classList.add("sel");
+    b.onclick = () => {
+      if (r.locked[r.i]) return;
+      if (timer) r.ans[r.i] = (r.ans[r.i] === k ? -1 : k);
+      else { r.ans[r.i] = k; r.locked[r.i] = true; }
+      fdRunPaint();
+    };
+    card.appendChild(b);
+  });
+  if (r.locked[r.i]) {
+    if (q.e) card.appendChild(fdEl("div", "fd-exp", q.e));
+    if (q.t && q.tn) card.appendChild(fdEl("div", "fd-trapn", "Trap: " + q.tn));
+    else if (q.t) card.appendChild(fdEl("div", "fd-trapn", "This was a trap question."));
+  }
+  const row = fdEl("div", "fd-row");
+  if (timer && r.i > 0) { const p = fdEl("button", "fd-btn", "Previous"); p.type = "button"; p.onclick = () => { r.i--; fdRunPaint(); }; row.appendChild(p); }
+  const last = r.i === c.qs.length - 1;
+  if (last) {
+    if (timer || r.locked[r.i]) { const f = fdEl("button", "fd-btn navy", timer ? "Submit" : "See result"); f.type = "button"; f.onclick = () => { if (timer) { const un = r.ans.filter(a => a < 0).length; if (un && !confirm(un + " question" + (un > 1 ? "s are" : " is") + " unanswered. Submit now?")) return; } fdFinish(); }; row.appendChild(f); }
+  } else if (timer || r.locked[r.i]) { const n = fdEl("button", "fd-btn navy", "Next"); n.type = "button"; n.onclick = () => { r.i++; fdRunPaint(); window.scrollTo(0, 0); }; row.appendChild(n); }
+  const qb = fdEl("button", "fd-btn", "Quit"); qb.type = "button"; qb.onclick = () => { if (confirm("Quit? Your answers in this attempt will be lost.")) fdHome(); }; row.appendChild(qb);
+  card.appendChild(row);
+  if (timer) {
+    const pal = fdEl("div", "fd-pal");
+    c.qs.forEach((_, k) => { const b = fdEl("button", (r.ans[k] >= 0 ? "a " : "") + (k === r.i ? "c" : ""), String(k + 1)); b.type = "button"; b.onclick = () => { r.i = k; fdRunPaint(); }; pal.appendChild(b); });
+    card.appendChild(pal);
+  }
+  m.appendChild(card);
+}
+function fdFinish() {
+  const r = FD.run; if (!r || r.done) return;
+  r.done = true; fdStopTimer();
+  const used = Math.min(r.cfg.secs || 1e9, Math.round((Date.now() - r.t0) / 1000));
+  const rec = { ans: r.ans, mode: r.cfg.mode, used, at: Date.now() };
+  fdSet(r.cfg.key, rec);
+  fdResult(r.cfg, rec);
+}
+function fdScore(cfg, rec) {
+  const out = { c: 0, w: 0, s: 0, by: {}, tc: 0, tt: 0 };
+  cfg.qs.forEach((q, i) => {
+    const a = rec.ans[i], s = q.s || "General";
+    if (!out.by[s]) out.by[s] = [0, 0];
+    out.by[s][1]++;
+    if (q.t) out.tt++;
+    if (a < 0) out.s++; else if (a === q.a) { out.c++; out.by[s][0]++; if (q.t) out.tc++; } else out.w++;
+  });
+  return out;
+}
+function fdResult(cfg, rec) {
+  FD.view = "result";
+  const m = fdMain(); if (!m) return;
+  m.innerHTML = "";
+  const sc = fdScore(cfg, rec), n = cfg.qs.length;
+  const card = fdEl("div", "fd-card");
+  card.appendChild(fdEl("h2", null, cfg.title));
+  card.appendChild(fdEl("div", "fd-big", sc.c + " / " + n));
+  card.appendChild(fdEl("p", null, Math.round(sc.c / n * 100) + "% · time " + fdFmt(rec.used)));
+  const st = fdEl("div", "fd-stats");
+  [["Correct", sc.c], ["Wrong", sc.w], ["Skipped", sc.s]].forEach(x => { const d = fdEl("div"); d.appendChild(fdEl("b", null, String(x[1]))); d.appendChild(document.createTextNode(x[0])); st.appendChild(d); });
+  card.appendChild(st);
+  if (sc.tt) card.appendChild(fdEl("p", null, "Trap questions: " + sc.tc + " of " + sc.tt + " correct."));
+  Object.keys(sc.by).sort().forEach(k => { const row = fdEl("div", "fd-sub"); row.appendChild(fdEl("span", null, k)); row.appendChild(fdEl("b", null, sc.by[k][0] + "/" + sc.by[k][1])); card.appendChild(row); });
+  const row = fdEl("div", "fd-row");
+  const sh = fdEl("button", "fd-btn gold", "Share score card"); sh.type = "button"; sh.onclick = () => fdShare(cfg, sc, n); row.appendChild(sh);
+  const hb = fdEl("button", "fd-btn", "Back"); hb.type = "button"; hb.onclick = fdHome; row.appendChild(hb);
+  card.appendChild(row);
+  m.appendChild(card);
+  const rv = fdEl("div", "fd-card"); rv.appendChild(fdEl("h2", null, "Review"));
+  cfg.qs.forEach((q, i) => {
+    const a = rec.ans[i], d = fdEl("div", "fd-rev");
+    d.appendChild(fdEl("h4", null, (i + 1) + ". " + q.q + (q.t ? "  [TRAP]" : "")));
+    d.appendChild(fdEl("div", a === q.a ? "y" : "n", a < 0 ? "Skipped" : (a === q.a ? "Correct" : "Your answer: " + String.fromCharCode(65 + a) + ". " + q.o[a])));
+    d.appendChild(fdEl("div", null, "Answer: " + String.fromCharCode(65 + q.a) + ". " + q.o[q.a]));
+    if (q.e) d.appendChild(fdEl("div", "fd-exp", q.e));
+    if (q.t && q.tn) d.appendChild(fdEl("div", "fd-trapn", "Trap: " + q.tn));
+    rv.appendChild(d);
+  });
+  const up = fdEl("div", "fd-row"); const ub = fdEl("button", "fd-btn gold", "Get the full question bank with Premium"); ub.type = "button"; ub.onclick = fdGoPremium; up.appendChild(ub); rv.appendChild(up);
+  m.appendChild(rv);
+  window.scrollTo(0, 0);
+}
+
+// ---------- Daily Practice ----------
+function fdPracticeStart() {
+  if (!FD.pool) { showToast("Daily Practice is coming soon.", true); return; }
+  const day = istDay(Date.now()), qs = fdToday20(FD.pool, day), key = "p:" + day;
+  const done = fdGet(key);
+  const m = fdMain(); m.innerHTML = ""; FD.view = "start";
+  const card = fdEl("div", "fd-card");
+  card.appendChild(fdEl("h2", null, "Today's 20"));
+  card.appendChild(fdEl("p", null, "Same 20 questions for everyone today, with " + qs.filter(q => q.t).length + " trap questions. New set tomorrow."));
+  const row = fdEl("div", "fd-row");
+  const cfgBase = { kind: "practice", title: "Daily Practice", qs, key };
+  const b1 = fdEl("button", "fd-btn navy", "Instant feedback"); b1.type = "button"; b1.onclick = () => fdRunStart(Object.assign({ mode: "instant" }, cfgBase)); row.appendChild(b1);
+  const b2 = fdEl("button", "fd-btn gold", "Timer mode (20 min)"); b2.type = "button"; b2.onclick = () => fdRunStart(Object.assign({ mode: "timer", secs: 1200 }, cfgBase)); row.appendChild(b2);
+  card.appendChild(row);
+  if (done) { const rr = fdEl("div", "fd-row"); const v = fdEl("button", "fd-btn", "View my last result today"); v.type = "button"; v.onclick = () => fdResult(Object.assign({ mode: done.mode }, cfgBase), done); rr.appendChild(v); card.appendChild(rr); }
+  const bk = fdEl("div", "fd-row"); const bb = fdEl("button", "fd-btn", "Back"); bb.type = "button"; bb.onclick = fdHome; bk.appendChild(bb); card.appendChild(bk);
+  m.appendChild(card);
+}
+
+// ---------- Free mock ----------
+function fdMockStart() {
+  const mk = FD.mock;
+  if (!mk) { showToast("A new free mock comes every week.", true); return; }
+  const key = "m:" + mk.id, done = fdGet(key);
+  const cfg = { kind: "mock", title: mk.title, qs: mk.qs, key, mode: "timer", secs: (mk.min || 60) * 60 };
+  const m = fdMain(); m.innerHTML = ""; FD.view = "start";
+  const card = fdEl("div", "fd-card");
+  card.appendChild(fdEl("h2", null, mk.title));
+  card.appendChild(fdEl("p", null, mk.qs.length + " questions · " + mk.min + " minutes · timer on. You get a score card with subject-wise result at the end."));
+  const row = fdEl("div", "fd-row");
+  const go = fdEl("button", "fd-btn navy", done ? "Attempt again" : "Start mock"); go.type = "button"; go.onclick = () => fdRunStart(cfg); row.appendChild(go);
+  if (done) { const v = fdEl("button", "fd-btn gold", "View my result"); v.type = "button"; v.onclick = () => fdResult(cfg, done); row.appendChild(v); }
+  const bb = fdEl("button", "fd-btn", "Back"); bb.type = "button"; bb.onclick = fdHome; row.appendChild(bb);
+  card.appendChild(row); m.appendChild(card);
+}
+
+// ---------- Score card (PNG with logo) ----------
+function fdShare(cfg, sc, n) {
+  const W = 1080, H = 1350, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+  const x = cv.getContext("2d");
+  const img = new Image();
+  const draw = () => {
+    const g = x.createLinearGradient(0, 0, W, H); g.addColorStop(0, "#0A1830"); g.addColorStop(1, "#16305f");
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    x.strokeStyle = "#D4AF55"; x.lineWidth = 6; x.strokeRect(30, 30, W - 60, H - 60);
+    try { if (img.width) x.drawImage(img, W / 2 - 80, 80, 160, 160); } catch (e) {}
+    x.textAlign = "center"; x.fillStyle = "#EACF85"; x.font = "700 40px Georgia, serif"; x.fillText("PPTNEETPGHUB", W / 2, 300);
+    x.fillStyle = "#AEBBD2"; x.font = "500 30px sans-serif"; x.fillText(cfg.kind === "mock" ? "FREE MOCK TEST" : "DAILY PRACTICE", W / 2, 350);
+    x.fillStyle = "#fff"; x.font = "600 44px Georgia, serif";
+    let t = cfg.title; while (x.measureText(t).width > W - 160 && t.length > 4) t = t.slice(0, -2); if (t !== cfg.title) t += "…";
+    x.fillText(t, W / 2, 425);
+    x.fillStyle = "#D4AF55"; x.font = "800 190px Georgia, serif"; x.fillText(sc.c + "/" + n, W / 2, 640);
+    x.fillStyle = "#fff"; x.font = "600 46px sans-serif"; x.fillText(Math.round(sc.c / n * 100) + "%", W / 2, 710);
+    const boxes = [["Correct", sc.c], ["Wrong", sc.w], ["Skipped", sc.s]];
+    boxes.forEach((b, i) => { const bx = 120 + i * 300; x.fillStyle = "rgba(255,255,255,.08)"; x.fillRect(bx, 750, 260, 130); x.fillStyle = "#EACF85"; x.font = "800 56px sans-serif"; x.fillText(String(b[1]), bx + 130, 820); x.fillStyle = "#AEBBD2"; x.font = "500 26px sans-serif"; x.fillText(b[0], bx + 130, 862); });
+    const subs = Object.keys(sc.by).map(k => [k, sc.by[k][0], sc.by[k][1]]).sort((a, b) => b[2] - a[2]).slice(0, 6);
+    x.textAlign = "left"; let y = 950;
+    subs.forEach(s => { x.fillStyle = "#fff"; x.font = "500 28px sans-serif"; let nm = s[0]; while (x.measureText(nm).width > 420 && nm.length > 4) nm = nm.slice(0, -2); x.fillText(nm, 120, y); x.fillStyle = "rgba(255,255,255,.15)"; x.fillRect(560, y - 24, 300, 22); x.fillStyle = "#D4AF55"; x.fillRect(560, y - 24, 300 * (s[2] ? s[1] / s[2] : 0), 22); x.fillStyle = "#EACF85"; x.font = "700 28px sans-serif"; x.textAlign = "right"; x.fillText(s[1] + "/" + s[2], 960, y); x.textAlign = "left"; y += 52; });
+    x.textAlign = "center"; x.fillStyle = "#EACF85"; x.font = "600 30px sans-serif"; x.fillText("Practice free at pptneetpghub.com", W / 2, H - 80);
+    cv.toBlob(async (blob) => {
+      if (!blob) { showToast("Could not make the card.", true); return; }
+      const file = new File([blob], "score-card.png", { type: "image/png" });
+      try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text: "My score on PPTNEETPGHUB free practice" }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "score-card.png"; document.body.appendChild(a); a.click(); a.remove();
+      showToast("Score card saved. Share it on Instagram.");
+    }, "image/png");
+  };
+  img.onload = draw; img.onerror = draw; img.src = "/logo-360.webp";
+}
+
+// ---------- Free PDFs (view-only, email watermark) ----------
+function fdPdfList() {
+  const m = fdMain(); m.innerHTML = ""; FD.view = "pdf";
+  const card = fdEl("div", "fd-card"); card.appendChild(fdEl("h2", null, "Free PDFs"));
+  const items = FD.pdfs || [];
+  if (!items.length) card.appendChild(fdEl("p", null, "A new short PDF comes every week."));
+  items.forEach(it => {
+    const r = fdEl("div", "fd-rev"); r.appendChild(fdEl("h4", null, it.title)); if (it.note) r.appendChild(fdEl("div", null, it.note));
+    const row = fdEl("div", "fd-row"); const b = fdEl("button", "fd-btn navy", "Open (view-only)"); b.type = "button"; b.onclick = () => fdPdfOpen(it); row.appendChild(b); r.appendChild(row); card.appendChild(r);
+  });
+  const bb = fdEl("div", "fd-row"); const back = fdEl("button", "fd-btn", "Back"); back.type = "button"; back.onclick = fdHome; bb.appendChild(back); card.appendChild(bb);
+  m.appendChild(card);
+}
+async function fdPdfOpen(it) {
+  const ov = document.getElementById("fdViewer"), body = document.getElementById("fdvBody");
+  document.getElementById("fdvTitle").textContent = it.title;
+  Array.from(body.querySelectorAll("canvas,.fdv-msg")).forEach(e => e.remove());
+  const msg = fdEl("p", "fdv-msg", "Opening…"); msg.style.color = "#fff"; msg.style.textAlign = "center"; body.appendChild(msg);
+  ov.classList.add("on"); document.body.style.overflow = "hidden";
+  const email = fdEmail().replace(/[&<>"']/g, "");
+  const svg = "<svg xmlns='http://www.w3.org/2000/svg' width='420' height='260'><text x='30' y='150' transform='rotate(-24 210 130)' font-family='sans-serif' font-size='15' font-weight='600' fill='rgba(90,98,110,0.22)'>" + email + "</text></svg>";
+  document.getElementById("fdvWm").style.backgroundImage = 'url("data:image/svg+xml;utf8,' + encodeURIComponent(svg) + '")';
+  try {
+    if (!window.pdfjsLib) throw new Error("viewer");
+    const tok = await window.__fb.auth.currentUser.getIdToken();
+    const res = await fetch("/api/free-file?key=" + encodeURIComponent(it.key), { headers: { Authorization: "Bearer " + tok } });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const doc = await window.pdfjsLib.getDocument({ data: new Uint8Array(await res.arrayBuffer()), standardFontDataUrl: "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/standard_fonts/" }).promise;
+    msg.remove();
+    const w = Math.max(200, body.clientWidth - 20), dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    for (let p = 1; p <= doc.numPages; p++) {
+      const page = await doc.getPage(p), v1 = page.getViewport({ scale: 1 }), sc = w / v1.width, vp = page.getViewport({ scale: sc * dpr });
+      const cv = document.createElement("canvas"); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height); cv.style.width = Math.round(vp.width / dpr) + "px"; cv.style.height = Math.round(vp.height / dpr) + "px";
+      cv.oncontextmenu = e => { e.preventDefault(); return false; };
+      body.insertBefore(cv, document.getElementById("fdvWm"));
+      await page.render({ canvasContext: cv.getContext("2d"), viewport: vp }).promise;
+    }
+    const wm = document.getElementById("fdvWm"); wm.style.height = body.scrollHeight + "px";
+  } catch (e) { console.error("free pdf", e); msg.textContent = "Couldn't open this file. Please try again."; }
+}
+function fdPdfClose() { document.getElementById("fdViewer").classList.remove("on"); document.body.style.overflow = ""; const b = document.getElementById("fdvBody"); Array.from(b.querySelectorAll("canvas")).forEach(c => c.remove()); }
+
+(function () {
+  const $ = id => document.getElementById(id);
+  if ($("fdPrem")) $("fdPrem").onclick = fdGoPremium;
+  if ($("fdBack")) $("fdBack").onclick = fdBackToFree;
+  if ($("fdvX")) $("fdvX").onclick = fdPdfClose;
+  if ($("fhGmail")) $("fhGmail").onclick = () => signIn("free");
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && $("fdViewer").classList.contains("on")) fdPdfClose(); });
+  document.addEventListener("contextmenu", e => { if (e.target && e.target.closest && e.target.closest("#fdViewer")) e.preventDefault(); });
+})();
+
 onFbReady(() => {
   const { auth, onAuthStateChanged } = window.__fb;
   loadPricing();
@@ -2916,6 +3322,7 @@ onFbReady(() => {
     isPaidMember = false;
     membershipChecked = false;
     forceJoin = false;
+    try { FD.off = (signInIntent === 'premium'); FD.was = false; } catch (e) {}
     paymentInfo.latest = null;
     memberInfo = { exists: false, endMs: 0, id: "" };
     memberExpired = false;
@@ -2954,8 +3361,8 @@ onFbReady(() => {
       showToast("Your membership has ended. Renew below to continue.", true);
       if (signInIntent) goToJoin();
     } else if (user && !isPaidMember && signInIntent) {
-      if (signInIntent === "member") showToast("This Google account isn't a member yet. Follow the steps below to join.");
-      goToJoin();
+      if (fdOn()) showToast("Welcome! Your free space is ready.");
+      else { if (signInIntent === "member") showToast("This Google account isn't a member yet. Follow the steps below to join."); goToJoin(); }
     }
     signInIntent = null;
   });
@@ -2991,6 +3398,7 @@ function updateView() {
   if (authResolved && (!currentUser || membershipChecked)) document.body.classList.remove('booting');
   document.getElementById('lhSignIn').textContent = currentUser ? 'Sign out' : 'Sign in';
   document.getElementById('menuSignIn').textContent = currentUser ? 'Sign out' : 'Member sign in';
+  try { fdSync(); } catch (e) { console.error('free space', e); }
   if (showLib) {
     document.getElementById('accessNoteText').textContent = 'Signed in as: ' + (currentUser.email || currentUser.displayName || '\u2014') + (memberInfo.id ? ' \u00B7 Your ID: ' + memberInfo.id : '');
   }

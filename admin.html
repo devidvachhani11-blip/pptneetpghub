@@ -132,6 +132,10 @@
   .stat-card span { font-size: 12px; color: #98A7C2; }
 
   /* tabs */
+  .grp-sw { display: flex; gap: 6px; margin-bottom: 12px; }
+  .grp-sw button { flex: 1; padding: 11px; border-radius: 12px; border: 2px solid var(--line, #d9d2bf); background: transparent; font-weight: 800; font-size: 15px; cursor: pointer; color: inherit; }
+  .grp-sw button.on { background: #0A1830; color: #EACF85; border-color: #0A1830; }
+  .tab-btn.g-hide { display: none !important; }
   .tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
   .tab-btn {
     background: var(--white); border: 1.5px solid var(--border); color: var(--gray);
@@ -459,32 +463,36 @@
 
     <div class="bk-note" id="backupNote"></div>
 
+    <div class="grp-sw" id="grpSw"><button type="button" id="grpPrem" class="on">Premium</button><button type="button" id="grpFree">Free</button></div>
     <div class="tabs">
-      <button class="tab-btn active" data-panel="homePanel">Home</button>
-      <button class="tab-btn" data-panel="paymentsPanel">Payments<span class="tab-count" id="pendingCount" style="display:none;">0</span></button>
-      <button class="tab-btn" data-panel="resourcesPanel">Add Resource</button>
-      <button class="tab-btn" data-panel="testsPanel">Add Test</button>
-      <button class="tab-btn" data-panel="gtPanel">Real Test (GT)</button>
-      <button class="tab-btn" data-panel="seriesPanel">Series</button>
-      <button class="tab-btn" data-panel="cardsPanel">Card Test</button>
-      <button class="tab-btn" data-panel="imgTestPanel">Image Tests</button>
-      <button class="tab-btn" data-panel="dropsPanel">Recent Drops</button>
-      <button class="tab-btn" data-panel="samplePanel">Home sample</button>
-      <button class="tab-btn" data-panel="gamesPanel">Member Games</button>
-      <button class="tab-btn" data-panel="lbPanel">Top 10</button>
-      <button class="tab-btn" data-panel="bankPanel">Question Bank</button>
-      <button class="tab-btn" data-panel="newsPanel">News</button>
-      <button class="tab-btn" data-panel="counsellingPanel">Counselling</button>
-      <button class="tab-btn" data-panel="tipsPanel">Study Tips</button>
-      <button class="tab-btn" data-panel="dailyPanel">Daily puzzle</button>
-      <button class="tab-btn" data-panel="statsPanel">Stats</button>
-      <button class="tab-btn" data-panel="mnPanel">Mnemonics<span class="tab-count" id="mnCount" style="display:none;">0</span></button>
-      <button class="tab-btn" data-panel="reportsPanel">Reports<span class="tab-count" id="repCount" style="display:none;">0</span></button>
-      <button class="tab-btn" data-panel="resultsPanel">Results</button>
-      <button class="tab-btn" data-panel="backupPanel">Backup</button>
-      <button class="tab-btn" data-panel="launchPanel">Launch check</button>
-      <button class="tab-btn" data-panel="membersPanel">Members</button>
-      <button class="tab-btn" data-panel="listPanel">All Resources</button>
+      <button class="tab-btn g-prem active" data-panel="homePanel">Home</button>
+      <button class="tab-btn g-free" data-panel="freePoolPanel">Free pool (600)</button>
+      <button class="tab-btn g-free" data-panel="freeMockPanel">Free mock</button>
+      <button class="tab-btn g-free" data-panel="freePdfPanel">Free PDF</button>
+      <button class="tab-btn g-prem" data-panel="paymentsPanel">Payments<span class="tab-count" id="pendingCount" style="display:none;">0</span></button>
+      <button class="tab-btn g-prem" data-panel="resourcesPanel">Add Resource</button>
+      <button class="tab-btn g-prem" data-panel="testsPanel">Add Test</button>
+      <button class="tab-btn g-prem" data-panel="gtPanel">Real Test (GT)</button>
+      <button class="tab-btn g-prem" data-panel="seriesPanel">Series</button>
+      <button class="tab-btn g-prem" data-panel="cardsPanel">Card Test</button>
+      <button class="tab-btn g-prem" data-panel="imgTestPanel">Image Tests</button>
+      <button class="tab-btn g-prem" data-panel="dropsPanel">Recent Drops</button>
+      <button class="tab-btn g-free" data-panel="samplePanel">Daily Match &amp; Daily 10</button>
+      <button class="tab-btn g-prem" data-panel="gamesPanel">Member Games</button>
+      <button class="tab-btn g-prem" data-panel="lbPanel">Top 10</button>
+      <button class="tab-btn g-prem" data-panel="bankPanel">Question Bank</button>
+      <button class="tab-btn g-prem" data-panel="newsPanel">News</button>
+      <button class="tab-btn g-prem" data-panel="counsellingPanel">Counselling</button>
+      <button class="tab-btn g-free" data-panel="tipsPanel">Study Tips</button>
+      <button class="tab-btn g-free" data-panel="dailyPanel">Daily Diagnosis</button>
+      <button class="tab-btn g-prem" data-panel="statsPanel">Stats</button>
+      <button class="tab-btn g-prem" data-panel="mnPanel">Mnemonics<span class="tab-count" id="mnCount" style="display:none;">0</span></button>
+      <button class="tab-btn g-prem" data-panel="reportsPanel">Reports<span class="tab-count" id="repCount" style="display:none;">0</span></button>
+      <button class="tab-btn g-prem" data-panel="resultsPanel">Results</button>
+      <button class="tab-btn g-prem" data-panel="backupPanel">Backup</button>
+      <button class="tab-btn g-prem" data-panel="launchPanel">Launch check</button>
+      <button class="tab-btn g-prem" data-panel="membersPanel">Members</button>
+      <button class="tab-btn g-prem" data-panel="listPanel">All Resources</button>
     </div>
 
     <!-- Home -->
@@ -838,6 +846,42 @@
           <button class="btn outline" id="gm_remove">Remove pool</button>
         </div>
         <p class="hint" id="gm_status"></p>
+      </div>
+    </div>
+
+    <!-- ===== FREE TAB: free pool / free mock / free PDF ===== -->
+    <div id="freePoolPanel" style="display:none;">
+      <div class="card">
+        <h3>Free pool: daily 20 for free users</h3>
+        <p class="hint" style="margin-top:-6px">Separate from the premium question bank. Upload an Excel/CSV with columns <b>Subject, Question, A, B, C, D, Answer, Explanation, Tag, Exam, Trap note</b>. Rows with Tag = Trap (or a Trap note) are the trap questions. Free users get the same 20 every day (3 traps), changing automatically each day. 600 questions = 30 days before it repeats. Saving replaces the whole free pool and never touches the premium bank.</p>
+        <input type="file" id="fp_file" accept=".xlsx,.xls,.csv">
+        <div class="t-actions"><button class="btn" id="fp_read">Read file</button><button class="btn outline" id="fp_save" disabled>Save to free pool</button><button class="btn outline" id="fp_remove">Remove free pool</button></div>
+        <p class="hint" id="fp_status">Loading…</p>
+        <div id="fp_prev"></div>
+      </div>
+    </div>
+    <div id="freeMockPanel" style="display:none;">
+      <div class="card">
+        <h3>Free mock test (1 per week)</h3>
+        <p class="hint" style="margin-top:-6px">Same Excel/CSV columns as the free pool (Trap note and Tag are optional). Uploading a new file replaces the current free mock, and free users see it as a new test. Free users get a timer and a score card (score, correct/wrong, subject-wise) they can share. No rank.</p>
+        <label for="fm_title">Title</label><input type="text" id="fm_title" placeholder="Free Mock Test - Week 1">
+        <label for="fm_min">Time in minutes</label><input type="number" id="fm_min" value="60" min="5" max="300">
+        <input type="file" id="fm_file" accept=".xlsx,.xls,.csv">
+        <div class="t-actions"><button class="btn" id="fm_read">Read file</button><button class="btn outline" id="fm_save" disabled>Publish free mock</button><button class="btn outline" id="fm_remove">Remove free mock</button></div>
+        <p class="hint" id="fm_status">Loading…</p>
+        <div id="fm_prev"></div>
+      </div>
+    </div>
+    <div id="freePdfPanel" style="display:none;">
+      <div class="card">
+        <h3>Free PDF (1 or 2 per week)</h3>
+        <p class="hint" style="margin-top:-6px">Short PDF (2 to 3 pages). Free users can only view it after login, with their own email as a watermark. Stays free permanently. The file is kept in a separate free folder, never with premium resources.</p>
+        <label for="fpdf_title">Title</label><input type="text" id="fpdf_title" placeholder="Hypertension in 3 pages">
+        <label for="fpdf_note">One-line note (optional)</label><input type="text" id="fpdf_note" placeholder="Quick revision of drugs and targets">
+        <input type="file" id="fpdf_file" accept="application/pdf,.pdf">
+        <div class="t-actions"><button class="btn" id="fpdf_add">Upload free PDF</button></div>
+        <p class="hint" id="fpdf_status"></p>
+        <div id="fpdf_list"></div>
       </div>
     </div>
 
@@ -1333,10 +1377,13 @@ window.addEventListener('fbReady', () => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      ['homePanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'gtPanel', 'seriesPanel', 'cardsPanel', 'imgTestPanel', 'dropsPanel', 'samplePanel', 'gamesPanel', 'dailyPanel', 'statsPanel', 'mnPanel', 'lbPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'launchPanel', 'membersPanel', 'listPanel'].forEach(id => {
+      ['homePanel', 'freePoolPanel', 'freeMockPanel', 'freePdfPanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'gtPanel', 'seriesPanel', 'cardsPanel', 'imgTestPanel', 'dropsPanel', 'samplePanel', 'gamesPanel', 'dailyPanel', 'statsPanel', 'mnPanel', 'lbPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'launchPanel', 'membersPanel', 'listPanel'].forEach(id => {
         document.getElementById(id).style.display = (id === btn.dataset.panel) ? 'block' : 'none';
       });
       if (btn.dataset.panel === 'homePanel') loadHome();
+      if (btn.dataset.panel === 'freePoolPanel') freePoolLoad();
+      if (btn.dataset.panel === 'freeMockPanel') freeMockLoad();
+      if (btn.dataset.panel === 'freePdfPanel') freePdfLoad();
       if (btn.dataset.panel === 'dropsPanel') loadDrops();
       if (btn.dataset.panel === 'samplePanel') loadSampleAdmin();
       if (btn.dataset.panel === 'gamesPanel') Object.keys(GPOOL).forEach(gLoad);
@@ -1356,6 +1403,195 @@ window.addEventListener('fbReady', () => {
     });
   });
 });
+
+// ===================== FREE TAB (all new; never touches premium data) =====================
+function freeGroup(g) {
+  document.getElementById('grpFree').classList.toggle('on', g === 'free');
+  document.getElementById('grpPrem').classList.toggle('on', g !== 'free');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    const isFree = b.classList.contains('g-free');
+    b.classList.toggle('g-hide', g === 'free' ? !isFree : isFree);
+  });
+  const first = document.querySelector('.tab-btn:not(.g-hide)');
+  if (first) first.click();
+}
+window.addEventListener('load', () => {
+  const f = document.getElementById('grpFree'), p = document.getElementById('grpPrem');
+  if (!f || !p) return;
+  f.onclick = () => freeGroup('free');
+  p.onclick = () => freeGroup('prem');
+  document.querySelectorAll('.tab-btn.g-free').forEach(b => b.classList.add('g-hide'));
+  const q = (id, fn) => { const el = document.getElementById(id); if (el) el.onclick = fn; };
+  q('fp_read', () => freeReadFile('fp'));
+  q('fp_save', freePoolSave);
+  q('fp_remove', freePoolRemove);
+  q('fm_read', () => freeReadFile('fm'));
+  q('fm_save', freeMockSave);
+  q('fm_remove', freeMockRemove);
+  q('fpdf_add', freePdfAdd);
+});
+
+const FREE = { fp: { qs: [], errs: [] }, fm: { qs: [], errs: [] } };
+const fcell = v => String(v == null ? '' : v).replace(/\s+/g, ' ').trim();
+
+function freeParseRows(sheets) {
+  const out = { qs: [], errs: [] };
+  const rows = (sheets && sheets[0]) || [];
+  if (rows.length < 2) { out.errs.push('The file is empty.'); return out; }
+  const head = rows[0].map(h => fcell(h).toLowerCase());
+  const col = (...names) => { for (const n of names) { const i = head.indexOf(n); if (i > -1) return i; } return -1; };
+  const c = { s: col('subject'), q: col('question'), a: col('a'), b: col('b'), c: col('c'), d: col('d'), ans: col('answer'), e: col('explanation'), t: col('tag'), tn: col('trap note', 'trapnote') };
+  if (c.q < 0 || c.a < 0 || c.b < 0 || c.c < 0 || c.d < 0 || c.ans < 0) { out.errs.push('Header row must have Question, A, B, C, D and Answer columns.'); return out; }
+  const seen = {};
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r];
+    const q = fcell(row[c.q]);
+    if (!q) continue;
+    const o = [fcell(row[c.a]), fcell(row[c.b]), fcell(row[c.c]), fcell(row[c.d])];
+    const ai = 'ABCD'.indexOf(fcell(row[c.ans]).toUpperCase().charAt(0));
+    if (o.some(x => !x)) { out.errs.push('Row ' + (r + 1) + ': an option is empty.'); continue; }
+    if (ai < 0) { out.errs.push('Row ' + (r + 1) + ': Answer must be A, B, C or D.'); continue; }
+    const key = q.toLowerCase();
+    if (seen[key]) { out.errs.push('Row ' + (r + 1) + ': duplicate question skipped.'); continue; }
+    seen[key] = 1;
+    const tag = c.t > -1 ? fcell(row[c.t]) : '';
+    const tn = c.tn > -1 ? fcell(row[c.tn]) : '';
+    const item = { n: out.qs.length + 1, s: c.s > -1 ? (fcell(row[c.s]) || 'General') : 'General', q, o, a: ai, e: c.e > -1 ? fcell(row[c.e]) : '', t: (/trap/i.test(tag) || tn) ? 1 : 0 };
+    if (tn) item.tn = tn;
+    out.qs.push(item);
+  }
+  if (!out.qs.length && !out.errs.length) out.errs.push('No questions found.');
+  return out;
+}
+
+async function freeReadFile(which) {
+  const inp = document.getElementById(which + '_file'), prev = document.getElementById(which + '_prev'), st = document.getElementById(which + '_status');
+  const file = inp.files[0];
+  if (!file) { showToast('Choose a file first.', true); return; }
+  try {
+    const sheets = await readSheetFile(file);
+    const res = freeParseRows(sheets);
+    FREE[which] = res;
+    prev.innerHTML = '';
+    const by = {}; res.qs.forEach(x => { by[x.s] = (by[x.s] || 0) + 1; });
+    const traps = res.qs.filter(x => x.t).length;
+    prev.appendChild(mk('p', null, res.qs.length + ' questions ready, ' + traps + ' trap. ' + (res.errs.length ? res.errs.length + ' with problems.' : '')));
+    prev.appendChild(mk('p', 'hint', Object.keys(by).sort().map(k => k + ' ' + by[k]).join(' · ')));
+    if (res.errs.length) { const ul = document.createElement('ul'); res.errs.slice(0, 10).forEach(e => ul.appendChild(mk('li', null, e))); prev.appendChild(ul); }
+    document.getElementById(which + '_save').disabled = !res.qs.length;
+    if (which === 'fp' && res.qs.length && res.qs.length < 60) prev.appendChild(mk('p', 'hint', 'Tip: you need at least 20 questions (3 trap) for one day. 600 gives 30 days.'));
+  } catch (e) { showToast('Could not read the file: ' + e.message, true); }
+}
+
+// ---- Free pool: freepool/meta + freepool/fp_1..fp_K (100 questions per part)
+async function freePoolLoad() {
+  const st = document.getElementById('fp_status');
+  try {
+    const { db, doc, getDoc } = window.__fb;
+    const m = await getDoc(doc(db, 'freepool', 'meta'));
+    if (m.exists()) { const d = m.data(); st.textContent = 'Saved: ' + d.n + ' questions (' + d.traps + ' trap) in ' + d.parts + ' parts. Enough for ' + Math.floor(d.n / 20) + ' days before it repeats.'; }
+    else st.textContent = 'No free pool saved yet.';
+  } catch (e) { st.textContent = 'Could not load: ' + e.message; }
+}
+async function freePoolSave() {
+  const qs = FREE.fp.qs;
+  if (qs.length < 20) { showToast('Need at least 20 questions.', true); return; }
+  if (qs.filter(x => x.t).length < 3) { showToast('Need at least 3 trap questions.', true); return; }
+  if (!confirm('Save ' + qs.length + ' questions as the free pool? This replaces the current free pool only. Premium is not touched.')) return;
+  const btn = document.getElementById('fp_save'); btn.disabled = true;
+  try {
+    const { db, doc, setDoc, deleteDoc, getDoc, serverTimestamp } = window.__fb;
+    const parts = Math.ceil(qs.length / 100);
+    for (let i = 0; i < parts; i++) await setDoc(doc(db, 'freepool', 'fp_' + (i + 1)), { q: qs.slice(i * 100, i * 100 + 100) });
+    const old = await getDoc(doc(db, 'freepool', 'meta'));
+    const oldParts = old.exists() ? (old.data().parts || 0) : 0;
+    await setDoc(doc(db, 'freepool', 'meta'), { n: qs.length, traps: qs.filter(x => x.t).length, parts, updatedAt: serverTimestamp() });
+    for (let i = parts + 1; i <= oldParts; i++) { try { await deleteDoc(doc(db, 'freepool', 'fp_' + i)); } catch (e) {} }
+    showToast('✔ Free pool saved.');
+    freePoolLoad();
+  } catch (e) { showToast('Failed: ' + e.message, true); }
+  btn.disabled = false;
+}
+async function freePoolRemove() {
+  if (!confirm('Remove the free pool? Free users will see "coming soon" for Daily Practice. Premium is not touched.')) return;
+  try {
+    const { db, doc, getDoc, deleteDoc } = window.__fb;
+    const m = await getDoc(doc(db, 'freepool', 'meta'));
+    const parts = m.exists() ? (m.data().parts || 0) : 0;
+    for (let i = 1; i <= parts; i++) await deleteDoc(doc(db, 'freepool', 'fp_' + i));
+    await deleteDoc(doc(db, 'freepool', 'meta'));
+    showToast('Free pool removed.'); freePoolLoad();
+  } catch (e) { showToast('Failed: ' + e.message, true); }
+}
+
+// ---- Free mock: freemock/current
+async function freeMockLoad() {
+  const st = document.getElementById('fm_status');
+  try {
+    const { db, doc, getDoc } = window.__fb;
+    const m = await getDoc(doc(db, 'freemock', 'current'));
+    if (m.exists()) { const d = m.data(); st.textContent = 'Live now: "' + d.title + '", ' + d.qs.length + ' questions, ' + d.min + ' minutes.'; if (!document.getElementById('fm_title').value) document.getElementById('fm_title').value = d.title; }
+    else st.textContent = 'No free mock is live.';
+  } catch (e) { st.textContent = 'Could not load: ' + e.message; }
+}
+async function freeMockSave() {
+  const qs = FREE.fm.qs, title = document.getElementById('fm_title').value.trim(), min = parseInt(document.getElementById('fm_min').value, 10) || 60;
+  if (!title) { showToast('Add a title.', true); return; }
+  if (qs.length < 10) { showToast('A mock needs at least 10 questions.', true); return; }
+  if (qs.length > 200) { showToast('Maximum 200 questions.', true); return; }
+  if (!confirm('Publish "' + title + '" with ' + qs.length + ' questions? It replaces the current free mock.')) return;
+  try {
+    const { db, doc, setDoc, serverTimestamp } = window.__fb;
+    await setDoc(doc(db, 'freemock', 'current'), { id: 'm' + Date.now().toString(36), title, min, qs, updatedAt: serverTimestamp() });
+    showToast('✔ Free mock published.'); freeMockLoad();
+  } catch (e) { showToast('Failed: ' + e.message, true); }
+}
+async function freeMockRemove() {
+  if (!confirm('Remove the current free mock?')) return;
+  try { const { db, doc, deleteDoc } = window.__fb; await deleteDoc(doc(db, 'freemock', 'current')); showToast('Removed.'); freeMockLoad(); }
+  catch (e) { showToast('Failed: ' + e.message, true); }
+}
+
+// ---- Free PDFs: freepdf/list {items:[{key,title,note,at}]}, files in R2 under free-pdf/
+async function freePdfLoad() {
+  const box = document.getElementById('fpdf_list'); box.innerHTML = '';
+  try {
+    const { db, doc, getDoc } = window.__fb;
+    const m = await getDoc(doc(db, 'freepdf', 'list'));
+    const items = m.exists() ? (m.data().items || []) : [];
+    if (!items.length) { box.appendChild(mk('div', 'empty', 'No free PDF yet.')); return; }
+    items.forEach((it, i) => {
+      const row = mk('div', 'bk-q'); row.appendChild(mk('div', null, it.title)); row.appendChild(mk('small', null, (it.note || '') + ' ' + it.key));
+      const b = mk('button', null, 'Remove from free list'); b.onclick = () => freePdfRemove(i); row.appendChild(b); box.appendChild(row);
+    });
+  } catch (e) { box.appendChild(mk('div', 'empty', 'Could not load: ' + e.message)); }
+}
+async function freePdfAdd() {
+  const title = document.getElementById('fpdf_title').value.trim(), note = document.getElementById('fpdf_note').value.trim(), file = document.getElementById('fpdf_file').files[0], st = document.getElementById('fpdf_status');
+  if (!title || !file) { showToast('Add a title and choose a PDF.', true); return; }
+  if (!/\.pdf$/i.test(file.name)) { showToast('Only PDF files.', true); return; }
+  const btn = document.getElementById('fpdf_add'); btn.disabled = true;
+  try {
+    const key = await uploadToR2(file, 'free-pdf', p => { st.textContent = 'Uploading ' + p + '%'; });
+    if (key.indexOf('free-pdf/') !== 0) throw new Error('Unexpected file location: ' + key);
+    const { db, doc, getDoc, setDoc, serverTimestamp } = window.__fb;
+    const m = await getDoc(doc(db, 'freepdf', 'list'));
+    const items = m.exists() ? (m.data().items || []) : [];
+    items.unshift({ key, title, note, at: Date.now() });
+    await setDoc(doc(db, 'freepdf', 'list'), { items: items.slice(0, 60), updatedAt: serverTimestamp() });
+    st.textContent = '✔ Added.'; document.getElementById('fpdf_title').value = ''; document.getElementById('fpdf_note').value = ''; document.getElementById('fpdf_file').value = '';
+    freePdfLoad();
+  } catch (e) { st.textContent = ''; showToast('Failed: ' + e.message, true); }
+  btn.disabled = false;
+}
+async function freePdfRemove(i) {
+  if (!confirm('Remove this PDF from the free list? The file stays in storage.')) return;
+  try {
+    const { db, doc, getDoc, setDoc, serverTimestamp } = window.__fb;
+    const m = await getDoc(doc(db, 'freepdf', 'list')); const items = m.exists() ? (m.data().items || []) : [];
+    items.splice(i, 1); await setDoc(doc(db, 'freepdf', 'list'), { items, updatedAt: serverTimestamp() }); freePdfLoad();
+  } catch (e) { showToast('Failed: ' + e.message, true); }
+}
 
 function isAdmin() {
   return currentUser && currentUser.email && currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
