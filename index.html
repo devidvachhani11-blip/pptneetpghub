@@ -439,6 +439,8 @@
     -webkit-touch-callout: none;
     pointer-events: none;
   }
+  .pg-ph { position: relative; margin: 0 auto 10px; background: #fff; border-radius: 6px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); overflow: hidden; }
+  #pdfPages { position: relative; z-index: 1; }
   .wm-email { position: absolute; inset: 0; pointer-events: none; background-repeat: repeat; z-index: 2; }
   .pdf-loading {
     position: absolute; inset: 0;
@@ -2641,6 +2643,7 @@
       <div class="pdf-wrap" id="pdfWrap" style="display:none;">
         <div class="watermark">VIEW ONLY</div>
         <canvas id="pdfCanvas"></canvas>
+        <div id="pdfPages"></div>
         <div class="wm-email" id="wmEmail"></div>
         <div class="pdf-loading" id="pdfLoading">Loading…</div>
       </div>
@@ -3001,7 +3004,7 @@ function fdSync() {
   lv.classList.toggle("free-mode", on);
   const back = document.getElementById("fdBack");
   if (back) back.style.display = (authResolved && currentUser && membershipChecked && !isPaidMember && FD.off) ? "block" : "none";
-  if (on && !FD.was) { FD.was = true; FD.pool = undefined; FD.mock = undefined; FD.pdfs = undefined; FD.run = null; fdHome(); fdLoadAll(); window.scrollTo(0, 0); }
+  if (on && !FD.was) { FD.was = true; FD.pool = undefined; FD.mock = undefined; FD.pdfs = undefined; FD.run = null; fdHome(); fdLoadAll(); fdTouch(); window.scrollTo(0, 0); }
   if (!on && FD.was) { FD.was = false; fdStopTimer(); }
   if (on) { const w = document.getElementById("fdWho"); if (w) w.textContent = "Signed in as " + fdEmail() + " · Free account"; }
 }
@@ -3138,7 +3141,30 @@ function fdFinish() {
   const used = Math.min(r.cfg.secs || 1e9, Math.round((Date.now() - r.t0) / 1000));
   const rec = { ans: r.ans, mode: r.cfg.mode, used, at: Date.now() };
   fdSet(r.cfg.key, rec);
+  try { fdLog(r.cfg, rec); } catch (e) {}
   fdResult(r.cfg, rec);
+}
+// Saves the first result of each practice day / mock to the free results list (admin only can read it).
+async function fdLog(cfg, rec) {
+  if (!window.__fb || !currentUser) return;
+  const { db, doc, setDoc, serverTimestamp } = window.__fb, email = fdEmail();
+  const sc = fdScore(cfg, rec), by = {};
+  Object.keys(sc.by).forEach(k => { by[k.replace(/[.~*\/\[\]]/g, " ").slice(0, 40)] = sc.by[k]; });
+  const ref = String(cfg.key).replace(/[^A-Za-z0-9_-]/g, "-");
+  try {
+    await setDoc(doc(db, "freeattempts", email + "__" + ref), { email, kind: cfg.kind, ref, title: String(cfg.title).slice(0, 100), score: sc.c, total: cfg.qs.length, wrong: sc.w, skipped: sc.s, trap: sc.tc, by, secs: rec.used, mode: cfg.mode, createdAt: serverTimestamp() });
+  } catch (e) { /* a second attempt of the same day or mock is not saved: that is expected */ }
+}
+// Marks this free user as seen (once a day on this phone).
+async function fdTouch() {
+  if (!window.__fb || !currentUser) return;
+  const day = String(istDay(Date.now()));
+  try { if (localStorage.getItem(fdKey("seen")) === day) return; } catch (e) {}
+  try {
+    const { db, doc, setDoc, serverTimestamp } = window.__fb, email = fdEmail();
+    await setDoc(doc(db, "freeusers", email), { email, lastAt: serverTimestamp() }, { merge: true });
+    try { localStorage.setItem(fdKey("seen"), day); } catch (e) {}
+  } catch (e) {}
 }
 function fdScore(cfg, rec) {
   const out = { c: 0, w: 0, s: 0, by: {}, tc: 0, tt: 0 };
@@ -3275,7 +3301,7 @@ async function fdPdfOpen(it) {
   const msg = fdEl("p", "fdv-msg", "Opening…"); msg.style.color = "#fff"; msg.style.textAlign = "center"; body.appendChild(msg);
   ov.classList.add("on"); document.body.style.overflow = "hidden";
   const email = fdEmail().replace(/[&<>"']/g, "");
-  const svg = "<svg xmlns='http://www.w3.org/2000/svg' width='420' height='260'><text x='30' y='150' transform='rotate(-24 210 130)' font-family='sans-serif' font-size='15' font-weight='600' fill='rgba(90,98,110,0.22)'>" + email + "</text></svg>";
+  const svg = "<svg xmlns='http://www.w3.org/2000/svg' width='420' height='260'><text x='30' y='150' transform='rotate(-24 210 130)' font-family='sans-serif' font-size='17' font-weight='800' fill='rgba(90,98,110,0.20)'>PPTNEETPGHUB</text><text x='30' y='172' transform='rotate(-24 210 130)' font-family='sans-serif' font-size='13' font-weight='600' fill='rgba(90,98,110,0.22)'>" + email + "</text></svg>";
   document.getElementById("fdvWm").style.backgroundImage = 'url("data:image/svg+xml;utf8,' + encodeURIComponent(svg) + '")';
   try {
     if (!window.pdfjsLib) throw new Error("viewer");
@@ -6577,7 +6603,7 @@ function openViewer(item) {
   pdfZoom = 1;
   viewerItem = item;
   document.getElementById("viewerTitle").textContent = item.title;
-  const cv0 = document.getElementById("pdfCanvas"); cv0.style.visibility = "hidden"; cv0.width = 1; cv0.height = 1;      // no old page flashing while the file opens
+  const cv0 = document.getElementById("pdfCanvas"); cv0.style.visibility = "hidden"; cv0.width = 1; cv0.height = 1; try { document.getElementById("pdfPages").innerHTML = ""; } catch (e) {}      // no old page flashing while the file opens
   document.getElementById("viewerBody").scrollTop = 0;
   document.getElementById("pdfWrap").style.minHeight = "300px";          // room for the loading text only until the page is drawn
   viewerShow();
@@ -6669,36 +6695,83 @@ async function loadPdf(source) {
 
 let pdfZoom = 1;            // 1 = whole page width fits the screen
 const PDF_ZOOMS = [1, 1.25, 1.5, 2, 3];
+// Continuous scroll: every page sits in one long column. Pages are drawn only when they come near the screen.
+let pdfIO = null, pdfRaf = 0, pdfSaveT = null;
 async function renderPdfPage(pageNum) {
   if (!currentPdfDoc) return;
-  const page = await currentPdfDoc.getPage(pageNum);
-  const canvas = document.getElementById("pdfCanvas");
-  const ctx = canvas.getContext("2d");
-
-  // Fit the page to the width of the screen so nothing is cut off. Zoom in with the + button.
-  const body = document.querySelector(".viewer-body");
+  const doc = currentPdfDoc, n = doc.numPages;
+  pageNum = Math.max(1, Math.min(n, pageNum || 1));
+  const body = document.querySelector(".viewer-body"), host = document.getElementById("pdfPages"), single = document.getElementById("pdfCanvas");
+  single.style.display = "none";
   const cs = getComputedStyle(body);
   const containerWidth = Math.max(160, body.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0));
   pdfLastW = body.clientWidth;
-  const unscaledViewport = page.getViewport({ scale: 1 });
+  const first = await doc.getPage(1);
+  if (doc !== currentPdfDoc) return;
+  const uv = first.getViewport({ scale: 1 });
   const dpr = Math.min(window.devicePixelRatio || 1, 3);
-  const fitScale = containerWidth / unscaledViewport.width;
-  const displayScale = fitScale * pdfZoom;
-  const displayWidth = unscaledViewport.width * displayScale;
-  const displayHeight = unscaledViewport.height * displayScale;
-  const viewport = page.getViewport({ scale: displayScale * dpr });
-
-  canvas.width = Math.round(viewport.width);
-  canvas.height = Math.round(viewport.height);
-  canvas.style.width = Math.round(displayWidth) + "px";
-  canvas.style.height = Math.round(displayHeight) + "px";
+  const fit = containerWidth / uv.width, w = Math.round(uv.width * fit * pdfZoom), h = Math.round(uv.height * fit * pdfZoom);
   document.getElementById("pdfWrap").classList.toggle("zoomed", pdfZoom > 1);
   const zl = document.getElementById("zoomLabel"); if (zl) zl.textContent = Math.round(pdfZoom * 100) + "%";
   const zi = document.getElementById("zoomInBtn"), zo = document.getElementById("zoomOutBtn");
   if (zi) zi.disabled = pdfZoom >= PDF_ZOOMS[PDF_ZOOMS.length - 1];
   if (zo) zo.disabled = pdfZoom <= 1;
 
-  await page.render({ canvasContext: ctx, viewport }).promise;
+  if (pdfIO) { pdfIO.disconnect(); pdfIO = null; }
+  host.innerHTML = ""; host.style.width = w + "px";
+  const phs = [];
+  for (let p = 1; p <= n; p++) { const ph = document.createElement("div"); ph.className = "pg-ph"; ph.dataset.p = p; ph.style.width = w + "px"; ph.style.height = h + "px"; host.appendChild(ph); phs.push(ph); }
+
+  const renderOne = async (ph) => {
+    if (ph._st) return; ph._st = 1;
+    try {
+      const page = await doc.getPage(+ph.dataset.p);
+      if (doc !== currentPdfDoc || ph._st !== 1) { if (ph._st === 1) ph._st = 0; return; }
+      const sv = page.getViewport({ scale: 1 }), ds = (containerWidth / sv.width) * pdfZoom;
+      const vp = page.getViewport({ scale: ds * dpr });
+      const cv = document.createElement("canvas");
+      cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
+      cv.style.width = Math.round(sv.width * ds) + "px"; cv.style.height = Math.round(sv.height * ds) + "px";
+      ph.style.height = cv.style.height;
+      await page.render({ canvasContext: cv.getContext("2d"), viewport: vp }).promise;
+      if (doc !== currentPdfDoc || ph._st !== 1) { if (ph._st === 1) ph._st = 0; return; }
+      ph.innerHTML = ""; ph.appendChild(cv); ph._st = 2;
+    } catch (e) { ph._st = 0; }
+  };
+
+  currentPdfPage = pageNum;
+  const target = phs[pageNum - 1];
+  if (pageNum > 1) body.scrollTop += target.getBoundingClientRect().top - body.getBoundingClientRect().top - 4;
+  await renderOne(target);
+  if (doc !== currentPdfDoc) return;
+  if ("IntersectionObserver" in window) {
+    pdfIO = new IntersectionObserver((es) => {
+      es.forEach(e => {
+        const ph = e.target;
+        if (e.isIntersecting) renderOne(ph);
+        else if (ph._st === 2) { ph.innerHTML = ""; ph._st = 0; }      // far away: free the memory
+        else if (ph._st === 1) ph._st = 0;
+      });
+    }, { root: body, rootMargin: "900px 0px 900px 0px" });
+    phs.forEach(ph => pdfIO.observe(ph));
+  } else phs.forEach(ph => renderOne(ph));
+}
+function pdfTrack() {
+  if (!currentPdfDoc) return;
+  const body = document.querySelector(".viewer-body"), kids = document.getElementById("pdfPages").children;
+  if (!kids.length) return;
+  const line = body.getBoundingClientRect().top + body.clientHeight * 0.35;
+  let cur = 1;
+  for (let i = 0; i < kids.length; i++) { if (kids[i].getBoundingClientRect().top <= line) cur = i + 1; else break; }
+  if (cur !== currentPdfPage) { currentPdfPage = cur; updatePdfNav(); clearTimeout(pdfSaveT); pdfSaveT = setTimeout(rsSavePdf, 500); }
+}
+document.getElementById("viewerBody").addEventListener("scroll", () => { if (pdfRaf) return; pdfRaf = requestAnimationFrame(() => { pdfRaf = 0; pdfTrack(); }); }, { passive: true });
+function pdfGoPage(p) {
+  const body = document.querySelector(".viewer-body"), ph = document.getElementById("pdfPages").children[p - 1];
+  if (!ph) return;
+  currentPdfPage = p;
+  body.scrollTo({ top: body.scrollTop + ph.getBoundingClientRect().top - body.getBoundingClientRect().top - 4, behavior: "smooth" });
+  updatePdfNav(); rsSavePdf();
 }
 async function pdfZoomStep(dir) {
   const i = PDF_ZOOMS.indexOf(pdfZoom), j = Math.max(0, Math.min(PDF_ZOOMS.length - 1, (i < 0 ? 0 : i) + dir));
@@ -6728,18 +6801,12 @@ function updatePdfNav() {
 
 async function pdfPrevPage() {
   if (!currentPdfDoc || currentPdfPage <= 1) return;
-  currentPdfPage--;
-  await renderPdfPage(currentPdfPage);
-  updatePdfNav();
-  rsSavePdf();
+  pdfGoPage(currentPdfPage - 1);
 }
 
 async function pdfNextPage() {
   if (!currentPdfDoc || currentPdfPage >= currentPdfDoc.numPages) return;
-  currentPdfPage++;
-  await renderPdfPage(currentPdfPage);
-  updatePdfNav();
-  rsSavePdf();
+  pdfGoPage(currentPdfPage + 1);
 }
 
 document.getElementById("prevPageBtn").onclick = pdfPrevPage;

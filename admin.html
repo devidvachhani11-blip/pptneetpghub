@@ -469,6 +469,8 @@
       <button class="tab-btn g-free" data-panel="freePoolPanel">Free pool (600)</button>
       <button class="tab-btn g-free" data-panel="freeMockPanel">Free mock</button>
       <button class="tab-btn g-free" data-panel="freePdfPanel">Free PDF</button>
+      <button class="tab-btn g-free" data-panel="freeResPanel">Free users &amp; results</button>
+      <button class="tab-btn g-free" data-panel="statsPanel">Stats</button>
       <button class="tab-btn g-prem" data-panel="paymentsPanel">Payments<span class="tab-count" id="pendingCount" style="display:none;">0</span></button>
       <button class="tab-btn g-prem" data-panel="resourcesPanel">Add Resource</button>
       <button class="tab-btn g-prem" data-panel="testsPanel">Add Test</button>
@@ -885,6 +887,21 @@
       </div>
     </div>
 
+    <div id="freeResPanel" style="display:none;">
+      <div class="card">
+        <div class="hm-top"><h3>Free users &amp; results</h3><button class="btn" id="fr_refresh" style="flex:0 0 auto;padding:8px 14px;">Refresh</button></div>
+        <div class="hm-grid" id="fr_stats"><div class="empty">Loading…</div></div>
+      </div>
+      <div class="card">
+        <h3>Results (newest 500)</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <select id="fr_kind"><option value="">All</option><option value="practice">Daily practice</option><option value="mock">Free mock</option></select>
+          <input type="text" id="fr_q" placeholder="Search email" style="flex:1;min-width:140px">
+          <button class="btn outline" id="fr_csv" style="flex:0 0 auto">Download CSV</button>
+        </div>
+        <div id="fr_list"><div class="empty">Loading…</div></div>
+      </div>
+    </div>
     <!-- Home sample (for visitors who are not signed in) -->
     <div id="samplePanel" style="display:none;">
       <div class="card">
@@ -1377,13 +1394,14 @@ window.addEventListener('fbReady', () => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      ['homePanel', 'freePoolPanel', 'freeMockPanel', 'freePdfPanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'gtPanel', 'seriesPanel', 'cardsPanel', 'imgTestPanel', 'dropsPanel', 'samplePanel', 'gamesPanel', 'dailyPanel', 'statsPanel', 'mnPanel', 'lbPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'launchPanel', 'membersPanel', 'listPanel'].forEach(id => {
+      ['homePanel', 'freePoolPanel', 'freeMockPanel', 'freePdfPanel', 'freeResPanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'gtPanel', 'seriesPanel', 'cardsPanel', 'imgTestPanel', 'dropsPanel', 'samplePanel', 'gamesPanel', 'dailyPanel', 'statsPanel', 'mnPanel', 'lbPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'launchPanel', 'membersPanel', 'listPanel'].forEach(id => {
         document.getElementById(id).style.display = (id === btn.dataset.panel) ? 'block' : 'none';
       });
       if (btn.dataset.panel === 'homePanel') loadHome();
       if (btn.dataset.panel === 'freePoolPanel') freePoolLoad();
       if (btn.dataset.panel === 'freeMockPanel') freeMockLoad();
       if (btn.dataset.panel === 'freePdfPanel') freePdfLoad();
+      if (btn.dataset.panel === 'freeResPanel') freeResLoad();
       if (btn.dataset.panel === 'dropsPanel') loadDrops();
       if (btn.dataset.panel === 'samplePanel') loadSampleAdmin();
       if (btn.dataset.panel === 'gamesPanel') Object.keys(GPOOL).forEach(gLoad);
@@ -1553,6 +1571,57 @@ async function freeMockRemove() {
 }
 
 // ---- Free PDFs: freepdf/list {items:[{key,title,note,at}]}, files in R2 under free-pdf/
+
+// ---- Free users and results (freeusers, freeattempts)
+const FRES = { rows: [], users: [] };
+const frDay = ms => new Date(ms + 19800000).toISOString().slice(0, 10);
+async function freeResLoad() {
+  const st = document.getElementById('fr_stats'), ls = document.getElementById('fr_list');
+  try {
+    const { db, collection, getDocs, query, orderBy, limit } = window.__fb;
+    const [us, at] = await Promise.all([getDocs(collection(db, 'freeusers')), getDocs(query(collection(db, 'freeattempts'), orderBy('createdAt', 'desc'), limit(500)))]);
+    FRES.users = []; us.forEach(d => { const x = d.data(); x.at = x.lastAt && x.lastAt.toMillis ? x.lastAt.toMillis() : 0; FRES.users.push(x); });
+    FRES.rows = []; at.forEach(d => { const x = d.data(); x.at = x.createdAt && x.createdAt.toMillis ? x.createdAt.toMillis() : 0; FRES.rows.push(x); });
+    const now = Date.now(), today = frDay(now), wk = now - 7 * 86400000;
+    const act = FRES.users.filter(u => u.at >= wk).length, actT = FRES.users.filter(u => frDay(u.at) === today).length;
+    const pr = FRES.rows.filter(r => r.kind === 'practice'), mk = FRES.rows.filter(r => r.kind === 'mock');
+    const avg = a => a.length ? Math.round(a.reduce((s, r) => s + (r.total ? r.score / r.total * 100 : 0), 0) / a.length) + '%' : '–';
+    const cards = [['Free users', FRES.users.length], ['Seen today', actT], ['Seen in 7 days', act], ['Practice today', pr.filter(r => frDay(r.at) === today).length], ['Practice (7 days)', pr.filter(r => r.at >= wk).length], ['Practice avg score', avg(pr)], ['Mock attempts', mk.length], ['Mock avg score', avg(mk)]];
+    st.innerHTML = '';
+    cards.forEach(c => { const d = mk_('div', 'hm-s'); d.appendChild(mk_('b', null, String(c[1]))); d.appendChild(mk_('span', null, c[0])); st.appendChild(d); });
+    freeResList();
+  } catch (e) { st.innerHTML = ''; st.appendChild(mk_('div', 'empty', 'Could not load: ' + e.message)); ls.innerHTML = ''; }
+}
+function mk_(t, c, x) { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; }
+function freeResFiltered() {
+  const k = document.getElementById('fr_kind').value, q = document.getElementById('fr_q').value.trim().toLowerCase();
+  return FRES.rows.filter(r => (!k || r.kind === k) && (!q || String(r.email).toLowerCase().indexOf(q) > -1));
+}
+function freeResList() {
+  const ls = document.getElementById('fr_list'); ls.innerHTML = '';
+  const rows = freeResFiltered();
+  if (!rows.length) { ls.appendChild(mk_('div', 'empty', 'No results yet.')); return; }
+  rows.slice(0, 200).forEach(r => {
+    const d = mk_('div', 'bk-q');
+    d.appendChild(mk_('div', null, r.email));
+    const pc = r.total ? Math.round(r.score / r.total * 100) : 0;
+    d.appendChild(mk_('small', null, (r.kind === 'mock' ? 'Mock' : 'Practice') + ' · ' + r.title + ' · ' + r.score + '/' + r.total + ' (' + pc + '%) · wrong ' + r.wrong + ' · skipped ' + r.skipped + (r.kind === 'practice' ? ' · trap ' + r.trap + '/3' : '') + ' · ' + Math.round((r.secs || 0) / 60) + ' min · ' + new Date(r.at + 19800000).toISOString().slice(0, 16).replace('T', ' ')));
+    ls.appendChild(d);
+  });
+  if (rows.length > 200) ls.appendChild(mk_('p', 'hint', 'Showing 200 of ' + rows.length + '. Use search or download the CSV.'));
+}
+window.addEventListener('load', () => {
+  const g = id => document.getElementById(id);
+  if (g('fr_refresh')) g('fr_refresh').onclick = freeResLoad;
+  if (g('fr_kind')) g('fr_kind').onchange = freeResList;
+  if (g('fr_q')) g('fr_q').oninput = freeResList;
+  if (g('fr_csv')) g('fr_csv').onclick = () => {
+    const rows = freeResFiltered(); const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+    const csv = ['email,type,test,score,total,percent,wrong,skipped,trap,minutes,date'].concat(rows.map(r => [r.email, r.kind, r.title, r.score, r.total, r.total ? Math.round(r.score / r.total * 100) : 0, r.wrong, r.skipped, r.trap, Math.round((r.secs || 0) / 60), new Date(r.at + 19800000).toISOString().slice(0, 16)].map(esc).join(','))).join('\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'free-results.csv'; document.body.appendChild(a); a.click(); a.remove();
+  };
+});
+
 async function freePdfLoad() {
   const box = document.getElementById('fpdf_list'); box.innerHTML = '';
   try {
