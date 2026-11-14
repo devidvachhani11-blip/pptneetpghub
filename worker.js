@@ -359,7 +359,7 @@ function decodeNews(doc) {
     category: s('category') || 'Other', summary: s('summary'), body: s('body'),
     sourceUrl: s('sourceUrl'), sourceName: s('sourceName'), date,
     pinned: !!(f.pinned && f.pinned.booleanValue),
-    rankerName: s('rankerName'), rankerRank: s('rankerRank'), rankerYear: s('rankerYear'), rankerInsta: s('rankerInsta'), faq: s('faq'),
+    rankerName: s('rankerName'), rankerRank: s('rankerRank'), rankerYear: s('rankerYear'), rankerInsta: s('rankerInsta'), rankerYoutube: s('rankerYoutube'), faq: s('faq'),
     updatedAt: t('updatedAt') || t('createdAt') || (date ? date + 'T00:00:00Z' : '')
   };
   // Which page it belongs to: news, counselling or tips. Older items without the field are sorted by their type and category.
@@ -499,7 +499,7 @@ function shellFull(site, o) {
       '<details class="menu"><summary aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></summary><div class="panel">' +
       '<a href="/">Home</a><a href="/#features">What you get</a><a href="/#pricing">Pricing</a><a href="/news">News</a><a href="/study-tips">Study tips</a><a href="/calculators">Calculators</a><a href="/counselling">Counselling</a><a href="/#faq">FAQ</a><hr><a href="/" style="color:#D4AF55;font-weight:700">Member sign in</a></div></details></nav></div></header>' +
     '<main>' + o.body + '</main>' +
-    '<footer><div><a href="/">Home</a><a href="/news">News</a><a href="/study-tips">Study tips</a><a href="/calculators">Calculators</a><a href="/sign">Signs</a><a href="/counselling">Counselling</a><a href="/#pricing">Pricing</a></div><div class="legal"><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/refund">Refunds</a></div><p>Summaries of official notices. Always confirm dates and rules on the official website before acting.</p></footer><script>document.addEventListener("click",function(e){var d=document.querySelector("details.menu");if(d&&d.open&&!d.contains(e.target))d.open=false;});</script></body></html>';
+    '<footer><div><a href="/">Home</a><a href="/drops">PDFs</a><a href="/news">News</a><a href="/study-tips">Study tips</a><a href="/calculators">Calculators</a><a href="/sign">Signs</a><a href="/counselling">Counselling</a><a href="/#pricing">Pricing</a></div><div class="legal"><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/refund">Refunds</a></div><p>Summaries of official notices. Always confirm dates and rules on the official website before acting.</p></footer><script>document.addEventListener("click",function(e){var d=document.querySelector("details.menu");if(d&&d.open&&!d.contains(e.target))d.open=false;});</script></body></html>';
 }
 function ctaBox() {
   return '<div class="cta"><b>Preparing for NEET PG?</b><p>Notes, PYQs, flash cards and timed tests, released step by step.</p><a class="btn" href="/#join">Go Premium</a></div>';
@@ -820,16 +820,37 @@ async function dropPage(env, url, slug) {
   const path = '/drops/' + n.slug;
   const faq = dropFaq(n.faq);
   const others = (await allPublished(env)).filter(x => x.section === 'drops' && x.id !== n.id).slice(0, 4);
-  const body = '<div class="crumbs"><a href="/">Home</a> › Premium drops › ' + h(clip(n.title, 50)) + '</div>' +
+  const body = '<div class="crumbs"><a href="/">Home</a> › <a href="/drops">Premium drops</a> › ' + h(clip(n.title, 50)) + '</div>' +
     '<span class="pill g">Premium drop</span><span class="meta">' + (n.date ? 'Added: ' + h(niceDate(n.date)) : '') + '</span>' +
     '<h1>' + h(n.title) + '</h1><p class="lead">' + h(n.summary) + '</p><div class="body">' + renderBody(n.body) + '</div>' +
     (faq.length ? '<h2>Frequently asked questions</h2>' + faq.map(f => '<p><strong>' + h(f[0]) + '</strong><br>' + h(f[1]) + '</p>').join('') : '') +
     '<div class="cta"><b>Get the full resource in Premium</b><p>This page shows a short preview. The complete file, with the rest of the library, is inside PPTNEETPGHUB Premium.</p><div class="cta-row"><a class="btn" href="/#pricing">Go Premium</a><a class="btn" style="background:#fff" href="/#freeHub">Try free first</a></div></div>' +
     (others.length ? '<h2>More Premium drops</h2>' + others.map(o => '<a class="item" href="/drops/' + h(o.slug) + '"><span class="pill g">Premium drop</span><b>' + h(o.title) + '</b><span class="s">' + h(clip(o.summary, 110)) + '</span></a>').join('') : '');
   const ld = [{ '@context': 'https://schema.org', '@type': 'Article', headline: clip(n.title, 110), description: clip(n.summary, 200), datePublished: n.date || undefined, dateModified: (n.updatedAt || n.date || '').slice(0, 10) || undefined, mainEntityOfPage: site + path, author: orgLd(site), publisher: orgLd(site) },
-    crumbLd(site, [['Home', '/'], [clip(n.title, 60), path]])];
+    crumbLd(site, [['Home', '/'], ['Premium drops', '/drops'], [clip(n.title, 60), path]])];
   if (faq.length) ld.push({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(f => ({ '@type': 'Question', name: f[0], acceptedAnswer: { '@type': 'Answer', text: f[1] } })) });
   return htmlResponse(shell(site, { title: clip(n.title, 60) + ' | PPTNEETPGHUB', desc: clip(n.summary || n.title, 160), path, ogType: 'article', body, ld }));
+}
+async function dropsHubPage(env, url) {
+  const site = siteOf(env, url);
+  const list = (await allPublished(env)).filter(x => x.section === 'drops');
+  const faq = [
+    ['Where can I get NEET PG 2027 PDFs and notes?', 'PPTNEETPGHUB shares new high-yield PDFs and notes for NEET PG 2027. Each page here shows a free preview, and the complete files are inside Premium.'],
+    ['Is there anything free?', 'Yes. Sign in with Gmail on the home page for the free section: 20 practice questions every day, a weekly mock test and a new short high-yield PDF every week.'],
+    ['How often are new PDFs added?', 'New drops are added regularly. Premium members get more PDFs every week than the free section.'],
+    ['What are PYT sheets?', 'PYT means Previous Year Topics. A PYT sheet lists the topics NEET PG asked most often in past years, with the key points to revise for each.']
+  ];
+  const body = '<div class="crumbs"><a href="/">Home</a> › Premium drops</div>' +
+    '<h1>NEET PG 2027 PDFs, notes and high-yield sheets</h1>' +
+    '<p class="lead">Every new PDF and high-yield sheet we add for NEET PG 2027, with a free preview on each page. The complete files are inside PPTNEETPGHUB Premium.</p>' +
+    (list.length ? list.map(n => '<a class="item" href="/drops/' + h(n.slug) + '"><span class="pill g">Premium drop</span><span class="meta">' + h(niceDate(n.date)) + '</span><b>' + h(n.title) + '</b><span class="s">' + h(clip(n.summary, 150)) + '</span></a>').join('') : '<p>New drops will appear here soon.</p>') +
+    '<h2>Frequently asked questions</h2>' + faq.map(f => '<p><strong>' + h(f[0]) + '</strong><br>' + h(f[1]) + '</p>').join('') +
+    '<div class="cta"><b>Want every PDF in one place?</b><p>Premium has the full library, question bank, tests and flashcards. Or start free with 20 questions a day.</p><div class="cta-row"><a class="btn" href="/#pricing">Go Premium</a><a class="btn" style="background:#fff" href="/#freeHub">Try free first</a></div></div>';
+  const ld = [crumbLd(site, [['Home', '/'], ['Premium drops', '/drops']]),
+    { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(f => ({ '@type': 'Question', name: f[0], acceptedAnswer: { '@type': 'Answer', text: f[1] } })) }];
+  if (list.length) ld.push({ '@context': 'https://schema.org', '@type': 'ItemList', itemListElement: list.slice(0, 50).map((n, i) => ({ '@type': 'ListItem', position: i + 1, url: site + '/drops/' + n.slug, name: n.title })) });
+  return htmlResponse(shell(site, { title: 'NEET PG 2027 PDFs, Notes & High-Yield Sheets | PPTNEETPGHUB',
+    desc: 'NEET PG 2027 PDFs, notes and high-yield PYT sheets with a free preview on every page. Full files inside PPTNEETPGHUB Premium.', path: '/drops', noindex: !list.length, body, ld }));
 }
 function dropNotFound(site) {
   return htmlResponse(shell(site, { title: 'Page not found | PPTNEETPGHUB', desc: 'This page was not found.', path: '/', noindex: true,
@@ -852,6 +873,7 @@ async function sitemapXml(env, url) {
   news.forEach(n => rows.push({ loc: '/news/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
   coun.forEach(n => rows.push({ loc: '/counselling/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
   tips.forEach(n => rows.push({ loc: '/study-tips/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
+  if (!site.soon && everything.some(n => n.section === 'drops')) rows.push({ loc: '/drops', mod: (everything.filter(n => n.section === 'drops')[0].updatedAt || '').slice(0, 10) });
   everything.filter(n => n.section === 'drops').forEach(n => rows.push({ loc: '/drops/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
   const xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     rows.map(r => '<url><loc>' + h(site + r.loc) + '</loc>' + (r.mod ? '<lastmod>' + h(r.mod) + '</lastmod>' : '') + '</url>').join('\n') + '\n</urlset>';
@@ -1178,15 +1200,20 @@ async function catListPage(env, url, path) {
   return htmlResponse(shell(site, { title: info.title + ' | PPTNEETPGHUB', desc: info.desc, path, body, noindex: !list.length,
     ld: [crumbLd(site, [['Home', '/'], ['Study tips', '/study-tips'], [info.h1, path]])] }));
 }
+const YT_RE = /^https:\/\/(www\.|m\.)?youtube\.com\/[A-Za-z0-9@._\/-]{2,120}$/;
 function rankerBox(n) {
   if (!n.rankerName) return '';
   const insta = /^@?[A-Za-z0-9._]{2,40}$/.test(n.rankerInsta) ? '<a href="https://www.instagram.com/' + h(n.rankerInsta.replace(/^@/, '')) + '/" target="_blank" rel="noopener nofollow">@' + h(n.rankerInsta.replace(/^@/, '')) + ' on Instagram</a>' : '';
-  return '<div class="src" style="border-left-color:#C9A24B"><b>Tip by ' + h(n.rankerName) + '</b><br>' + h([n.rankerRank, n.rankerYear ? 'NEET PG ' + n.rankerYear : ''].filter(Boolean).join(' · ')) + (insta ? '<br>' + insta : '') + '</div>';
+  const yt = YT_RE.test(n.rankerYoutube || '') ? '<a href="' + h(n.rankerYoutube) + '" target="_blank" rel="noopener nofollow">' + h(n.rankerName) + ' on YouTube</a>' : '';
+  return '<div class="src" style="border-left-color:#C9A24B"><b>Tip by ' + h(n.rankerName) + '</b><br>' + h([n.rankerRank, n.rankerYear ? 'NEET PG ' + n.rankerYear : ''].filter(Boolean).join(' · ')) + (insta ? '<br>' + insta : '') + (yt ? '<br>' + yt : '') + '</div>';
 }
 function authorLd(n, site) {
   if (!n.rankerName) return orgLd(site);
   const p = { '@type': 'Person', name: n.rankerName, description: [n.rankerRank, n.rankerYear ? 'NEET PG ' + n.rankerYear : ''].filter(Boolean).join(', ') };
-  if (/^@?[A-Za-z0-9._]{2,40}$/.test(n.rankerInsta)) p.sameAs = 'https://www.instagram.com/' + n.rankerInsta.replace(/^@/, '') + '/';
+  const same = [];
+  if (/^@?[A-Za-z0-9._]{2,40}$/.test(n.rankerInsta)) same.push('https://www.instagram.com/' + n.rankerInsta.replace(/^@/, '') + '/');
+  if (YT_RE.test(n.rankerYoutube || '')) same.push(n.rankerYoutube);
+  if (same.length) p.sameAs = same.length === 1 ? same[0] : same;
   return p;
 }
 async function addSeoRows(env, rows, tips) {
@@ -1234,6 +1261,7 @@ async function handlePublic(request, env, url) {
     const cm = /^\/counselling\/([a-z0-9-]{3,80})$/.exec(p);
     if (cm) return await cachedPage(request, FRESH_SECONDS, () => counsellingItemPage(env, url, cm[1]));
     if (p.startsWith('/counselling/')) return counsellingNotFound(site);
+    if (p === '/drops') return await cachedPage(request, FRESH_SECONDS, () => dropsHubPage(env, url));
     const dm = /^\/drops\/([a-z0-9-]{3,80})$/.exec(p);
     if (dm) return await cachedPage(request, FRESH_SECONDS, () => dropPage(env, url, dm[1]));
     if (p.startsWith('/drops/')) return dropNotFound(site);

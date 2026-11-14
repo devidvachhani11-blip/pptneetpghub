@@ -3135,6 +3135,7 @@ function openNewsEdit(row, defSection) {
   rkWrap.appendChild(edField('Rank', edInput('n_rrank', r.rankerRank || '', 'e.g. AIR 120')));
   rkWrap.appendChild(edField('NEET PG year (optional)', edInput('n_ryear', r.rankerYear || '', 'e.g. 2025')));
   rkWrap.appendChild(edField('Instagram handle (optional)', edInput('n_rinsta', r.rankerInsta || '', '@handle')));
+  rkWrap.appendChild(edField('YouTube channel link (optional)', edInput('n_ryt', r.rankerYoutube || '', 'https://www.youtube.com/@channelname')));
   body.appendChild(rkWrap);
   const text = edArea('n_body', r.body, 12); text.className = 't-area';
   body.appendChild(edField('Full text', text));
@@ -3176,7 +3177,7 @@ async function saveNewsEdit() {
     title: v('n_title'), section: v('n_section'), type: v('n_section') === 'tips' ? 'tip' : v('n_type'), category: v('n_cat'), slug: v('n_slug').toLowerCase(), date: v('n_date'),
     summary: v('n_summary'), body: document.getElementById('n_body').value.trim(),
     sourceName: v('n_srcname'), sourceUrl: v('n_srcurl'),
-    rankerName: v('n_rname'), rankerRank: v('n_rrank'), rankerYear: v('n_ryear'), rankerInsta: v('n_rinsta'),
+    rankerName: v('n_rname'), rankerRank: v('n_rrank'), rankerYear: v('n_ryear'), rankerInsta: v('n_rinsta'), rankerYoutube: v('n_ryt'),
     pinned: document.getElementById('n_pinned').checked, published: document.getElementById('n_pub').checked
   };
   if (!data.title) throw soft('Add a title.');
@@ -3184,13 +3185,14 @@ async function saveNewsEdit() {
   if (NEWS.rows.some(x => x.slug === data.slug && (!row || x.id !== row.id))) throw soft('Another item already uses this web address.');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(data.date)) throw soft('Choose the date.');
   if (!data.summary) throw soft('Add a short summary. It is shown in Google results.');
+  if (data.rankerYoutube && !/^https:\/\/(www\.|m\.)?youtube\.com\/[A-Za-z0-9@._\/-]{2,120}$/.test(data.rankerYoutube)) throw soft('The YouTube link must look like https://www.youtube.com/@channelname (a channel link, no extra ? parts).');
   if (data.sourceUrl && !/^https?:\/\//i.test(data.sourceUrl)) throw soft('The source link must start with https://');
   if (!data.body) throw soft('Add the full text.');
   if (data.published && /TODO/.test(data.body)) throw soft('The text still has TODO notes. Replace them with real details from the official notice, or untick Published.');
   if (data.slug === 'counselling' && (data.type !== 'guide' || data.section !== 'counselling')) throw soft('The "counselling" address is only for the main Guide page, shown on the Counselling page.');
   if (catsFor(data.section).indexOf(data.category) < 0) throw soft('Choose a category for this page.');
   if (data.section === 'tips' && data.category === 'Ranker Vault' && (!data.rankerName || !data.rankerRank)) throw soft('Add the ranker name and rank for a Ranker Vault tip.');
-  if (!(data.section === 'tips' && data.category === 'Ranker Vault')) { data.rankerName = ''; data.rankerRank = ''; data.rankerYear = ''; data.rankerInsta = ''; }
+  if (!(data.section === 'tips' && data.category === 'Ranker Vault')) { data.rankerName = ''; data.rankerRank = ''; data.rankerYear = ''; data.rankerInsta = ''; data.rankerYoutube = ''; }
   if (row) {
     await updateDoc(doc(db, 'news', row.id), Object.assign({}, data, { updatedAt: serverTimestamp() }));
     showToast(data.published ? '✔ Saved. The public page updates within about 2 minutes.' : '✔ Saved as draft');
