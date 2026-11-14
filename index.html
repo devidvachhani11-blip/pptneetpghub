@@ -1391,6 +1391,26 @@
   .tkr a { display:inline-flex; align-items:center; gap:8px; padding:9px 22px; color:#E8EEF9; font-size:13.5px; font-weight:600; text-decoration:none; }
   .tkr a b { background:#C9A24B; color:#0A1830; border-radius:6px; padding:2px 8px; font-size:10.5px; letter-spacing:.08em; font-weight:800; }
   .tkr a + a { border-left:1px solid rgba(255,255,255,.14); }
+
+  /* Recent drops: fixed tab on the right edge, opens a panel with the newest 3 */
+  #rdWrap { position:fixed; right:0; top:36%; z-index:60; display:none; }
+  #rdTab { white-space:nowrap; position:absolute; right:0; top:0; background:#0A1830; color:#E9C766; border:0; border-radius:14px 0 0 14px; padding:12px 9px; font:700 12.5px/1 inherit; font-family:inherit; letter-spacing:.08em; writing-mode:vertical-rl; box-shadow:-3px 3px 12px rgba(0,0,0,.35); cursor:pointer; display:flex; align-items:center; gap:7px; }
+  #rdTab i { font-style:normal; writing-mode:horizontal-tb; font-size:14px; }
+  #rdDot { position:absolute; right:3px; top:-6px; width:12px; height:12px; border-radius:50%; background:#E5484D; border:2px solid #fff; display:none; }
+  #rdPanel { position:absolute; right:0; top:0; width:min(86vw,320px); background:#fff; color:#14213D; border-radius:16px 0 0 16px; box-shadow:-6px 6px 28px rgba(0,0,0,.4); overflow:hidden; transform:translateX(105%); transition:transform .25s ease; visibility:hidden; }
+  #rdWrap.open #rdPanel { transform:translateX(0); visibility:visible; }
+  #rdWrap.open #rdTab { display:none; }
+  .rd-h { background:#0A1830; color:#E9C766; font-weight:700; font-size:14px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; border:0; width:100%; cursor:pointer; font-family:inherit; }
+  .rd-h b { font-size:18px; color:#fff; }
+  .rd-it { display:flex; gap:10px; align-items:center; width:100%; text-align:left; background:#fff; border:0; border-bottom:1px solid #ece7d8; padding:11px 14px; cursor:pointer; font-family:inherit; color:inherit; }
+  .rd-it:hover { background:#FBF8EF; }
+  .rd-ic { width:30px; height:30px; border-radius:8px; background:#E8F4F0; display:flex; align-items:center; justify-content:center; flex:none; font-size:15px; }
+  .rd-it .rt { font-size:13px; font-weight:600; line-height:1.3; }
+  .rd-it small { display:block; color:#6b7280; font-size:11px; margin-top:2px; font-weight:400; }
+  .rd-go { margin-left:auto; font-size:11px; font-weight:700; color:#0D7A6E; white-space:nowrap; }
+  .rd-ft { padding:8px 14px; font-size:11px; color:#6b7280; background:#faf8f1; }
+  html.in-lib #rdWrap { display:none !important; }
+  @media (prefers-reduced-motion: reduce) { #rdPanel { transition:none; } }
   @keyframes tkrMove { from { transform:translateX(0); } to { transform:translateX(-50%); } }
   @media (prefers-reduced-motion: reduce) { .tkr { overflow-x:auto; } .tkr-track { animation:none; } }
   .upd-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
@@ -3425,6 +3445,7 @@ function updateView() {
   document.getElementById('lhSignIn').textContent = currentUser ? 'Sign out' : 'Sign in';
   document.getElementById('menuSignIn').textContent = currentUser ? 'Sign out' : 'Member sign in';
   try { fdSync(); } catch (e) { console.error('free space', e); }
+  try { rdSync(); } catch (e) {}
   if (showLib) {
     document.getElementById('accessNoteText').textContent = 'Signed in as: ' + (currentUser.email || currentUser.displayName || '\u2014') + (memberInfo.id ? ' \u00B7 Your ID: ' + memberInfo.id : '');
   }
@@ -3697,7 +3718,6 @@ function paintTicker() {
   const sec = document.getElementById('tkr'), tr = document.getElementById('tkrTrack');
   if (!sec || !tr) return;
   const L = [];
-  TK.drops.forEach(n => L.push(['NEW', n.t, '#pricing']));
   try { if (typeof SIGNS !== 'undefined') { const g = SIGNS[((istDay(Date.now()) % SIGNS.length) + SIGNS.length) % SIGNS.length]; L.push(["TODAY'S SIGN", g[0] + ' · ' + g[1], '#freeHub']); } } catch (e) {}
   L.push(['FREE', 'Daily 10 questions, Daily Diagnosis and a sample PDF', '#freeHub']);
   TK.news.forEach(n => L.push([String(n.category || 'UPDATE').toUpperCase().slice(0, 14), n.title, '/news/' + encodeURIComponent(n.slug)]));
@@ -3708,6 +3728,57 @@ function paintTicker() {
   tr.style.setProperty('--tkd', Math.max(25, Math.round(w / 45)) + 's');
   sec.style.display = 'block';
 }
+
+// ---------- Recent drops panel (right side). Shows the newest 3 by date, only for people who are not Premium members ----------
+function rdSeen() { try { return localStorage.getItem('rd_seen') || ''; } catch (e) { return ''; } }
+function rdPaint() {
+  const wrap = document.getElementById('rdWrap'), list = document.getElementById('rdList');
+  if (!wrap || !list) return;
+  list.innerHTML = '';
+  const items = TK.drops || [];
+  items.forEach(n => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'rd-it';
+    const ic = document.createElement('span'); ic.className = 'rd-ic'; ic.textContent = '\uD83D\uDCC4';
+    const tx = document.createElement('span'); const t = document.createElement('span'); t.className = 'rt'; t.textContent = n.t;
+    const sm = document.createElement('small'); sm.textContent = [n.s, dropAgo(n.d)].filter(Boolean).join(' \u00B7 '); tx.appendChild(t); tx.appendChild(sm);
+    const go = document.createElement('span'); go.className = 'rd-go'; go.textContent = 'Premium \u203A';
+    b.appendChild(ic); b.appendChild(tx); b.appendChild(go);
+    b.addEventListener('click', rdGoPremium);
+    list.appendChild(b);
+  });
+  const newest = items.length ? items[0].d : '';
+  const dot = document.getElementById('rdDot');
+  if (dot) dot.style.display = newest && newest > rdSeen() ? 'block' : 'none';
+  rdSync();
+}
+function rdSync() {
+  const wrap = document.getElementById('rdWrap'); if (!wrap) return;
+  const show = (TK.drops || []).length > 0 && !(typeof isPaidMember !== 'undefined' && isPaidMember && currentUser);
+  wrap.style.display = show ? 'block' : 'none';
+  if (!show) rdClose();
+}
+function rdOpen() {
+  const wrap = document.getElementById('rdWrap'); wrap.classList.add('open');
+  document.getElementById('rdTab').setAttribute('aria-expanded', 'true');
+  const newest = (TK.drops || [])[0]; if (newest) { try { localStorage.setItem('rd_seen', newest.d); } catch (e) {} }
+  const dot = document.getElementById('rdDot'); if (dot) dot.style.display = 'none';
+}
+function rdClose() {
+  const wrap = document.getElementById('rdWrap'); if (!wrap) return;
+  wrap.classList.remove('open'); const t = document.getElementById('rdTab'); if (t) t.setAttribute('aria-expanded', 'false');
+}
+function rdGoPremium() {
+  rdClose();
+  if (typeof fdOn === 'function' && fdOn()) { fdGoPremium(); return; }
+  const j = document.getElementById('pricing') || document.getElementById('join'); if (j) j.scrollIntoView({ behavior: 'smooth' });
+}
+document.addEventListener('click', (e) => {
+  if (e.target.closest && e.target.closest('#rdTab')) { rdOpen(); return; }
+  if (e.target.closest && e.target.closest('#rdClose')) { rdClose(); return; }
+  const w = document.getElementById('rdWrap');
+  if (w && w.classList.contains('open') && !(e.target.closest && e.target.closest('#rdWrap'))) rdClose();
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') rdClose(); });
 async function loadRecentDrops() {
   if (!window.__fb) return;
   let items = [];
@@ -3719,7 +3790,7 @@ async function loadRecentDrops() {
   items = items.filter(x => x && typeof x.t === 'string' && x.t.trim() && x.t.length <= 140 && /^\d{4}-\d{2}-\d{2}$/.test(String(x.d || '')))
     .map((x, i) => ({ s: typeof x.s === 'string' ? x.s.slice(0, 40) : '', t: x.t.trim(), d: x.d, i }))
     .sort((p, q) => (q.d < p.d ? -1 : q.d > p.d ? 1 : p.i - q.i)).slice(0, 3);
-  TK.drops = items; paintTicker();
+  TK.drops = items; rdPaint();
 }
 
 // ---------- Latest updates (from the public news pages), shown in the top ticker ----------
@@ -8458,5 +8529,14 @@ document.getElementById("tourAgain").onclick = () => { closeFilter(); setTimeout
 render();
 initLanding();
 </script>
+<div id="rdWrap" aria-live="polite">
+  <button id="rdTab" type="button" aria-expanded="false" aria-controls="rdPanel"><i>&#9660;</i>RECENT DROPS</button>
+  <span id="rdDot"></span>
+  <div id="rdPanel" role="dialog" aria-label="Recent drops">
+    <button class="rd-h" id="rdClose" type="button" aria-label="Close recent drops"><span>&#128293; Recent Drops</span><b>&#9650;</b></button>
+    <div id="rdList"></div>
+    <div class="rd-ft">Latest 3 drops. Tap one to see it in Premium.</div>
+  </div>
+</div>
 </body>
 </html>

@@ -359,12 +359,13 @@ function decodeNews(doc) {
     category: s('category') || 'Other', summary: s('summary'), body: s('body'),
     sourceUrl: s('sourceUrl'), sourceName: s('sourceName'), date,
     pinned: !!(f.pinned && f.pinned.booleanValue),
-    rankerName: s('rankerName'), rankerRank: s('rankerRank'), rankerYear: s('rankerYear'), rankerInsta: s('rankerInsta'),
+    rankerName: s('rankerName'), rankerRank: s('rankerRank'), rankerYear: s('rankerYear'), rankerInsta: s('rankerInsta'), faq: s('faq'),
     updatedAt: t('updatedAt') || t('createdAt') || (date ? date + 'T00:00:00Z' : '')
   };
   // Which page it belongs to: news, counselling or tips. Older items without the field are sorted by their type and category.
   const raw = s('section');
   if (n.type === 'tip' || raw === 'tips') n.section = 'tips';
+  else if (raw === 'drops') n.section = 'drops';
   else if (raw === 'news' || raw === 'counselling') n.section = raw;
   else if (n.slug === 'counselling') n.section = 'counselling';
   else if (n.type === 'guide') n.section = 'news';
@@ -511,6 +512,7 @@ function notFoundPage(site) {
     body: '<h1>Page not found</h1><p class="lead">That update does not exist or is no longer published.</p><p><a href="/news">See all updates</a></p>' }), 404);
 }
 function pathOf(n) {
+  if (n.section === 'drops') return '/drops/' + h(n.slug);
   if (n.section === 'tips') return '/study-tips/' + h(n.slug);
   if (n.section === 'counselling') return n.slug === 'counselling' ? '/counselling' : '/counselling/' + h(n.slug);
   return '/news/' + h(n.slug);
@@ -807,6 +809,33 @@ async function counsellingItemPage(env, url, slug) {
   }));
 }
 
+// ---------- Public page for a Premium drop (made from the admin "Recent drops" tab) ----------
+function dropFaq(raw) {
+  return String(raw || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => { const i = l.indexOf('|'); return i > 0 ? [l.slice(0, i).trim(), l.slice(i + 1).trim()] : null; }).filter(x => x && x[0] && x[1]).slice(0, 6);
+}
+async function dropPage(env, url, slug) {
+  const site = siteOf(env, url);
+  const n = (await allPublished(env)).find(x => x.section === 'drops' && x.slug === slug);
+  if (!n) return dropNotFound(site);
+  const path = '/drops/' + n.slug;
+  const faq = dropFaq(n.faq);
+  const others = (await allPublished(env)).filter(x => x.section === 'drops' && x.id !== n.id).slice(0, 4);
+  const body = '<div class="crumbs"><a href="/">Home</a> › Premium drops › ' + h(clip(n.title, 50)) + '</div>' +
+    '<span class="pill g">Premium drop</span><span class="meta">' + (n.date ? 'Added: ' + h(niceDate(n.date)) : '') + '</span>' +
+    '<h1>' + h(n.title) + '</h1><p class="lead">' + h(n.summary) + '</p><div class="body">' + renderBody(n.body) + '</div>' +
+    (faq.length ? '<h2>Frequently asked questions</h2>' + faq.map(f => '<p><strong>' + h(f[0]) + '</strong><br>' + h(f[1]) + '</p>').join('') : '') +
+    '<div class="cta"><b>Get the full resource in Premium</b><p>This page shows a short preview. The complete file, with the rest of the library, is inside PPTNEETPGHUB Premium.</p><div class="cta-row"><a class="btn" href="/#pricing">Go Premium</a><a class="btn" style="background:#fff" href="/#freeHub">Try free first</a></div></div>' +
+    (others.length ? '<h2>More Premium drops</h2>' + others.map(o => '<a class="item" href="/drops/' + h(o.slug) + '"><span class="pill g">Premium drop</span><b>' + h(o.title) + '</b><span class="s">' + h(clip(o.summary, 110)) + '</span></a>').join('') : '');
+  const ld = [{ '@context': 'https://schema.org', '@type': 'Article', headline: clip(n.title, 110), description: clip(n.summary, 200), datePublished: n.date || undefined, dateModified: (n.updatedAt || n.date || '').slice(0, 10) || undefined, mainEntityOfPage: site + path, author: orgLd(site), publisher: orgLd(site) },
+    crumbLd(site, [['Home', '/'], [clip(n.title, 60), path]])];
+  if (faq.length) ld.push({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(f => ({ '@type': 'Question', name: f[0], acceptedAnswer: { '@type': 'Answer', text: f[1] } })) });
+  return htmlResponse(shell(site, { title: clip(n.title, 60) + ' | PPTNEETPGHUB', desc: clip(n.summary || n.title, 160), path, ogType: 'article', body, ld }));
+}
+function dropNotFound(site) {
+  return htmlResponse(shell(site, { title: 'Page not found | PPTNEETPGHUB', desc: 'This page was not found.', path: '/', noindex: true,
+    body: '<h1>Page not found</h1><p class="lead">That page does not exist or is no longer published.</p><p><a href="/">Back to home</a></p>' }), 404);
+}
+
 async function sitemapXml(env, url) {
   const site = siteOf(env, url);
   const everything = await allPublished(env);
@@ -823,6 +852,7 @@ async function sitemapXml(env, url) {
   news.forEach(n => rows.push({ loc: '/news/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
   coun.forEach(n => rows.push({ loc: '/counselling/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
   tips.forEach(n => rows.push({ loc: '/study-tips/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
+  everything.filter(n => n.section === 'drops').forEach(n => rows.push({ loc: '/drops/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
   const xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     rows.map(r => '<url><loc>' + h(site + r.loc) + '</loc>' + (r.mod ? '<lastmod>' + h(r.mod) + '</lastmod>' : '') + '</url>').join('\n') + '\n</urlset>';
   return new Response(xml, { status: 200, headers: { 'Content-Type': 'application/xml; charset=utf-8' } });
@@ -1204,6 +1234,9 @@ async function handlePublic(request, env, url) {
     const cm = /^\/counselling\/([a-z0-9-]{3,80})$/.exec(p);
     if (cm) return await cachedPage(request, FRESH_SECONDS, () => counsellingItemPage(env, url, cm[1]));
     if (p.startsWith('/counselling/')) return counsellingNotFound(site);
+    const dm = /^\/drops\/([a-z0-9-]{3,80})$/.exec(p);
+    if (dm) return await cachedPage(request, FRESH_SECONDS, () => dropPage(env, url, dm[1]));
+    if (p.startsWith('/drops/')) return dropNotFound(site);
     const m = /^\/news\/([a-z0-9-]{3,80})$/.exec(p);
     if (m) return await cachedPage(request, FRESH_SECONDS, () => articlePage(env, url, m[1]));
     if (p.startsWith('/news/')) return notFoundPage(site);

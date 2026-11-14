@@ -958,8 +958,8 @@
     <!-- Recent drops (home page card for visitors) -->
     <div id="dropsPanel" style="display:none;">
       <div class="card">
-        <h3>Recent drops (home page)</h3>
-        <p class="hint" style="margin-top:-6px">Up to 3 lines shown to visitors on the home page, under "Recent drops". You type them yourself. Nothing is read from your resources. Newest date shows first. Leave a row empty to hide it. If all 3 are empty, the card is hidden.</p>
+        <h3>Recent drops (right-side panel)</h3>
+        <p class="hint" style="margin-top:-6px">The site shows the 3 newest drops by date, newest first, in a panel on the right side. Tapping a drop takes the visitor to Premium. To add a new drop, just replace the box tagged "Oldest" and set its date. The order of the boxes does not matter. Tick "Create a public page" to also make a page Google can find (the page stays online even after the drop leaves the 3 boxes). Leave a box empty to hide it. If all 3 are empty, the panel is hidden.</p>
         <div id="rd_rows"></div>
         <div class="t-actions">
           <button class="btn" id="rd_save">Save</button>
@@ -2647,71 +2647,158 @@ async function lbHide() {
   catch (e) { showToast('Failed: ' + e.message, true); }
 }
 
-// ---------- Recent drops (home page card for visitors) ----------
-// Saved in "config/recent" as { items: [{ s: subject, t: title, d: "YYYY-MM-DD" }] }. The home page reads it with no sign-in.
-const RD = { n: 3, max: 90, loaded: false };
+// ---------- Recent drops (right-side panel for visitors) ----------
+// Saved in "config/recent" as { items: [{ s, t, d, slug? }] }. The site shows the 3 newest by date (newest first), so
+// the order of the boxes does not matter: just replace the OLDEST box. Each drop can also get a public SEO page,
+// saved in the "news" collection as section "drops" (document id "drop-<slug>") so it stays online after the drop leaves the 3 boxes.
+const RD = { n: 3, max: 90, loaded: false, slugs: {} };
 function rdToday() { const n = new Date(); return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0'); }
+const rdV = (id) => document.getElementById(id);
 function rdBuild() {
-  const wrap = document.getElementById('rd_rows');
+  const wrap = rdV('rd_rows');
   if (wrap.children.length) return;
   for (let i = 0; i < RD.n; i++) {
-    const row = mk('div', 'gt-box');
-    const head = mk('div', 'gt-head'); head.appendChild(mk('b', null, 'Line ' + (i + 1)));
+    const row = mk('div', 'gt-box'); row.id = 'rd_row' + i;
+    const head = mk('div', 'gt-head'); head.appendChild(mk('b', null, 'Drop ' + (i + 1)));
+    const old = mk('span', 'gt-cnt', 'Oldest · replace this one'); old.id = 'rd_old' + i; old.style.cssText = 'display:none;background:#FFF1D6;color:#8A5A00;border-radius:8px;padding:2px 8px;font-size:11.5px;font-weight:700'; head.appendChild(old);
     const cnt = mk('span', 'gt-cnt', '0 / ' + RD.max); cnt.id = 'rd_cnt' + i; head.appendChild(cnt);
     const clr = mk('button', 'btn outline', 'Clear'); clr.type = 'button'; clr.style.cssText = 'padding:4px 10px;font-size:12px;margin:0';
-    clr.addEventListener('click', () => { document.getElementById('rd_t' + i).value = ''; document.getElementById('rd_d' + i).value = ''; document.getElementById('rd_s' + i).value = ''; rdCount(i); });
+    clr.addEventListener('click', () => { ['t', 'd', 's', 'slug', 'intro', 'pts', 'faq', 'sh'].forEach(k => { const e = rdV('rd_' + k + i); if (e) e.value = ''; }); rdV('rd_d' + i).dataset.touched = ''; rdV('rd_d' + i).dataset.manual = ''; rdV('rd_t' + i).dataset.orig = ''; rdV('rd_seo' + i).checked = false; rdSeoShow(i); rdCount(i); rdMarkOldest(); });
     head.appendChild(clr);
     row.appendChild(head);
     const sel = document.createElement('select'); sel.id = 'rd_s' + i; row.appendChild(sel);
-    const t = document.createElement('input'); t.type = 'text'; t.id = 'rd_t' + i; t.maxLength = RD.max; t.placeholder = 'e.g. 100 drug choice traps, high yield for NEET PG 2027'; t.style.marginTop = '6px';
+    const t = document.createElement('input'); t.type = 'text'; t.id = 'rd_t' + i; t.maxLength = RD.max; t.placeholder = 'e.g. More repeated PYQs for NEET PG 2027'; t.style.marginTop = '6px';
     row.appendChild(t);
     const d = document.createElement('input'); d.type = 'date'; d.id = 'rd_d' + i; d.max = rdToday(); d.style.marginTop = '6px'; d.dataset.touched = '';
-    d.addEventListener('change', () => { d.dataset.touched = '1'; });
+    d.addEventListener('change', () => { d.dataset.touched = '1'; d.dataset.manual = '1'; rdMarkOldest(); });
     row.appendChild(d);
+    // SEO page (optional)
+    const lab = document.createElement('label'); lab.className = 'l-all'; lab.style.marginTop = '10px';
+    const cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = 'rd_seo' + i; cb.addEventListener('change', () => { rdSeoShow(i); if (cb.checked && !rdV('rd_slug' + i).value) rdV('rd_slug' + i).value = slugify(t.value); if (cb.checked && !rdV('rd_sh' + i).value) rdV('rd_sh' + i).value = t.value; });
+    lab.appendChild(cb); lab.appendChild(document.createTextNode(' Create a public page for Google (SEO)')); row.appendChild(lab);
+    const box = document.createElement('div'); box.id = 'rd_box' + i; box.style.cssText = 'display:none;border-left:3px solid #C9A24B;padding-left:12px;margin-top:6px';
+    const f = (lbl, el) => { const w = document.createElement('div'); w.appendChild(mk('label', null, lbl)); w.appendChild(el); box.appendChild(w); };
+    const mkIn = (id, ph) => { const e = document.createElement('input'); e.type = 'text'; e.id = id; e.placeholder = ph; return e; };
+    f('Page title (what people search for)', mkIn('rd_sh' + i, 'e.g. NEET PG 2027 More Repeated PYQs: High Yield Topics'));
+    f('Web address (slug)', mkIn('rd_slug' + i, 'letters, numbers and dashes'));
+    const intro = document.createElement('textarea'); intro.id = 'rd_intro' + i; intro.rows = 3; intro.maxLength = 200; intro.placeholder = '2 to 3 lines about this resource. Shows in Google results (up to 200 characters).'; f('Short intro', intro);
+    const pts = document.createElement('textarea'); pts.id = 'rd_pts' + i; pts.rows = 6; pts.placeholder = 'One preview point per line (5 to 10 lines). Do not paste the full paid content.'; f('Free preview points', pts);
+    const faq = document.createElement('textarea'); faq.id = 'rd_faq' + i; faq.rows = 3; faq.placeholder = 'Optional. One per line: Question? | Answer'; f('FAQ (optional)', faq);
+    const link = mk('p', 'hint', ''); link.id = 'rd_link' + i; box.appendChild(link);
+    const rm = mk('button', 'btn outline', 'Remove this public page'); rm.type = 'button'; rm.id = 'rd_rm' + i; rm.style.cssText = 'display:none;padding:4px 10px;font-size:12px'; rm.addEventListener('click', () => rdRemovePage(i)); box.appendChild(rm);
+    row.appendChild(box);
     // typing a new line sets today's date, unless you picked a date yourself
-    t.addEventListener('input', () => { rdCount(i); if (!d.dataset.touched) d.value = rdToday(); });
+    t.addEventListener('input', () => {
+      rdCount(i);
+      // a new drop (title no longer starts like the saved one) gets today's date, unless you picked a date yourself after loading
+      const o = (t.dataset.orig || '').slice(0, 10).toLowerCase();
+      if (!d.dataset.manual && (!o || t.value.slice(0, 10).toLowerCase() !== o)) d.value = rdToday();
+      rdMarkOldest();
+    });
     wrap.appendChild(row);
     fillSubjectSelect('rd_s' + i, 'No subject', false);
   }
 }
+function rdSeoShow(i) { rdV('rd_box' + i).style.display = rdV('rd_seo' + i).checked ? '' : 'none'; }
 function rdCount(i) {
-  const len = document.getElementById('rd_t' + i).value.length, el = document.getElementById('rd_cnt' + i);
+  const len = rdV('rd_t' + i).value.length, el = rdV('rd_cnt' + i);
   el.textContent = len + ' / ' + RD.max; el.className = 'gt-cnt' + (len ? ' ok' : '');
+}
+// The row with the oldest date gets a tag, but only when all 3 boxes are filled (that is when you must replace one).
+function rdMarkOldest() {
+  const rows = [];
+  for (let i = 0; i < RD.n; i++) { rdV('rd_old' + i).style.display = 'none'; if (rdV('rd_t' + i).value.trim()) rows.push({ i, d: rdV('rd_d' + i).value || rdToday() }); }
+  if (rows.length < RD.n) return;
+  rows.sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : b.i - a.i));
+  rdV('rd_old' + rows[0].i).style.display = '';
+}
+function rdSiteLink(slug) { return location.origin + '/drops/' + slug; }
+function rdShowLink(i, slug) {
+  const p = rdV('rd_link' + i), rm = rdV('rd_rm' + i);
+  if (!slug) { p.textContent = ''; rm.style.display = 'none'; return; }
+  p.textContent = 'Public page: ' + rdSiteLink(slug) + ' . After saving, open Google Search Console, paste this address in URL Inspection and press Request Indexing.';
+  rm.style.display = RD.slugs[slug] ? '' : 'none';
 }
 async function loadDrops() {
   rdBuild();
-  const st = document.getElementById('rd_status');
+  const st = rdV('rd_status');
   try {
     const { db, doc, getDoc } = window.__fb;
     const snap = await getDoc(doc(db, 'config', 'recent'));
-    const items = snap.exists() && Array.isArray(snap.data().items) ? snap.data().items : [];
+    let items = snap.exists() && Array.isArray(snap.data().items) ? snap.data().items.slice() : [];
+    items.sort((a, b) => ((b && b.d) || '').localeCompare((a && a.d) || ''));   // newest first
+    RD.slugs = {};
     for (let i = 0; i < RD.n; i++) {
       const x = items[i] || {};
       fillSubjectSelect('rd_s' + i, 'No subject', false);
-      document.getElementById('rd_s' + i).value = x.s || '';
-      document.getElementById('rd_t' + i).value = x.t || '';
-      const d = document.getElementById('rd_d' + i); d.value = x.d || ''; d.dataset.touched = x.d ? '1' : '';
+      rdV('rd_s' + i).value = x.s || '';
+      rdV('rd_t' + i).value = x.t || '';
+      const d = rdV('rd_d' + i); d.value = x.d || ''; d.dataset.touched = x.d ? '1' : ''; d.dataset.manual = ''; rdV('rd_t' + i).dataset.orig = x.t || '';
+      ['sh', 'slug', 'intro', 'pts', 'faq'].forEach(k => { rdV('rd_' + k + i).value = ''; });
+      rdV('rd_seo' + i).checked = false; rdSeoShow(i); rdShowLink(i, '');
+      if (x.slug) {
+        try {
+          const ps = await getDoc(doc(db, 'news', 'drop-' + x.slug));
+          if (ps.exists()) {
+            const p = ps.data(); RD.slugs[x.slug] = true;
+            rdV('rd_seo' + i).checked = true; rdSeoShow(i);
+            rdV('rd_sh' + i).value = p.title || ''; rdV('rd_slug' + i).value = x.slug; rdV('rd_intro' + i).value = p.summary || ''; rdV('rd_faq' + i).value = p.faq || '';
+            rdV('rd_pts' + i).value = String(p.body || '').split('\n').filter(l => /^- /.test(l)).map(l => l.slice(2)).join('\n');
+            rdShowLink(i, x.slug);
+          }
+        } catch (e) { /* the drop still loads without its page */ }
+      }
       rdCount(i);
     }
+    rdMarkOldest();
     RD.loaded = true;
-    st.textContent = items.length ? 'Loaded the ' + items.length + ' saved ' + (items.length === 1 ? 'line' : 'lines') + '.' : 'Nothing saved yet.';
+    st.textContent = items.length ? 'Loaded the ' + items.length + ' saved ' + (items.length === 1 ? 'drop' : 'drops') + ', newest first.' : 'Nothing saved yet.';
   } catch (e) { st.textContent = 'Could not load: ' + e.message; }
 }
-async function saveDrops() {
-  const items = [];
-  for (let i = 0; i < RD.n; i++) {
-    const t = document.getElementById('rd_t' + i).value.replace(/\s+/g, ' ').trim();
-    if (!t) continue;
-    if (t.length > RD.max) { showToast('Line ' + (i + 1) + ' is too long. Keep it under ' + RD.max + ' characters.', true); return; }
-    const d = document.getElementById('rd_d' + i).value || rdToday();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || d > rdToday()) { showToast('Line ' + (i + 1) + ': the date cannot be in the future.', true); return; }
-    items.push({ s: document.getElementById('rd_s' + i).value || '', t, d });
-  }
-  const btn = document.getElementById('rd_save'); btn.disabled = true;
+async function rdRemovePage(i) {
+  const slug = rdV('rd_slug' + i).value.trim();
+  if (!slug || !confirm('Remove the public page /drops/' + slug + '? Google will lose this page. The drop in the panel stays.')) return;
   try {
-    const { db, doc, setDoc, serverTimestamp } = window.__fb;
+    const { db, doc, deleteDoc } = window.__fb;
+    await deleteDoc(doc(db, 'news', 'drop-' + slug)); delete RD.slugs[slug];
+    rdV('rd_seo' + i).checked = false; rdSeoShow(i); rdShowLink(i, '');
+    showToast('Public page removed. Press Save so the drop stops linking to it.');
+  } catch (e) { showToast('Failed: ' + e.message, true); }
+}
+async function saveDrops() {
+  const items = [], pages = [];
+  for (let i = 0; i < RD.n; i++) {
+    const t = rdV('rd_t' + i).value.replace(/\s+/g, ' ').trim();
+    if (!t) continue;
+    if (t.length > RD.max) { showToast('Drop ' + (i + 1) + ' is too long. Keep it under ' + RD.max + ' characters.', true); return; }
+    const d = rdV('rd_d' + i).value || rdToday();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || d > rdToday()) { showToast('Drop ' + (i + 1) + ': the date cannot be in the future.', true); return; }
+    const item = { s: rdV('rd_s' + i).value || '', t, d };
+    if (rdV('rd_seo' + i).checked) {
+      const slug = rdV('rd_slug' + i).value.trim().toLowerCase(), title = rdV('rd_sh' + i).value.replace(/\s+/g, ' ').trim() || t;
+      const intro = rdV('rd_intro' + i).value.replace(/\s+/g, ' ').trim();
+      const pts = rdV('rd_pts' + i).value.split('\n').map(l => l.replace(/^[-*•]\s*/, '').trim()).filter(Boolean);
+      if (!/^[a-z0-9-]{3,80}$/.test(slug)) { showToast('Drop ' + (i + 1) + ': the web address needs 3 to 80 letters, numbers or dashes.', true); return; }
+      if (!intro) { showToast('Drop ' + (i + 1) + ': add the short intro. It shows in Google.', true); return; }
+      if (pts.length < 3) { showToast('Drop ' + (i + 1) + ': add at least 3 preview points (one per line).', true); return; }
+      if (pages.some(p => p.slug === slug)) { showToast('Two drops use the same web address.', true); return; }
+      const faq = rdV('rd_faq' + i).value.split('\n').map(l => l.trim()).filter(l => l.indexOf('|') > 0).join('\n');
+      const body = '## What is inside\n' + pts.map(x => '- ' + x).join('\n') + '\n\n## Get the full resource\nThe complete resource is available inside PPTNEETPGHUB Premium, along with the question bank, tests, flashcards and weekly new PDFs.';
+      pages.push({ slug, data: { title, section: 'drops', type: 'drop', category: 'Premium drop', slug, date: d, summary: intro, body, faq, sourceName: '', sourceUrl: '', pinned: false, published: true } });
+      item.slug = slug;
+    }
+    items.push(item);
+  }
+  const btn = rdV('rd_save'); btn.disabled = true;
+  try {
+    const { db, doc, setDoc, getDoc, updateDoc, serverTimestamp } = window.__fb;
+    for (const pg of pages) {
+      const ref = doc(db, 'news', 'drop-' + pg.slug), ex = await getDoc(ref);
+      if (ex.exists()) await updateDoc(ref, Object.assign({}, pg.data, { updatedAt: serverTimestamp() }));
+      else await setDoc(ref, Object.assign({}, pg.data, { createdAt: serverTimestamp(), updatedAt: serverTimestamp() }));
+    }
     await setDoc(doc(db, 'config', 'recent'), { items, updatedAt: serverTimestamp() });
-    showToast(items.length ? '\u2714 Saved ' + items.length + (items.length === 1 ? ' line' : ' lines') + '. Visitors see it on the home page.' : '\u2714 Saved. The Recent drops card is now hidden.');
+    showToast(items.length ? '✔ Saved ' + items.length + (items.length === 1 ? ' drop' : ' drops') + (pages.length ? ' and ' + pages.length + ' public ' + (pages.length === 1 ? 'page' : 'pages') + ' (live in about 2 minutes)' : '') + '.' : '✔ Saved. The Recent Drops panel is now hidden.');
     await loadDrops();
   } catch (e) { showToast('Failed: ' + e.message, true); }
   finally { btn.disabled = false; }
@@ -2912,13 +2999,14 @@ const COUN_CATS = ['Central (MCC)', 'State counselling', 'Seat matrix', 'Dates a
 // Which page an item belongs to. Items saved before the sections existed are sorted by their type and category.
 function sectionOf(r) {
   if (r.type === 'tip' || r.section === 'tips') return 'tips';
+  if (r.section === 'drops') return 'drops';
   if (r.section === 'news' || r.section === 'counselling') return r.section;
   if (r.slug === 'counselling') return 'counselling';
   if (r.type === 'guide') return 'news';
   return ['MCC', 'State counselling', 'Seat matrix'].indexOf(r.category) > -1 ? 'counselling' : 'news';
 }
 function catsFor(section) { return section === 'tips' ? TIP_CATS : section === 'counselling' ? COUN_CATS : NEWS_CATS; }
-function newsPath(r) { const s = sectionOf(r); return s === 'tips' ? '/study-tips/' + r.slug : s === 'counselling' ? (r.slug === 'counselling' ? '/counselling' : '/counselling/' + r.slug) : '/news/' + r.slug; }
+function newsPath(r) { const s = sectionOf(r); return s === 'drops' ? '/drops/' + r.slug : s === 'tips' ? '/study-tips/' + r.slug : s === 'counselling' ? (r.slug === 'counselling' ? '/counselling' : '/counselling/' + r.slug) : '/news/' + r.slug; }
 const TIP_CATS = ['Study plan', 'Revision', 'Mock tests and PYQs', 'Subject tips', 'Exam day', 'Motivation', 'Ranker Vault', '5-min Ward Revision'];
 const STARTER_TIPS = [{"slug": "neet-pg-revision-plan", "category": "Study plan", "title": "How to build a NEET PG revision plan you can actually follow", "summary": "A simple way to split your time between new topics, revision and tests, so your plan survives a busy week instead of breaking on day three.", "body": "Most revision plans fail for one reason: they are written for an ideal week that never happens. A plan you can follow on a bad day is worth more than a perfect plan you drop after a week.\n\n## Start from the days you have, not the days you wish for\n\nCount the real hours you can study on a normal day, then take away 20 percent. That smaller number is your plan. Anything extra is a bonus, not a promise.\n\n## Split every week into three parts\n\n- **Learn:** new topics or topics you have not covered properly yet.\n- **Revise:** topics you have already read once. This should grow every week.\n- **Test:** practice questions and mock tests, then time to go through the mistakes.\n\nIn the early months, give most of the time to learning. As the exam gets closer, move time from learning to revision and tests.\n\n## Plan by topic, not by clock\n\n\"Study Pharmacology for 3 hours\" is vague. \"Finish autonomic drugs and do 30 questions on them\" has a clear end. When a topic is done, you know you made progress.\n\n## Keep one catch-up slot every week\n\nFix one half day a week as a catch-up slot. Missed sessions move there. Without it, every missed day pushes everything else back and the plan slowly collapses.\n\n## Review the plan every Sunday\n\nSpend 15 minutes looking at what you finished and what you did not. Move the unfinished topics, cut anything unrealistic, and write next week's list. A plan that changes is a plan that works.\n\n## A starting point\n\n- Pick the subjects that carry the most questions and the ones you find hardest. Put them early in the week, when you are fresh.\n- Do a short revision of yesterday's topic before starting something new.\n- End each day by writing the first task for tomorrow.\n\nCheck your own exam's official information for the pattern and dates, and build your plan around those."}, {"slug": "how-to-use-mock-tests", "category": "Mock tests and PYQs", "title": "How to use mock tests to raise your score, not just measure it", "summary": "A mock test is a learning tool. Here is how to attempt it, review it and turn each wrong answer into a point you will not lose next time.", "body": "Many students take a mock test, look at the score, feel good or bad, and move on. The score is the least useful part of a mock. The real value is what you learn from it.\n\n## Attempt it like the real exam\n\n- Sit in one place, with no phone and no notes.\n- Keep to the time limit.\n- Skip questions you cannot solve and come back, instead of getting stuck.\n\nThis trains your pace and your nerves, which a relaxed practice session does not.\n\n## Spend more time on the review than on the test\n\nA good rule: give the review at least as long as the test itself. For every question you got wrong or guessed, find out which of these happened:\n\n- **You did not know the fact.** Revise that topic.\n- **You knew it but misread the question.** Slow down and underline the key words.\n- **You changed a right answer to a wrong one.** Trust your first reasoning unless you find a clear reason to change.\n- **You guessed and were right.** Treat it as wrong. You still do not know it.\n\n## Write down every mistake\n\nKeep one place for mistakes, either a notebook or the Mistake notebook in your library. Write the question, the right answer and why. Revisit the list often. A mistake you have seen three times is a mistake you rarely make again.\n\n## Look for patterns\n\nAfter four or five tests, look at your wrong answers together. If most come from the same two subjects, those are your next study blocks. If most come from careless reading, your fix is a habit, not more content.\n\n## Do not chase the score\n\nScores go up and down between tests. Watch the trend over several tests, and watch how many repeated mistakes you still make. Fewer repeated mistakes means you are improving."}, {"slug": "active-recall-and-spaced-revision", "category": "Revision", "title": "Active recall and spaced revision: remember more in less time", "summary": "Re-reading feels productive but fades fast. Two simple habits, testing yourself and revising at gaps, make facts stay for the exam.", "body": "If you finish a chapter and feel that you know it, that feeling can be misleading. Recognising a page you have just read is easy. Recalling the facts a week later, with the book closed, is what the exam asks.\n\n## Active recall\n\nActive recall means pulling information out of your memory instead of putting it in again.\n\n- Close the book and write down everything you remember about a topic. Then check what you missed.\n- Turn headings into questions and answer them aloud.\n- Use flashcards and answer before you flip the card.\n- Do practice questions on a topic soon after reading it.\n\nIt feels harder than re-reading, and that difficulty is the reason it works.\n\n## Spaced revision\n\nRevise a topic again just as you are starting to forget it, and then again after a longer gap. A simple pattern:\n\n- The next day.\n- After about a week.\n- After about three weeks.\n- Then once a month until the exam.\n\nYou do not need exact dates. What matters is that every topic comes back several times at growing gaps.\n\n## Mark what you got wrong\n\nWhen you recall something wrongly, mark it. Those items get more revision than the ones you know well. Flashcards with a simple \"again\" and \"got it\" button do this for you: the \"again\" cards come back sooner.\n\n## Keep sessions short and mixed\n\nForty-five minutes of focused recall, then a short break, beats three hours of passive reading. Mixing two or three subjects across a day also helps your memory hold on to each one.\n\n## Use tricks and short notes for the hard facts\n\nFor lists and numbers you keep forgetting, make a short memory trick or a one-line note and put it where you will see it often. Then test yourself on it again after a few days."}, {"slug": "week-before-exam-checklist", "category": "Exam day", "title": "The week before your exam: a calm checklist", "summary": "What to do, and what to stop doing, in the last week, so you walk into the exam centre rested and prepared.", "body": "The last week is not for learning new subjects. It is for keeping what you know, staying healthy and removing small problems that can cost you on the day.\n\n## Sort the logistics early\n\n- Check your admit card and the official instructions for what to carry and what is not allowed.\n- Find out how you will reach the centre, how long it takes, and plan to arrive early.\n- If the centre is in another city, book travel and stay in advance.\n- Keep a printed copy of your documents and a spare in a different bag.\n\nAlways follow the official instructions of your exam authority, as rules can change.\n\n## Study smart in the final days\n\n- Revise your short notes, mistake list and flashcards instead of opening big books.\n- Do a few timed practice sets, then stop. One or two tests in the last days are enough.\n- Do not start a new heavy topic now.\n\n## Protect your sleep and health\n\n- Keep a regular sleep time. A rested mind recalls better than a tired one.\n- Eat normal, simple food. Avoid anything new that could upset your stomach.\n- Take short walks and drink enough water.\n\n## Avoid the panic traps\n\n- Stay away from rumours and last-minute \"leaked topic\" messages.\n- Do not compare your preparation with others. It only adds worry.\n- If you feel anxious, slow your breathing for a minute and go back to your list.\n\n## The night before\n\nPack your bag, set two alarms, and sleep on time. You have done the work. Your job now is to show up calm and answer the questions you know."}, {"slug": "stay-consistent-long-preparation", "category": "Motivation", "title": "How to stay consistent during a long NEET PG preparation", "summary": "Motivation comes and goes. Habits and a few simple rules keep you studying on the days you do not feel like it.", "body": "Almost everyone starts with energy. The real test is month four, when the novelty is gone and the exam still feels far away. Consistency is built by small rules, not by mood.\n\n## Make the start small\n\nOn low days, promise yourself only 20 minutes. Starting is the hard part. Once you begin, you will often continue. If you stop after 20 minutes, you still kept the habit.\n\n## Fix a time and a place\n\nStudying at the same time and in the same place removes the daily decision. Your mind learns that this is study time.\n\n## Track the streak, not the hours\n\nMark each day you finished your minimum plan. A visible chain of days is a strong reason not to break it. One missed day is fine. Two in a row is the point to restart quickly.\n\n## Plan rest on purpose\n\nRest is part of the plan. Take one lighter half day each week and one proper break from screens. People who never rest tend to stop suddenly instead of slowing a little.\n\n## Look after the basics\n\n- Sleep enough.\n- Move your body for some time every day.\n- Eat regular meals.\n\nLow energy is often a sleep or food problem, not a motivation problem.\n\n## Keep one person to talk to\n\nShare your weekly goal with a friend, a family member or a study partner. Saying it aloud makes it real, and a short chat on a hard day helps more than you expect.\n\n## When you fall behind\n\nDo not try to cover everything you missed in one day. Drop the least important topics, move the rest into the catch-up slot of your plan, and carry on. Progress is made by continuing, not by being perfect.\n\nIf you feel overwhelmed for many days in a row, talk to someone you trust or a counsellor. Asking for support is part of preparing well."}];
 const NEWS = { rows: [], loaded: false };
