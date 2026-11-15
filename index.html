@@ -1060,6 +1060,20 @@
   .mb-dc em { margin-left: auto; font-style: normal; font-size: 10.5px; color: var(--gray); }
   .mb-dm { display: block; margin: 14px 0 6px; }
   .mb-dm .mb-dp { display: block; }
+  .mb-hx { display: none; background: rgba(255,255,255,.1); border-radius: 99px; padding: 3px; gap: 2px; }
+  .mb-hx button { font: inherit; font-size: 12px; font-weight: 700; padding: 7px 11px; border-radius: 99px; color: #b9c7e2; background: transparent; border: 0; cursor: pointer; white-space: nowrap; }
+  .mb-hx button.on { background: #D4AF55; color: #0A1830; }
+  @media (max-width: 1099px) {
+    #libraryView.mbon .mb-hx { display: inline-flex; }
+  }
+  @media (max-width: 700px) {
+    #libraryView.mbon .lib-brand { font-size: 0; }
+    #libraryView.mbon .lib-brand .mb-burger { font-size: 18px; margin-right: 0; }
+    #libraryView.mbon .lib-pr { display: none; }
+    #libraryView.mbon #libFbTxt { display: none; }
+    #libraryView.mbon .lib-hbtn { padding: 8px 11px; }
+    #libraryView.mbon .lib-head-r { gap: 6px; }
+  }
   @media (min-width: 1100px) {
     #libraryView.mbon .mb-nav { display: flex; position: fixed; left: 0; top: var(--mbh, 60px); bottom: 0; width: 250px; }
     #libraryView.mbon .lib-wrap { max-width: none; margin: 0; padding-left: 274px; padding-right: 22px; grid-template-columns: minmax(0, 1fr) 310px; }
@@ -2617,7 +2631,7 @@
 <div id="libraryView" style="display:none;">
 <header class="lib-head">
   <div class="lib-brand"><button class="mb-burger" id="mbBurger" type="button" aria-label="Menu">&#9776;</button><img class="lg" src="/logo-96.webp" width="32" height="32" alt="">PPTNEETPGHUB<span class="lib-pr"><i>&middot;</i>Premium</span></div>
-  <div class="lib-head-r">
+  <div class="lib-head-r"><div class="mb-hx" id="mbHx"></div>
     <button class="lib-hbtn lib-tbtn" id="themeBtn" aria-label="Switch between light and dark mode" title="Light / dark"><svg class="moon" width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><svg class="sun" width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
     <button class="lib-hbtn lib-fbtn" id="libFilterBtn" aria-controls="libSide">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M7 12h10M10 18h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -6866,12 +6880,13 @@ function mbDropList() {
 }
 function mbNavPaint() {
   const nav = document.getElementById("mbNav"); if (!nav) return;
+  const keepTop = nav.scrollTop;
   const ini = lib.exam === "INICET", cur = mbActive(), L = libLoaded && !libError;
   const c = L ? hubCounts() : { res: 0, resNew: 0, tests: 0, decks: 0 };
   const dn = L ? mbDropList().filter(it => daysOld(it.t) <= 7).length : 0;
   nav.innerHTML = "";
   const sw = libEl("div", "mb-sw");
-  [["NEET PG", false], ["INICET", true]].forEach(a => { const b = libEl("button", ini === a[1] ? "on" : "", a[0]); b.type = "button"; b.onclick = () => { hubSetExam(a[0]); mbClose(); }; sw.appendChild(b); });
+  [["NEET PG", false], ["INICET", true]].forEach(a => { const b = libEl("button", ini === a[1] ? "on" : "", a[0]); b.type = "button"; b.onclick = () => { if (lib.exam !== a[0]) { hubSetExam(a[0]); if (HUB.page || libView !== "library") { hubGo(null); setLibView("library"); } } }; sw.appendChild(b); });
   nav.appendChild(sw);
   const it = (key, icon, t, badge, fn, soft) => {
     const b = libEl("button", "mb-it" + (cur === key ? " on" : "")); b.type = "button";
@@ -6907,6 +6922,9 @@ function mbNavPaint() {
   it("progress", "chart", "Progress Report", "", () => setLibView("progress"));
   it("notebook", "note", "Mistake Notebook", NB.loaded ? (NB.items.filter(nbInEx).length || "") : "", () => setLibView("notebook"), true);
   it("help", "plus", "Settings & Help", "", () => { const b = document.getElementById("libFilterBtn"); if (b) b.click(); });
+  nav.scrollTop = keepTop;
+  const hx = document.getElementById("mbHx");
+  if (hx) { hx.innerHTML = ""; [["NEET PG", false], ["INICET", true]].forEach(a => { const b = libEl("button", ini === a[1] ? "on" : "", a[0]); b.type = "button"; b.onclick = () => { if (lib.exam !== a[0]) { hubSetExam(a[0]); if (HUB.page || libView !== "library") { hubGo(null); setLibView("library"); } } }; hx.appendChild(b); }); }
 }
 function mbDropsHtml(box, mobile) {
   box.innerHTML = "";
