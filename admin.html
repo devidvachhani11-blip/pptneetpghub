@@ -545,6 +545,7 @@
       <button class="tab-btn g-prem" data-panel="membersPanel">Members</button>
       <button class="tab-btn g-prem" data-panel="listPanel">All Resources</button>
       <button class="tab-btn g-prem" data-panel="bulkPanel">Bulk upload</button>
+      <button class="tab-btn g-free" data-panel="fgamesPanel">Free games pool</button>
     </div>
 
     <!-- Home -->
@@ -1446,7 +1447,7 @@ window.addEventListener('fbReady', () => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      ['homePanel', 'freePoolPanel', 'freeMockPanel', 'freePdfPanel', 'freeResPanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'testsPanel', 'gtPanel', 'seriesPanel', 'cardsPanel', 'imgTestPanel', 'dropsPanel', 'samplePanel', 'gamesPanel', 'dailyPanel', 'statsPanel', 'mnPanel', 'lbPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'launchPanel', 'membersPanel', 'listPanel'].forEach(id => {
+      ['homePanel', 'freePoolPanel', 'freeMockPanel', 'freePdfPanel', 'freeResPanel', 'bankPanel', 'paymentsPanel', 'resourcesPanel', 'bulkPanel', 'fgamesPanel', 'testsPanel', 'gtPanel', 'seriesPanel', 'cardsPanel', 'imgTestPanel', 'dropsPanel', 'samplePanel', 'gamesPanel', 'dailyPanel', 'statsPanel', 'mnPanel', 'lbPanel', 'newsPanel', 'counsellingPanel', 'tipsPanel', 'reportsPanel', 'resultsPanel', 'backupPanel', 'launchPanel', 'membersPanel', 'listPanel'].forEach(id => {
         document.getElementById(id).style.display = (id === btn.dataset.panel) ? 'block' : 'none';
       });
       if (btn.dataset.panel === 'homePanel') loadHome();
@@ -1455,6 +1456,7 @@ window.addEventListener('fbReady', () => {
       if (btn.dataset.panel === 'freePdfPanel') freePdfLoad();
       if (btn.dataset.panel === 'freeResPanel') freeResLoad();
       if (btn.dataset.panel === 'dropsPanel') loadDrops();
+      if (btn.dataset.panel === 'fgamesPanel' && window.fgLoadAll) window.fgLoadAll();
       if (btn.dataset.panel === 'samplePanel') loadSampleAdmin();
       if (btn.dataset.panel === 'gamesPanel') Object.keys(GPOOL).forEach(gLoad);
       if (btn.dataset.panel === 'mnPanel') loadMnAdmin();
@@ -5878,12 +5880,126 @@ async function rejectPayment(utr, p) {
 </script>
 
 <script>
+/* Free games pool (Daily Drug Guess, Spot the Wrong Line, Numbers Round). Saves to sample/drugguess, sample/wrongline, sample/numbers. */
+(function () {
+  var L4 = 'ABCD';
+  var G = {
+    dg: {
+      doc: 'drugguess', min: 5, max: 400, title: 'Daily Drug Guess pool', per: '1 drug every day',
+      fmt: '<b>Drug | other names (optional, comma separated) | clue 1 | clue 2 | clue 3 | clue 4 | clue 5</b>. One drug per line. Clue 1 should be the vaguest, clue 5 the most giveaway. Do not use the | sign inside a clue.',
+      ph: 'Warfarin | coumadin | Oral anticoagulant | Inhibits vitamin K epoxide reductase | Monitored with INR | Teratogenic and can cause skin necrosis | Antidote: vitamin K',
+      parse: function (t) {
+        var items = [], errs = [], seen = {};
+        t.split('\n').forEach(function (ln, i) {
+          ln = ln.trim(); if (!ln) return;
+          var p = ln.split('|').map(function (x) { return x.trim(); });
+          if (p.length !== 7) { errs.push('Line ' + (i + 1) + ': needs 7 parts (name, other names, 5 clues). Found ' + p.length + '.'); return; }
+          if (!p[0]) { errs.push('Line ' + (i + 1) + ': the drug name is empty.'); return; }
+          if (p.slice(2).some(function (c) { return !c; })) { errs.push('Line ' + (i + 1) + ': a clue is empty.'); return; }
+          var k = p[0].toLowerCase(); if (seen[k]) { errs.push('Line ' + (i + 1) + ': ' + p[0] + ' is repeated.'); return; } seen[k] = 1;
+          items.push({ n: p[0], a: p[1] ? p[1].split(',').map(function (x) { return x.trim(); }).filter(Boolean) : [], c: p.slice(2) });
+        });
+        return { items: items, errs: errs };
+      },
+      text: function (it) { return it.map(function (x) { return [x.n, (x.a || []).join(', ')].concat(x.c).join(' | '); }).join('\n'); }
+    },
+    wl: {
+      doc: 'wrongline', min: 5, max: 400, title: 'Spot the Wrong Line pool', per: '5 topics every day',
+      fmt: '<b>Topic | line A | line B | line C | line D | letter of the WRONG line | why (optional)</b>. One topic per line. Three lines must be true and exactly one false.',
+      ph: 'Nephrotic syndrome | Massive proteinuria | Hypoalbuminaemia with oedema | Serum cholesterol is decreased | Fatty casts in urine | C | Nephrotic syndrome causes hyperlipidaemia',
+      parse: function (t) {
+        var items = [], errs = [], seen = {};
+        t.split('\n').forEach(function (ln, i) {
+          ln = ln.trim(); if (!ln) return;
+          var p = ln.split('|').map(function (x) { return x.trim(); });
+          if (p.length < 6 || p.length > 7) { errs.push('Line ' + (i + 1) + ': needs topic, 4 lines, the wrong letter and an optional reason. Found ' + p.length + ' parts.'); return; }
+          if (!p[0] || p.slice(1, 5).some(function (c) { return !c; })) { errs.push('Line ' + (i + 1) + ': the topic or a line is empty.'); return; }
+          var w = L4.indexOf(p[5].toUpperCase()); if (p[5].length !== 1 || w < 0) { errs.push('Line ' + (i + 1) + ': the wrong letter must be A, B, C or D.'); return; }
+          var k = p[0].toLowerCase(); if (seen[k]) { errs.push('Line ' + (i + 1) + ': ' + p[0] + ' is repeated.'); return; } seen[k] = 1;
+          items.push({ t: p[0], l: p.slice(1, 5), w: w, y: p[6] || '' });
+        });
+        return { items: items, errs: errs };
+      },
+      text: function (it) { return it.map(function (x) { return [x.t].concat(x.l).concat([L4[x.w], x.y || '']).join(' | '); }).join('\n'); }
+    },
+    nm: {
+      doc: 'numbers', min: 10, max: 400, title: 'Numbers Round pool', per: '10 questions every day',
+      fmt: '<b>Question | option A | option B | option C | option D | answer letter | subject (optional) | note (optional)</b>. One question per line.',
+      ph: 'Normal serum anion gap? | 3 to 5 mEq/L | 8 to 12 mEq/L | 15 to 20 mEq/L | 25 to 30 mEq/L | B | Biochemistry | A high gap points to MUDPILES',
+      parse: function (t) {
+        var items = [], errs = [], seen = {};
+        t.split('\n').forEach(function (ln, i) {
+          ln = ln.trim(); if (!ln) return;
+          var p = ln.split('|').map(function (x) { return x.trim(); });
+          if (p.length < 6 || p.length > 8) { errs.push('Line ' + (i + 1) + ': needs question, 4 options, the answer letter, then optional subject and note. Found ' + p.length + ' parts.'); return; }
+          if (!p[0] || p.slice(1, 5).some(function (c) { return !c; })) { errs.push('Line ' + (i + 1) + ': the question or an option is empty.'); return; }
+          var a = L4.indexOf(p[5].toUpperCase()); if (p[5].length !== 1 || a < 0) { errs.push('Line ' + (i + 1) + ': the answer must be A, B, C or D.'); return; }
+          var k = p[0].toLowerCase(); if (seen[k]) { errs.push('Line ' + (i + 1) + ': this question is repeated.'); return; } seen[k] = 1;
+          items.push({ q: p[0], o: p.slice(1, 5), a: a, s: p[6] || '', n: p[7] || '' });
+        });
+        return { items: items, errs: errs };
+      },
+      text: function (it) { return it.map(function (x) { return [x.q].concat(x.o).concat([L4[x.a], x.s || '', x.n || '']).join(' | '); }).join('\n'); }
+    }
+  };
+  function $(id) { return document.getElementById(id); }
+  function stat(k, msg) { $('fg_' + k + '_status').textContent = msg; }
+  async function load(k) {
+    var g = G[k];
+    try {
+      var f = window.__fb, s = await f.getDoc(f.doc(f.db, 'sample', g.doc)), d = s.exists() ? s.data() : null;
+      var it = d && Array.isArray(d.items) ? d.items : [];
+      $('fg_' + k + '_text').value = it.length ? g.text(it) : '';
+      stat(k, it.length >= g.min ? 'Saved: ' + it.length + ' items (' + g.per + '). Students see this pool.' : it.length ? 'Only ' + it.length + ' saved. Add at least ' + g.min + ', until then students get the built-in starter set.' : 'Nothing saved. Students get the built-in starter set. Save at least ' + g.min + ' items to use your own.');
+    } catch (e) { stat(k, 'Could not load: ' + e.message); }
+  }
+  async function save(k) {
+    var g = G[k], r = g.parse($('fg_' + k + '_text').value);
+    if (r.errs.length) { stat(k, r.errs.slice(0, 6).join(' | ') + (r.errs.length > 6 ? ' ... and ' + (r.errs.length - 6) + ' more' : '')); showToast('Fix the lines first', true); return; }
+    if (r.items.length < g.min || r.items.length > g.max) { stat(k, 'Add between ' + g.min + ' and ' + g.max + ' items. Now: ' + r.items.length + '.'); showToast('Need ' + g.min + ' to ' + g.max + ' items', true); return; }
+    var btn = $('fg_' + k + '_save'); btn.disabled = true;
+    try {
+      var f = window.__fb;
+      await f.setDoc(f.doc(f.db, 'sample', g.doc), { items: r.items, count: r.items.length, updatedAt: f.serverTimestamp() });
+      stat(k, 'Saved: ' + r.items.length + ' items (' + g.per + '). Live for students now.'); showToast('✔ Saved');
+    } catch (e) { showToast('Failed: ' + e.message, true); } finally { btn.disabled = false; }
+  }
+  async function remove(k) {
+    var g = G[k]; if (!confirm('Remove your ' + g.title + '? Students go back to the built-in starter set.')) return;
+    try { var f = window.__fb; await f.deleteDoc(f.doc(f.db, 'sample', g.doc)); $('fg_' + k + '_text').value = ''; stat(k, 'Removed. The built-in starter set is used.'); showToast('Removed'); }
+    catch (e) { showToast('Failed: ' + e.message, true); }
+  }
+  function build() {
+    if ($('fgamesPanel')) return;
+    var anchor = $('samplePanel'); if (!anchor) return;
+    var d = document.createElement('div'); d.id = 'fgamesPanel'; d.style.display = 'none';
+    d.innerHTML = '<div class="card"><h3>Free games pool</h3><p class="hint" style="margin-top:-6px">These three games sit on the free home (after a free Gmail login). The site already has a built-in starter set, so they work without anything here. Save your own pool to replace it. Everything saved here is public, so keep premium content out.</p></div>' +
+      ['dg', 'wl', 'nm'].map(function (k) {
+        var g = G[k];
+        return '<div class="card"><h3>' + g.title + '</h3><p class="hint" style="margin-top:-6px">' + g.fmt + ' Shown: ' + g.per + '. Needs at least ' + g.min + '.</p>' +
+          '<textarea id="fg_' + k + '_text" class="t-area" rows="12" spellcheck="false" placeholder="' + g.ph.replace(/"/g, '&quot;') + '"></textarea>' +
+          '<div class="t-actions"><button class="btn" id="fg_' + k + '_save">Save pool</button><button class="btn outline" id="fg_' + k + '_reload">Undo changes</button><button class="btn outline" id="fg_' + k + '_remove">Use built-in set</button></div>' +
+          '<p class="hint" id="fg_' + k + '_status"></p></div>';
+      }).join('');
+    anchor.parentNode.insertBefore(d, anchor);
+    ['dg', 'wl', 'nm'].forEach(function (k) {
+      $('fg_' + k + '_save').addEventListener('click', function () { save(k); });
+      $('fg_' + k + '_reload').addEventListener('click', function () { load(k); });
+      $('fg_' + k + '_remove').addEventListener('click', function () { remove(k); });
+    });
+  }
+  window.fgLoadAll = function () { ['dg', 'wl', 'nm'].forEach(load); };
+  window.__fgParse = function (k, t) { return G[k].parse(t); };
+  build();
+})();
+</script>
+<script>
 /* ADMIN_SIDEBAR: builds the grouped sidebar, Home quick-add grid and mobile drawer. It only clicks the existing tab buttons. */
 (function () {
   var GROUPS = [
     { t: '', items: [['homePanel', '🏠', 'Home'], ['paymentsPanel', '💳', 'Payments', 'pendingCount', 1]] },
     { t: 'ADD & PUBLISH', items: [['resourcesPanel', '➕', 'Add Resource'], ['dropsPanel', '🔥', 'Recent Drops'], ['bulkPanel', '📦', 'Bulk upload'], ['testsPanel', '📝', 'Add Test'], ['gtPanel', '🏁', 'Real Test (GT)'], ['seriesPanel', '📚', 'Series'], ['cardsPanel', '🃏', 'Card Test'], ['imgTestPanel', '🖼️', 'Image Tests'], ['bankPanel', '❓', 'Question Bank'], ['gamesPanel', '🎮', 'Member Games'], ['mnPanel', '🧠', 'Mnemonics', 'mnCount'], ['newsPanel', '📰', 'News'], ['counsellingPanel', '🎓', 'Counselling']] },
-    { t: 'FREE SECTION', items: [['freePoolPanel', '✍️', 'Free pool (daily 20)'], ['freeMockPanel', '📋', 'Free mock'], ['freePdfPanel', '📄', 'Free PDF'], ['samplePanel', '🧩', 'Daily Match & home cards'], ['dailyPanel', '🩺', 'Daily Diagnosis'], ['tipsPanel', '💡', 'Study Tips']] },
+    { t: 'FREE SECTION', items: [['freePoolPanel', '✍️', 'Free pool (daily 20)'], ['freeMockPanel', '📋', 'Free mock'], ['freePdfPanel', '📄', 'Free PDF'], ['fgamesPanel', '🎲', 'Free games pool'], ['samplePanel', '🧩', 'Daily Match & home cards'], ['dailyPanel', '🩺', 'Daily Diagnosis'], ['tipsPanel', '💡', 'Study Tips']] },
     { t: 'PEOPLE', items: [['membersPanel', '👥', 'Members'], ['freeResPanel', '🙋', 'Free users & results'], ['resultsPanel', '📊', 'Results'], ['lbPanel', '🏆', 'Top 10'], ['reportsPanel', '🚩', 'Reports', 'repCount']] },
     { t: 'LIBRARY & SYSTEM', items: [['listPanel', '🗂️', 'All Resources'], ['statsPanel', '📈', 'Stats'], ['backupPanel', '💾', 'Backup'], ['launchPanel', '✅', 'Launch check']] }
   ];
@@ -5893,7 +6009,7 @@ async function rejectPayment(utr, p) {
     ['newsPanel', '📰', 'News', 'Ticker news'], ['counsellingPanel', '🎓', 'Counselling', 'Counselling updates'],
     ['gamesPanel', '🎮', 'Game content', 'Blitz, Case Sprint…'], ['mnPanel', '🧠', 'Mnemonic', 'Review submissions'],
     ['freePdfPanel', '📄', 'Free PDF', 'This week\'s free one', 'f'], ['freeMockPanel', '📋', 'Free mock', 'Weekly free test', 'f'],
-    ['freePoolPanel', '✍️', 'Daily 20 pool', 'Free practice', 'f'], ['samplePanel', '🧩', 'Daily games', 'Match pairs pool', 'f'],
+    ['freePoolPanel', '✍️', 'Daily 20 pool', 'Free practice', 'f'], ['fgamesPanel', '🎲', 'Free games', 'Drug Guess, Wrong Line, Numbers', 'f'], ['samplePanel', '🧩', 'Daily games', 'Match pairs pool', 'f'],
     ['dailyPanel', '🩺', 'Daily Diagnosis', 'Free puzzle', 'f'], ['tipsPanel', '💡', 'Study tip', 'Ranker Vault', 'f']
   ];
   var LABEL = {}, GROUPOF = {};

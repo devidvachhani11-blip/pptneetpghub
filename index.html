@@ -2186,6 +2186,60 @@
   .fdv-body{position:relative;flex:1;overflow:auto;padding:10px;-webkit-overflow-scrolling:touch}
   .fdv-body canvas{display:block;margin:0 auto 10px;max-width:100%;background:#fff;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
   .fdv-wm{position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;z-index:3}
+  /* free space: new look + the three daily games */
+  .fd-hero{background:linear-gradient(150deg,#0A1830,#16305f);color:#fff;border-radius:22px;padding:18px;position:relative;overflow:hidden;box-shadow:0 10px 24px rgba(10,24,48,.22)}
+  .fd-hero:after{content:"";position:absolute;right:-60px;top:-60px;width:180px;height:180px;border:2px solid rgba(212,175,85,.25);border-radius:50%;pointer-events:none}
+  .fd-pill{display:inline-block;background:#D4AF55;color:#0A1830;font-weight:800;font-size:10px;letter-spacing:.14em;padding:4px 10px;border-radius:99px}
+  .fd-hero h3{font-family:var(--lora,Georgia,serif);font-size:23px;font-weight:600;margin:10px 0 4px;color:#fff}
+  .fd-hero p{font-size:13px;color:#C7D2E6;line-height:1.4;max-width:240px;margin:0}
+  .fd-boxes{display:flex;gap:6px;margin:14px 0}
+  .fd-boxes b{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);display:grid;place-items:center;font-size:15px}
+  .fd-boxes b.y{background:#D4AF55;border-color:#D4AF55;color:#0A1830}
+  .fd-sec{font-size:11px;font-weight:800;letter-spacing:.16em;color:#9a7f2e;margin:20px 0 10px}
+  .fd-g2,.fd-g2m{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .fd-gc{position:relative;text-align:left;border:1.5px solid #E5D8B5;background:#fff;border-radius:20px;padding:14px;cursor:pointer;color:#14213d;font:inherit;display:flex;flex-direction:column;gap:3px}
+  .fd-gc .ic{width:40px;height:40px;border-radius:12px;background:#0A1830;color:#EACF85;display:grid;place-items:center;font-size:19px;font-weight:800;margin-bottom:8px}
+  .fd-gc b{font-size:14.5px;line-height:1.2}.fd-gc small{font-size:11.5px;color:#6b7280;line-height:1.35}
+  .fd-gc i{position:absolute;top:12px;right:12px;font-style:normal;font-size:9px;font-weight:800;letter-spacing:.1em;background:#D4AF55;color:#0A1830;border-radius:99px;padding:3px 8px}
+  .fd-gc i.d{background:#e3efe6;color:#256c3a}
+  .fd-mini{position:relative;display:flex;gap:10px;align-items:center;text-align:left;border:1.5px solid #E5D8B5;background:#fff;border-radius:16px;padding:11px 12px;cursor:pointer;color:#14213d;font:inherit;text-decoration:none;min-width:0}
+  .fd-mini.off{opacity:.6}
+  .fd-mini .ic{width:34px;height:34px;border-radius:10px;background:#F3ECD3;display:grid;place-items:center;font-size:16px;flex:none}
+  .fd-mini .tx{min-width:0;display:block}.fd-mini b{display:block;font-size:12.8px;line-height:1.2;padding-right:30px}.fd-mini small{display:block;font-size:11px;color:#6b7280;margin-top:1px}
+  .fd-mini i{position:absolute;top:7px;right:7px;font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.08em;background:#D4AF55;color:#0A1830;border-radius:99px;padding:2px 6px}
+  .fd-mini i.d{background:#e3efe6;color:#256c3a}
+  .fd-up{background:linear-gradient(150deg,#0A1830,#16305f);color:#fff;border-radius:22px;padding:18px;margin-top:20px}
+  .fd-up h2{margin:0 0 6px;font-family:var(--lora,Georgia,serif);font-size:21px;font-weight:600;color:#fff}.fd-up p{margin:0 0 12px;font-size:13px;line-height:1.5;color:#C7D2E6}
+  .fg{background:linear-gradient(170deg,#0A1830,#16305f);color:#fff;border-radius:22px;padding:16px;min-height:60vh}
+  .fg-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .fg-back{background:transparent;border:0;color:#EACF85;font-weight:700;font-size:14px;cursor:pointer;padding:6px 2px}
+  .fg-pill{background:#D4AF55;color:#0A1830;font-weight:800;font-size:10px;letter-spacing:.14em;padding:4px 10px;border-radius:99px}
+  .fg-h{font-family:var(--lora,Georgia,serif);font-size:25px;font-weight:600;margin:6px 0 2px;line-height:1.15;color:#fff}
+  .fg-sub{font-size:12.5px;color:#AEBBD2;margin:0 0 6px}
+  .fg-clue{border-radius:14px;padding:12px;margin-top:10px;display:flex;gap:11px;align-items:flex-start;font-size:13.5px;line-height:1.4}
+  .fg-clue .n{min-width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:12.5px}
+  .fg-clue.on{background:rgba(255,255,255,.09);border:1px solid rgba(212,175,85,.45)}.fg-clue.on .n{background:#D4AF55;color:#0A1830}
+  .fg-clue.off{background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.2);color:#8e9bb6}.fg-clue.off .n{background:rgba(255,255,255,.1)}
+  .fg-lnk{background:none;border:0;color:#EACF85;font:inherit;font-weight:600;cursor:pointer;padding:0;text-align:left}
+  .fg-in{display:flex;gap:8px;margin-top:14px}
+  .fg-in input{flex:1;min-width:0;border:0;border-radius:14px;padding:13px 14px;font:inherit;font-size:16px;color:#14213d;background:#fff}
+  .fg-in button{border:0;border-radius:14px;background:#D4AF55;color:#0A1830;font-weight:800;padding:0 18px;cursor:pointer;font-size:14px}
+  .fg-hint{font-size:12px;color:#AEBBD2;text-align:center;margin:12px 0 0}
+  .fg-ans{background:rgba(212,175,85,.14);border:1px solid #D4AF55;border-radius:14px;padding:12px 14px;margin-top:12px;text-align:center}.fg-ans small{display:block;font-size:10px;letter-spacing:.14em;color:#EACF85;font-weight:800}.fg-ans b{font-size:22px;font-family:var(--lora,Georgia,serif)}
+  .fg-grid{font-size:30px;letter-spacing:4px;text-align:center;margin:14px 0 4px}
+  .fg-big{font-family:var(--lora,Georgia,serif);font-size:54px;font-weight:700;text-align:center;color:#EACF85;margin:10px 0 2px}
+  .fg-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+  .fg-bars{display:flex;gap:5px;margin:12px 0 6px}.fg-bars i{flex:1;height:5px;border-radius:9px;background:rgba(255,255,255,.18)}.fg-bars i.d{background:#D4AF55}
+  .fg-line,.fg-opt{display:flex;gap:11px;align-items:flex-start;width:100%;text-align:left;font:inherit;font-size:14px;line-height:1.4;border-radius:14px;padding:13px;margin-top:10px;cursor:pointer;border:2px solid transparent}
+  .fg-line{background:#fff;color:#14213d}.fg-line b{min-width:26px;height:26px;border-radius:8px;background:#F3ECD3;display:grid;place-items:center;font-size:12px}
+  .fg-line.sel{border-color:#D4AF55;background:#FFF8E1}.fg-line.ok{border-color:#2f9e5a;background:#e6f5ec}.fg-line.bad{border-color:#d1493f;background:#fdeceb}
+  .fg-opt{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);color:#fff;align-items:center;font-size:14.5px}.fg-opt b{min-width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.14);display:grid;place-items:center;font-size:12px}
+  .fg-opt.ok{border-color:#2f9e5a;background:rgba(47,158,90,.25)}.fg-opt.bad{border-color:#d1493f;background:rgba(209,73,63,.25)}
+  .fg-main{display:block;margin:16px auto 0}.fg-main[disabled]{opacity:.5}
+  .fg-why{border-radius:12px;padding:10px 12px;font-size:13.5px;line-height:1.5;margin-top:12px}.fg-why.y{background:rgba(47,158,90,.22)}.fg-why.n{background:rgba(209,73,63,.22)}
+  .fg-meta{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#EACF85;font-weight:700}
+  .fg-ring{width:50px;height:50px;border-radius:50%;background:conic-gradient(#D4AF55 var(--p,100%),rgba(255,255,255,.15) 0);display:grid;place-items:center}.fg-ring span{width:38px;height:38px;border-radius:50%;background:#0A1830;display:grid;place-items:center;font-weight:800;font-size:15px;color:#EACF85}
+  .fg-q{background:rgba(255,255,255,.07);border:1px solid rgba(212,175,85,.4);border-radius:18px;padding:16px;margin-top:10px;font-family:var(--lora,Georgia,serif);font-size:20px;line-height:1.3}.fg-q small{display:block;font-family:inherit;font-size:10.5px;letter-spacing:.14em;color:#EACF85;font-weight:800;margin-bottom:6px}
   @media print{#fdViewer{display:none!important}}
 </style>
 <section id="freeDash">
@@ -3045,6 +3099,7 @@ async function fdLoadAll() {
   } catch (e) { console.error("free pool", e); FD.pool = null; }
   try { const m = await getDoc(doc(db, "freemock", "current")); FD.mock = m.exists() ? m.data() : null; } catch (e) { FD.mock = null; }
   try { const p = await getDoc(doc(db, "freepdf", "list")); FD.pdfs = p.exists() ? (p.data().items || []) : []; } catch (e) { FD.pdfs = []; }
+  try { await fgLoadPools(); } catch (e) {}
   if (fdOn() && !FD.run && FD.view === "home") fdHome();
 }
 
@@ -3069,30 +3124,256 @@ function fdTile(title, sub, badge, done, fn, off) {
   b.appendChild(fdEl("b", null, title)); b.appendChild(fdEl("small", null, sub));
   b.onclick = fn; return b;
 }
+function fdMini(icon, title, sub, badge, done, fn, off, href) {
+  const b = fdEl(href ? "a" : "button", "fd-mini" + (off ? " off" : "")); if (!href) b.type = "button"; else b.href = href;
+  b.appendChild(fdEl("span", "ic", icon));
+  const t = fdEl("span", "tx"); t.appendChild(fdEl("b", null, title)); t.appendChild(fdEl("small", null, sub)); b.appendChild(t);
+  if (badge) b.appendChild(fdEl("i", done ? "d" : "", badge));
+  if (fn) b.onclick = fn; return b;
+}
+function fdGameCard(icon, title, sub, done, fn) {
+  const b = fdEl("button", "fd-gc"); b.type = "button";
+  b.appendChild(fdEl("i", done ? "d" : "", done ? "DONE" : "NEW"));
+  b.appendChild(fdEl("span", "ic", icon)); b.appendChild(fdEl("b", null, title)); b.appendChild(fdEl("small", null, sub));
+  b.onclick = fn; return b;
+}
 function fdHome() {
   fdStopTimer(); FD.run = null; FD.view = "home";
   const m = fdMain(); if (!m) return;
   m.innerHTML = "";
   const day = istDay(Date.now());
-  const g = fdEl("div", "fd-grid");
-  const pDone = fdGet("p:" + day);
-  const loading = FD.pool === undefined;
-  g.appendChild(fdTile("Daily Practice", loading ? "Loading…" : (FD.pool ? "20 questions today, 3 trap" : "Coming soon"), FD.pool ? (pDone ? "DONE" : "NEW") : "", !!pDone, fdPracticeStart, !FD.pool));
-  const mk = FD.mock, mDone = mk ? fdGet("m:" + mk.id) : null;
-  g.appendChild(fdTile("Free mock test", loading ? "Loading…" : (mk ? (mk.title + " · " + mk.qs.length + " Q · " + mk.min + " min") : "New one every week"), mk ? (mDone ? "DONE" : "NEW") : "", !!mDone, fdMockStart, !mk));
-  const np = (FD.pdfs || []).length;
-  g.appendChild(fdTile("Free PDF", FD.pdfs === undefined ? "Loading…" : (np ? np + " short PDF" + (np > 1 ? "s" : "") + ", view-only" : "New one every week"), np ? "NEW" : "", false, fdPdfList, !np));
-  g.appendChild(fdTile("Daily Diagnosis", "Guess the diagnosis from clues", "", false, () => { const b = document.getElementById("fhDx"); if (b) b.click(); }));
-  g.appendChild(fdTile("Daily Match", "Match 6 pairs, be quick", "", false, () => { try { mtOpen(false); } catch (e) {} }));
-  g.appendChild(fdTile("Today's Sign", "One clinical sign a day", "", false, () => { const b = document.getElementById("fhSg"); if (b) b.click(); }));
-  const t1 = fdEl("a", "fd-t"); t1.href = "/study-tips"; t1.appendChild(fdEl("b", null, "Study tips")); t1.appendChild(fdEl("small", null, "Short, high-yield reads")); g.appendChild(t1);
-  const t2 = fdEl("a", "fd-t"); t2.href = "/calculators"; t2.appendChild(fdEl("b", null, "Quick calculators")); t2.appendChild(fdEl("small", null, "Clinical calculators")); g.appendChild(t2);
+  // hero: Daily Drug Guess
+  const dg = fdGet("dg:" + day);
+  const hero = fdEl("div", "fd-hero");
+  hero.appendChild(fdEl("span", "fd-pill", dg ? "DONE TODAY" : "NEW · DAILY GAME"));
+  hero.appendChild(fdEl("h3", null, "Daily Drug Guess"));
+  hero.appendChild(fdEl("p", null, "5 clues. Fewer clues, higher score. Share your result."));
+  const bx = fdEl("div", "fd-boxes");
+  for (let i = 0; i < 5; i++) { const x = fdEl("b", dg && dg.ok && i === dg.k - 1 ? "y" : "", String(i + 1)); bx.appendChild(x); }
+  hero.appendChild(bx);
+  const hb = fdEl("button", "fd-btn gold", dg ? "See today's result →" : "Play today's drug →"); hb.type = "button"; hb.onclick = fgDrugOpen; hero.appendChild(hb);
+  m.appendChild(hero);
+  m.appendChild(fdEl("div", "fd-sec", "NEW THIS WEEK"));
+  const g2 = fdEl("div", "fd-g2");
+  g2.appendChild(fdGameCard("🔍", "Spot the Wrong Line", "1 of 4 lines is a trap. Find it.", !!fdGet("wl:" + day), fgWrongOpen));
+  g2.appendChild(fdGameCard("#", "Numbers Round", "10 values, 12 sec each.", !!fdGet("nm:" + day), fgNumbersOpen));
+  m.appendChild(g2);
+  // daily habits
+  m.appendChild(fdEl("div", "fd-sec", "DAILY HABITS"));
+  const g = fdEl("div", "fd-g2m");
+  const pDone = fdGet("p:" + day), loading = FD.pool === undefined;
+  g.appendChild(fdMini("✍️", "Daily Practice", loading ? "Loading…" : (FD.pool ? "20 Q · 3 traps" : "Coming soon"), FD.pool ? (pDone ? "DONE" : "NEW") : "", !!pDone, fdPracticeStart, !FD.pool));
+  g.appendChild(fdMini("🩺", "Daily Diagnosis", "From clues", "", false, () => { const b = document.getElementById("fhDx"); if (b) b.click(); }));
+  g.appendChild(fdMini("🔗", "Daily Match", "6 pairs, be quick", "", false, () => { try { mtOpen(false); } catch (e) {} }));
+  g.appendChild(fdMini("⚕️", "Today's Sign", "1 sign a day", "", false, () => { const b = document.getElementById("fhSg"); if (b) b.click(); }));
   m.appendChild(g);
-  const up = fdEl("div", "fd-card");
+  // resources
+  m.appendChild(fdEl("div", "fd-sec", "FREE RESOURCES"));
+  const r = fdEl("div", "fd-g2m");
+  const mk = FD.mock, mDone = mk ? fdGet("m:" + mk.id) : null;
+  r.appendChild(fdMini("📋", "Free mock test", loading ? "Loading…" : (mk ? mk.qs.length + " Q · " + mk.min + " min" : "New one every week"), mk ? (mDone ? "DONE" : "NEW") : "", !!mDone, fdMockStart, !mk));
+  const np = (FD.pdfs || []).length;
+  r.appendChild(fdMini("📄", "Free PDF", FD.pdfs === undefined ? "Loading…" : (np ? np + " short PDF" + (np > 1 ? "s" : "") + ", view-only" : "New one every week"), np ? "NEW" : "", false, fdPdfList, !np));
+  r.appendChild(fdMini("🧮", "Calculators", "Clinical", "", false, null, false, "/calculators"));
+  r.appendChild(fdMini("💡", "Study tips", "High-yield reads", "", false, null, false, "/study-tips"));
+  m.appendChild(r);
+  const up = fdEl("div", "fd-up");
   up.appendChild(fdEl("h2", null, "Want everything?"));
-  up.appendChild(fdEl("p", null, "Premium adds the full question bank, tests, notes, flashcards and more. Your free space stays free forever."));
+  up.appendChild(fdEl("p", null, "Premium adds the full question bank, tests, PDFs every week, flashcards and member games. Your free space stays free forever."));
   const ub = fdEl("button", "fd-btn gold", "See Premium"); ub.type = "button"; ub.onclick = fdGoPremium; up.appendChild(ub);
   m.appendChild(up);
+}
+
+// ---------- three daily free games: Daily Drug Guess, Spot the Wrong Line, Numbers Round ----------
+// Content: built-in starter sets below. If the admin saves a pool in sample/drugguess, sample/wrongline or sample/numbers, that pool is used instead.
+const FG_SEED = {"dg":[{"n":"Warfarin","a":["coumadin"],"c":["Oral anticoagulant","Inhibits vitamin K epoxide reductase","Monitored with INR","Teratogenic (fetal warfarin syndrome) and can cause skin necrosis","Antidote: vitamin K (PCC or FFP for urgent reversal)"]},{"n":"Heparin","a":["unfractionated heparin","ufh"],"c":["Parenteral anticoagulant","Activates antithrombin III","Monitored with aPTT","Can cause heparin-induced thrombocytopenia (HIT)","Antidote: protamine sulfate"]},{"n":"Digoxin","a":["digitalis"],"c":["Cardiac glycoside","Inhibits the Na+/K+ ATPase pump","Narrow therapeutic index; toxicity is worse with hypokalaemia","Toxicity: yellow-green vision, nausea and arrhythmias","Antidote: digoxin-specific Fab fragments"]},{"n":"Metformin","a":[],"c":["Biguanide, first-line oral drug in type 2 diabetes","Activates AMPK and reduces hepatic gluconeogenesis","Does not cause hypoglycaemia when used alone, and causes no weight gain","Long-term use can cause vitamin B12 deficiency","Rare but serious risk: lactic acidosis"]},{"n":"Isoniazid","a":["inh","isonicotinic acid hydrazide"],"c":["Antitubercular drug used for treatment and prophylaxis","Inhibits mycolic acid synthesis (activated by KatG)","Metabolised by acetylation; can cause drug-induced lupus","Causes peripheral neuropathy and hepatitis","Neuropathy is prevented by pyridoxine (vitamin B6)"]},{"n":"Rifampicin","a":["rifampin"],"c":["Antitubercular and antileprotic drug","Inhibits DNA-dependent RNA polymerase","Turns urine, sweat and tears orange-red","Strong inducer of cytochrome P450 enzymes","Used as chemoprophylaxis for meningococcal contacts"]},{"n":"Ethambutol","a":[],"c":["First-line antitubercular drug (bacteriostatic)","Inhibits arabinosyl transferase in the cell wall","Dose-related toxicity affects the eye","Causes optic neuritis with red-green colour blindness","Visual acuity and colour vision must be checked during treatment"]},{"n":"Amiodarone","a":[],"c":["Class III antiarrhythmic","Blocks K+ channels but also Na+, Ca2+ and beta receptors","Contains iodine and has a very long half-life","Can cause pulmonary fibrosis and thyroid dysfunction","Also causes corneal deposits and blue-grey skin"]},{"n":"Lithium","a":["lithium carbonate"],"c":["Mood stabiliser used in bipolar disorder","Narrow therapeutic index, so serum levels are monitored","Causes nephrogenic diabetes insipidus and hypothyroidism","Fine tremor, and Ebstein anomaly if used in pregnancy","Levels rise with thiazides, NSAIDs and ACE inhibitors"]},{"n":"Phenytoin","a":[],"c":["Antiepileptic for tonic-clonic and focal seizures","Blocks voltage-gated Na+ channels","Shows zero-order (saturation) kinetics at higher doses","Gingival hyperplasia, hirsutism and megaloblastic anaemia","Fetal hydantoin syndrome if used in pregnancy"]},{"n":"Carbamazepine","a":[],"c":["Antiepileptic and first-line drug for trigeminal neuralgia","Blocks voltage-gated Na+ channels","Induces its own metabolism (auto-induction)","Can cause hyponatraemia (SIADH) and aplastic anaemia","HLA-B*1502 raises the risk of Stevens-Johnson syndrome"]},{"n":"Valproate","a":["sodium valproate","valproic acid","valproate sodium"],"c":["Broad-spectrum antiepileptic, also used for bipolar disorder and migraine prophylaxis","Blocks Na+ channels and increases GABA","Causes weight gain, tremor and hair loss","Serious toxicity: hepatotoxicity and pancreatitis","Teratogenic: neural tube defects"]},{"n":"Methotrexate","a":["mtx"],"c":["Antimetabolite used in cancer, rheumatoid arthritis and ectopic pregnancy","Inhibits dihydrofolate reductase","Acts mainly in the S phase of the cell cycle","Toxicity: myelosuppression, mucositis, hepatotoxicity and pulmonary fibrosis","Rescue with leucovorin (folinic acid)"]},{"n":"Cisplatin","a":[],"c":["Platinum-based anticancer drug","Cross-links DNA strands","Highly emetogenic, so 5-HT3 blockers are given","Nephrotoxicity and ototoxicity","Kidney damage is reduced by hydration and amifostine"]},{"n":"Doxorubicin","a":["adriamycin"],"c":["Anthracycline anticancer antibiotic","Intercalates DNA and inhibits topoisomerase II","Red coloured drug that can colour the urine","Dose-related dilated cardiomyopathy","Cardiotoxicity is reduced by dexrazoxane"]},{"n":"Bleomycin","a":[],"c":["Glycopeptide anticancer antibiotic","Causes DNA strand breaks through free radicals","Causes little bone marrow suppression","Skin hyperpigmentation and mucocutaneous reactions","Dose-limiting toxicity: pulmonary fibrosis"]},{"n":"Paracetamol","a":["acetaminophen","crocin","dolo"],"c":["Analgesic and antipyretic with no anti-inflammatory action","Weak, mainly central COX inhibition","Safe in pregnancy and does not irritate the stomach","Overdose causes hepatic necrosis through NAPQI","Antidote: N-acetylcysteine"]},{"n":"Aspirin","a":["acetylsalicylic acid","ecosprin","asa"],"c":["NSAID that is also an antiplatelet drug","Irreversibly inhibits COX-1 by acetylation","Low dose reduces thromboxane A2 in platelets","Causes Reye syndrome in children with viral illness","Toxicity (salicylism): tinnitus, hyperventilation and metabolic acidosis"]},{"n":"Atropine","a":[],"c":["Antimuscarinic alkaloid from Atropa belladonna","Competitively blocks muscarinic receptors","Causes mydriasis, dry mouth and tachycardia","Toxicity: 'dry as a bone, red as a beet, mad as a hatter'","Drug of choice for the muscarinic effects of organophosphate poisoning"]},{"n":"Neostigmine","a":[],"c":["Reversible anticholinesterase","Quaternary ammonium, so it does not cross the blood-brain barrier","Used in myasthenia gravis","Reverses non-depolarising neuromuscular blockade","Given with atropine or glycopyrrolate to block muscarinic effects"]},{"n":"Propranolol","a":[],"c":["Non-selective beta blocker","Blocks beta-1 and beta-2 receptors","Used for migraine prophylaxis, essential tremor and thyrotoxicosis","Contraindicated in asthma","Can mask the symptoms of hypoglycaemia"]},{"n":"Spironolactone","a":[],"c":["Potassium-sparing diuretic","Aldosterone receptor antagonist","Used in primary hyperaldosteronism (Conn syndrome) and ascites","Causes hyperkalaemia","Gynaecomastia due to anti-androgen action"]},{"n":"Furosemide","a":["frusemide","lasix"],"c":["Loop diuretic","Blocks the Na+-K+-2Cl- cotransporter in the thick ascending limb","Used in acute pulmonary oedema","Causes hypokalaemia and hypocalcaemia","Ototoxic, especially with aminoglycosides"]},{"n":"Vancomycin","a":[],"c":["Glycopeptide antibiotic active against MRSA","Binds D-Ala-D-Ala and blocks cell wall synthesis","Infusion-related 'red man syndrome'","Nephrotoxic and ototoxic","Given orally for C. difficile because it is not absorbed"]},{"n":"Gentamicin","a":[],"c":["Aminoglycoside antibiotic","Binds the 30S ribosomal subunit and is bactericidal","Not effective against anaerobes because uptake needs oxygen","Nephrotoxic and ototoxic","Can rarely cause neuromuscular blockade"]}],"wl":[{"t":"Nephrotic syndrome","l":["Massive proteinuria, more than 3.5 g/day","Hypoalbuminaemia with generalised oedema","Serum cholesterol is decreased","Fatty casts and oval fat bodies in urine"],"w":2,"y":"Nephrotic syndrome causes hyperlipidaemia, not low cholesterol."},{"t":"Nephritic syndrome","l":["Haematuria with RBC casts","Hypertension and oliguria","Heavy proteinuria of more than 3.5 g/day defines it","Post-streptococcal GN is a classic cause"],"w":2,"y":"Heavy proteinuria (above 3.5 g/day) defines nephrotic syndrome. Nephritic proteinuria is usually mild to moderate."},{"t":"Primary hypothyroidism","l":["Cold intolerance and weight gain","Bradycardia and constipation","Delayed relaxation of the ankle jerk","TSH is low with a low free T4"],"w":3,"y":"In primary hypothyroidism TSH is raised and free T4 is low."},{"t":"Graves disease","l":["Diffuse goitre, often with a bruit","Exophthalmos and pretibial myxoedema","Caused by TSH receptor stimulating antibodies","Radioiodine uptake is decreased"],"w":3,"y":"Uptake is diffusely increased in Graves disease. It is decreased in thyroiditis."},{"t":"Cushing syndrome","l":["Central obesity with purple striae","Hypertension and glucose intolerance","Cortisol is suppressed by low-dose dexamethasone","Proximal myopathy and easy bruising"],"w":2,"y":"Cortisol is NOT suppressed by low-dose dexamethasone in Cushing syndrome."},{"t":"Primary adrenal insufficiency (Addison)","l":["Hyperpigmentation","Hypotension and hyponatraemia","Hyperkalaemia","ACTH is low"],"w":3,"y":"ACTH is high in primary adrenal failure, which causes the pigmentation."},{"t":"Warfarin","l":["Inhibits vitamin K epoxide reductase","Monitored with INR","Safe to use throughout pregnancy","Can cause skin necrosis in protein C deficiency"],"w":2,"y":"Warfarin is teratogenic and is avoided in pregnancy (heparin is used instead)."},{"t":"Unfractionated heparin","l":["Enhances antithrombin III activity","Monitored with aPTT","Crosses the placenta","Antidote is protamine sulfate"],"w":2,"y":"Heparin does not cross the placenta, so it is the anticoagulant of choice in pregnancy."},{"t":"Cardiac tamponade","l":["Beck triad: hypotension, raised JVP, muffled heart sounds","Pulsus paradoxus","Kussmaul sign is characteristic","Treated by pericardiocentesis"],"w":2,"y":"Kussmaul sign is a feature of constrictive pericarditis, not tamponade."},{"t":"Aortic stenosis","l":["Ejection systolic murmur radiating to the carotids","Slow-rising pulse (pulsus parvus et tardus)","Wide pulse pressure","Angina, syncope and heart failure"],"w":2,"y":"Pulse pressure is narrow in aortic stenosis. A wide pulse pressure suggests aortic regurgitation."},{"t":"Aortic regurgitation","l":["Early diastolic decrescendo murmur","Water-hammer (Corrigan) pulse","Narrow pulse pressure","Austin Flint murmur can be present"],"w":2,"y":"Pulse pressure is wide in aortic regurgitation."},{"t":"Mitral stenosis","l":["Opening snap","Mid-diastolic rumbling murmur","Most common cause is rheumatic heart disease","Left ventricular hypertrophy is the typical early change"],"w":3,"y":"Left atrial enlargement is typical. The left ventricle is normal or small."},{"t":"Crohn disease","l":["Skip lesions with cobblestone mucosa","Transmural inflammation with non-caseating granulomas","The disease is always continuous from the rectum","Fistulae and strictures are common"],"w":2,"y":"Continuous disease starting at the rectum describes ulcerative colitis. Crohn disease has skip lesions."},{"t":"Rifampicin","l":["Causes orange-red urine and tears","Inhibits DNA-dependent RNA polymerase","Inhibits cytochrome P450 enzymes","Used for meningococcal prophylaxis"],"w":2,"y":"Rifampicin is a strong INDUCER of cytochrome P450 enzymes."},{"t":"Digoxin toxicity","l":["Visual disturbance with yellow-green halos","Hypokalaemia worsens toxicity","Quinidine lowers digoxin levels","Antidote is digoxin-specific Fab fragments"],"w":2,"y":"Quinidine raises digoxin levels (it reduces digoxin clearance)."},{"t":"Lithium","l":["Causes nephrogenic diabetes insipidus","Has a narrow therapeutic index","Thiazide diuretics lower lithium levels","Teratogenic: Ebstein anomaly"],"w":2,"y":"Thiazides raise lithium levels, which can cause toxicity."},{"t":"CSF in meningitis","l":["Bacterial: neutrophils with low glucose","Viral: lymphocytes with normal glucose","Tubercular: lymphocytes, low glucose and very high protein","Bacterial: lymphocytes with normal glucose"],"w":3,"y":"Bacterial meningitis shows neutrophils with low glucose and high protein."},{"t":"Iron deficiency anaemia","l":["Low serum ferritin","Raised total iron binding capacity","Microcytic hypochromic red cells","RDW is low"],"w":3,"y":"RDW (anisocytosis) is raised in iron deficiency."},{"t":"Hereditary spherocytosis","l":["Usually autosomal dominant","Increased osmotic fragility","Direct Coombs test is positive","Splenectomy improves the anaemia"],"w":2,"y":"The Coombs test is negative. A positive test points to autoimmune haemolysis."},{"t":"Down syndrome","l":["Trisomy 21 is the commonest cause","Duodenal atresia is associated","Maternal serum AFP is raised","Endocardial cushion defect is common"],"w":2,"y":"Maternal serum AFP is LOW in Down syndrome."},{"t":"Pre-eclampsia","l":["Hypertension appears after 20 weeks of gestation","Magnesium sulphate prevents eclamptic seizures","ACE inhibitors are the first-line antihypertensive","Labetalol and nifedipine are used"],"w":2,"y":"ACE inhibitors are contraindicated in pregnancy. Labetalol, nifedipine and methyldopa are used."}],"nm":[{"q":"Normal serum anion gap?","o":["3 to 5 mEq/L","8 to 12 mEq/L","15 to 20 mEq/L","25 to 30 mEq/L"],"a":1,"s":"Biochemistry","n":"Anion gap = Na - (Cl + HCO3). A high gap points to MUDPILES causes."},{"q":"Normal CSF opening pressure in an adult (lateral position)?","o":["10 to 40 mm H2O","70 to 180 mm H2O","250 to 300 mm H2O","300 to 400 mm H2O"],"a":1,"s":"Medicine","n":"Above 250 mm H2O is raised, as in idiopathic intracranial hypertension."},{"q":"Normal serum calcium?","o":["6 to 7 mg/dL","8.5 to 10.5 mg/dL","11 to 13 mg/dL","14 to 16 mg/dL"],"a":1,"s":"Biochemistry","n":"About 40 percent is protein bound, mostly to albumin."},{"q":"Normal serum potassium?","o":["2.5 to 3.0 mEq/L","3.5 to 5.0 mEq/L","5.5 to 6.5 mEq/L","6.5 to 7.5 mEq/L"],"a":1,"s":"Physiology","n":"Peaked T waves appear when potassium rises above about 6 mEq/L."},{"q":"Normal serum sodium?","o":["120 to 130 mEq/L","135 to 145 mEq/L","150 to 160 mEq/L","160 to 170 mEq/L"],"a":1,"s":"Physiology","n":"Hyponatraemia is below 135 mEq/L."},{"q":"Normal glomerular filtration rate in a healthy adult?","o":["30 mL/min","60 mL/min","125 mL/min","250 mL/min"],"a":2,"s":"Physiology","n":"About 180 L of filtrate is formed per day."},{"q":"Normal PaO2 on room air?","o":["40 to 60 mmHg","60 to 70 mmHg","80 to 100 mmHg","120 to 140 mmHg"],"a":2,"s":"Physiology","n":"Hypoxaemia is PaO2 below 80 mmHg, respiratory failure below 60 mmHg."},{"q":"Normal arterial blood pH?","o":["7.0 to 7.1","7.35 to 7.45","7.5 to 7.6","6.8 to 7.0"],"a":1,"s":"Physiology","n":"Below 7.35 is acidaemia and above 7.45 is alkalaemia."},{"q":"Normal arterial PaCO2?","o":["15 to 25 mmHg","35 to 45 mmHg","55 to 65 mmHg","70 to 80 mmHg"],"a":1,"s":"Physiology","n":"PaCO2 is the respiratory component of acid-base balance."},{"q":"Normal INR in a person not on warfarin?","o":["0.1 to 0.3","0.8 to 1.2","2.0 to 3.0","3.5 to 4.5"],"a":1,"s":"Pathology","n":"INR reflects the extrinsic pathway (factor VII)."},{"q":"Target INR for most indications on warfarin?","o":["1 to 1.5","2 to 3","3.5 to 4.5","5 to 6"],"a":1,"s":"Pharmacology","n":"Mechanical mitral valves are kept higher, around 2.5 to 3.5."},{"q":"Normal platelet count?","o":["15,000 to 40,000 per microlitre","50,000 to 100,000 per microlitre","150,000 to 400,000 per microlitre","600,000 to 800,000 per microlitre"],"a":2,"s":"Pathology","n":"Spontaneous bleeding risk rises below 10,000 to 20,000."},{"q":"Normal left ventricular ejection fraction?","o":["25 to 35 percent","40 to 45 percent","55 to 70 percent","80 to 90 percent"],"a":2,"s":"Medicine","n":"Heart failure with reduced EF is 40 percent or below."},{"q":"Normal intraocular pressure?","o":["5 to 8 mmHg","10 to 21 mmHg","25 to 35 mmHg","40 to 50 mmHg"],"a":1,"s":"Ophthalmology","n":"Glaucoma can occur even with normal pressure."},{"q":"A full-term pregnancy lasts?","o":["28 to 32 weeks","34 to 36 weeks","37 to 42 weeks","44 to 46 weeks"],"a":2,"s":"OBG","n":"Preterm is below 37 weeks, post-term is 42 weeks or more."},{"q":"Normal fetal heart rate?","o":["60 to 90 bpm","110 to 160 bpm","170 to 200 bpm","200 to 240 bpm"],"a":1,"s":"OBG","n":"Persistent bradycardia suggests fetal distress."},{"q":"Oliguria is urine output below how much per day?","o":["100 mL","400 mL","800 mL","1500 mL"],"a":1,"s":"Medicine","n":"Anuria is below 100 mL per day."},{"q":"WHO cut-off for anaemia in a non-pregnant adult man?","o":["Hb below 10 g/dL","Hb below 11 g/dL","Hb below 12 g/dL","Hb below 13 g/dL"],"a":3,"s":"PSM","n":"Non-pregnant women are anaemic below 12 g/dL."},{"q":"WHO cut-off for anaemia in pregnancy?","o":["Hb below 9 g/dL","Hb below 10 g/dL","Hb below 11 g/dL","Hb below 12 g/dL"],"a":2,"s":"OBG","n":"Severe anaemia in pregnancy is below 7 g/dL."},{"q":"Fasting plasma glucose cut-off for diabetes?","o":["100 mg/dL or more","110 mg/dL or more","126 mg/dL or more","200 mg/dL or more"],"a":2,"s":"Medicine","n":"A 2-hour post-glucose value of 200 mg/dL or more also diagnoses diabetes."},{"q":"HbA1c cut-off for diagnosing diabetes?","o":["5.7 percent or more","6.0 percent or more","6.5 percent or more","7.5 percent or more"],"a":2,"s":"Medicine","n":"HbA1c reflects glucose over about 3 months."},{"q":"Normal serum creatinine in an adult?","o":["0.1 to 0.3 mg/dL","0.6 to 1.2 mg/dL","2.0 to 3.0 mg/dL","4 to 5 mg/dL"],"a":1,"s":"Biochemistry","n":"Creatinine rises late, only after about half the GFR is lost."},{"q":"Jaundice becomes clinically visible when serum bilirubin exceeds about?","o":["1 mg/dL","2.5 mg/dL","6 mg/dL","10 mg/dL"],"a":1,"s":"Medicine","n":"The sclera is the earliest site to show it."},{"q":"Lifespan of a red blood cell?","o":["30 days","60 days","120 days","180 days"],"a":2,"s":"Physiology","n":"Old red cells are removed by the spleen."},{"q":"Lifespan of a platelet?","o":["1 to 2 days","7 to 10 days","30 days","120 days"],"a":1,"s":"Physiology","n":"Platelets are produced from megakaryocytes."},{"q":"Normal PR interval on ECG?","o":["0.04 to 0.08 s","0.12 to 0.20 s","0.24 to 0.30 s","0.30 to 0.40 s"],"a":1,"s":"Medicine","n":"A longer PR interval is first-degree heart block."},{"q":"Normal QRS duration on ECG?","o":["Less than 0.04 s","Less than 0.12 s","Less than 0.30 s","Less than 0.40 s"],"a":1,"s":"Medicine","n":"A wide QRS suggests a bundle branch block or a ventricular rhythm."},{"q":"Normal mean pulmonary artery pressure?","o":["1 to 5 mmHg","10 to 20 mmHg","30 to 40 mmHg","50 to 60 mmHg"],"a":1,"s":"Physiology","n":"Pulmonary hypertension is a mean pressure above 20 mmHg."},{"q":"Normal resting cardiac output in an adult?","o":["1 L/min","2.5 L/min","5 L/min","10 L/min"],"a":2,"s":"Physiology","n":"Cardiac output = stroke volume x heart rate."},{"q":"Normal tidal volume in an adult?","o":["150 mL","500 mL","1200 mL","3000 mL"],"a":1,"s":"Physiology","n":"Vital capacity is about 4 to 5 litres."},{"q":"Normal CSF protein?","o":["1 to 5 mg/dL","15 to 45 mg/dL","100 to 150 mg/dL","200 to 300 mg/dL"],"a":1,"s":"Medicine","n":"Very high CSF protein with normal cells suggests Guillain-Barre syndrome."},{"q":"BCG dose for a newborn?","o":["0.05 mL intradermal","0.1 mL intradermal","0.5 mL subcutaneous","1 mL intramuscular"],"a":0,"s":"PSM","n":"0.1 mL is given for children older than 1 month."},{"q":"Age for the first dose of measles-rubella vaccine in India?","o":["6 months","9 months","12 months","15 months"],"a":1,"s":"PSM","n":"The second dose is given at 16 to 24 months."}]};
+const FG_MIN = { dg: 5, wl: 5, nm: 10 };
+function fgPool(k) { const a = FD.gp && FD.gp[k]; return (a && a.length >= FG_MIN[k]) ? a : FG_SEED[k]; }
+async function fgLoadPools() {
+  FD.gp = FD.gp || {};
+  if (!window.__fb) return;
+  const { db, doc, getDoc } = window.__fb;
+  const ok = {
+    dg: x => x && typeof x.n === "string" && x.n && Array.isArray(x.c) && x.c.length === 5 && x.c.every(c => typeof c === "string" && c),
+    wl: x => x && typeof x.t === "string" && Array.isArray(x.l) && x.l.length === 4 && x.l.every(c => typeof c === "string" && c) && Number.isInteger(x.w) && x.w >= 0 && x.w < 4,
+    nm: x => x && typeof x.q === "string" && Array.isArray(x.o) && x.o.length === 4 && x.o.every(c => typeof c === "string" && c) && Number.isInteger(x.a) && x.a >= 0 && x.a < 4
+  };
+  const docs = { dg: "drugguess", wl: "wrongline", nm: "numbers" };
+  for (const k of Object.keys(docs)) {
+    try { const s = await getDoc(doc(db, "sample", docs[k])); const d = s.exists() ? s.data() : null; FD.gp[k] = d && Array.isArray(d.items) ? d.items.filter(ok[k]) : null; }
+    catch (e) { FD.gp[k] = null; }
+  }
+}
+function fgDay() { return istDay(Date.now()); }
+function fgNorm(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim(); }
+function fgLev(a, b) {
+  const m = a.length, n = b.length; if (!m) return n; if (!n) return m;
+  let p = []; for (let j = 0; j <= n; j++) p[j] = j;
+  for (let i = 1; i <= m; i++) { const c = [i]; for (let j = 1; j <= n; j++) c[j] = Math.min(p[j] + 1, c[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); p = c; }
+  return p[n];
+}
+function fgSame(guess, d) {
+  const g = fgNorm(guess); if (g.length < 3) return false;
+  const names = [d.n].concat(d.a || []).map(fgNorm).filter(Boolean);
+  return names.some(n => g === n || fgLev(g, n) <= (n.length >= 9 ? 2 : n.length >= 5 ? 1 : 0));
+}
+function fgShare(text) {
+  if (navigator.share) { navigator.share({ text }).catch(() => {}); return "Shared"; }
+  try { navigator.clipboard.writeText(text); return "Copied. Paste it anywhere."; } catch (e) { return "Could not copy"; }
+}
+function fgShell(label) {
+  const m = fdMain(); if (!m) return null;
+  fdStopTimer(); FD.view = "game"; m.innerHTML = "";
+  const w = fdEl("div", "fg");
+  const top = fdEl("div", "fg-top");
+  const back = fdEl("button", "fg-back", "‹ Back"); back.type = "button"; back.onclick = () => { fdStopTimer(); fdHome(); };
+  top.appendChild(back); top.appendChild(fdEl("span", "fg-pill", label));
+  w.appendChild(top); m.appendChild(w); window.scrollTo(0, 0); return w;
+}
+function fgResultBtns(w, text) {
+  const row = fdEl("div", "fg-row");
+  const sh = fdEl("button", "fd-btn gold", "Share result"); sh.type = "button";
+  const msg = fdEl("p", "fg-hint", ""); sh.onclick = () => { msg.textContent = fgShare(text); };
+  const bk = fdEl("button", "fd-btn", "My free space"); bk.type = "button"; bk.onclick = () => fdHome();
+  row.appendChild(sh); row.appendChild(bk); w.appendChild(row); w.appendChild(msg);
+}
+
+// ----- 1. Daily Drug Guess -----
+function fgDrugOpen() {
+  const day = fgDay(), pool = fgPool("dg"), d = pool[((day % pool.length) + pool.length) % pool.length];
+  const sv = fdGet("dg:" + day);
+  const st = sv ? { k: sv.k, done: true, ok: sv.ok, seq: sv.seq.slice(), msg: "" } : { k: 1, done: false, ok: false, seq: [], msg: "" };
+  const grid = () => { const a = st.seq.slice(); while (a.length < 5) a.push("⬛"); return a.join(""); };
+  const text = () => "PPTNEETPGHUB Daily Drug Guess\n" + (st.ok ? "Solved at clue " + st.k + " of 5" : "Missed today") + "\n" + grid() + "\nCan you beat me? https://pptneetpghub.com/";
+  const finish = ok => { st.done = true; st.ok = ok; fdSet("dg:" + day, { k: st.k, ok, seq: st.seq }); };
+  const paint = () => {
+    const w = fgShell("DAILY DRUG GUESS"); if (!w) return;
+    w.appendChild(fdEl("h2", "fg-h", st.done ? (st.ok ? "You got it!" : "Not this time") : "Which drug is this?"));
+    w.appendChild(fdEl("p", "fg-sub", st.done ? (st.ok ? "Solved at clue " + st.k + " of 5 · " + (6 - st.k) + " pts" : "Today's drug was " + d.n) : "Clue " + st.k + " of 5 · Score if you guess now: " + (6 - st.k) + " pts"));
+    d.c.forEach((c, i) => {
+      const on = st.done || i < st.k;
+      const r = fdEl("div", "fg-clue " + (on ? "on" : "off"));
+      r.appendChild(fdEl("b", "n", String(i + 1)));
+      if (on) r.appendChild(fdEl("span", null, c));
+      else if (i === st.k) { const nb = fdEl("button", "fg-lnk", "Locked. Tap for the next clue (−1 pt)"); nb.type = "button"; nb.onclick = () => { st.seq.push("🟨"); st.k++; st.msg = ""; paint(); }; r.appendChild(nb); }
+      else r.appendChild(fdEl("span", null, "Locked"));
+      w.appendChild(r);
+    });
+    if (!st.done) {
+      const row = fdEl("div", "fg-in");
+      const inp = fdEl("input"); inp.type = "text"; inp.placeholder = "Type the drug name…"; inp.autocomplete = "off"; inp.setAttribute("autocapitalize", "none");
+      const go = fdEl("button", null, "Guess"); go.type = "button";
+      const run = () => {
+        const v = inp.value.trim(); if (!v) return;
+        if (fgSame(v, d)) { st.seq.push("🟩"); finish(true); paint(); return; }
+        if (st.k >= 5) { st.seq.push("🟥"); finish(false); paint(); return; }
+        st.seq.push("🟨"); st.k++; st.msg = "Not it. Next clue unlocked."; paint();
+      };
+      go.onclick = run; inp.onkeydown = e => { if (e.key === "Enter") run(); };
+      row.appendChild(inp); row.appendChild(go); w.appendChild(row);
+      if (st.msg) w.appendChild(fdEl("p", "fg-hint", st.msg));
+      w.appendChild(fdEl("p", "fg-hint", "One new drug every day. Share your result grid."));
+    } else {
+      const a = fdEl("div", "fg-ans"); a.appendChild(fdEl("small", null, "TODAY'S DRUG")); a.appendChild(fdEl("b", null, d.n)); w.appendChild(a);
+      w.appendChild(fdEl("div", "fg-grid", grid()));
+      fgResultBtns(w, text());
+    }
+  };
+  paint();
+}
+
+// ----- 2. Spot the Wrong Line -----
+function fgWrongOpen() {
+  const day = fgDay(), pool = fgPool("wl"), N = 5;
+  const sv = fdGet("wl:" + day);
+  const rounds = []; for (let i = 0; i < N; i++) rounds.push(pool[(((day * N + i) % pool.length) + pool.length) % pool.length]);
+  const st = { i: 0, pick: -1, locked: false, score: 0, res: [] };
+  const text = () => "PPTNEETPGHUB Spot the Wrong Line\n" + (sv ? sv.score : st.score) + " of " + N + " found\n" + (sv ? sv.res : st.res).map(x => x ? "🟩" : "🟥").join("") + "\nCan you beat me? https://pptneetpghub.com/";
+  const paint = () => {
+    const w = fgShell(sv || st.i >= N ? "SPOT THE WRONG LINE" : "ROUND " + (st.i + 1) + " / " + N); if (!w) return;
+    if (sv || st.i >= N) {
+      if (!sv) fdSet("wl:" + day, { score: st.score, res: st.res });
+      const sc = sv ? sv.score : st.score;
+      w.appendChild(fdEl("h2", "fg-h", "Done for today"));
+      w.appendChild(fdEl("div", "fg-big", sc + " / " + N));
+      w.appendChild(fdEl("p", "fg-sub", sc >= 4 ? "Sharp eyes. Traps do not fool you." : "Read every line twice. Traps hide in one word."));
+      w.appendChild(fdEl("div", "fg-grid", (sv ? sv.res : st.res).map(x => x ? "🟩" : "🟥").join("")));
+      fgResultBtns(w, text()); return;
+    }
+    const r = rounds[st.i];
+    w.appendChild(fdEl("h2", "fg-h", r.t));
+    w.appendChild(fdEl("p", "fg-sub", "One line is a trap. Tap it."));
+    const bars = fdEl("div", "fg-bars"); for (let i = 0; i < N; i++) bars.appendChild(fdEl("i", i < st.i ? "d" : "")); w.appendChild(bars);
+    r.l.forEach((ln, i) => {
+      const b = fdEl("button", "fg-line" + (st.pick === i ? " sel" : "") + (st.locked && i === r.w ? " ok" : "") + (st.locked && st.pick === i && i !== r.w ? " bad" : ""));
+      b.type = "button"; b.appendChild(fdEl("b", null, "ABCD"[i])); b.appendChild(fdEl("span", null, ln));
+      b.onclick = () => { if (st.locked) return; st.pick = i; paint(); };
+      w.appendChild(b);
+    });
+    if (!st.locked) {
+      const lk = fdEl("button", "fd-btn gold fg-main", "Lock my answer"); lk.type = "button"; lk.disabled = st.pick < 0;
+      lk.onclick = () => { if (st.pick < 0) return; st.locked = true; const ok = st.pick === r.w; if (ok) st.score++; st.res.push(ok); paint(); };
+      w.appendChild(lk); w.appendChild(fdEl("p", "fg-hint", "Right line = 1 point"));
+    } else {
+      const ok = st.pick === r.w;
+      w.appendChild(fdEl("div", "fg-why " + (ok ? "y" : "n"), (ok ? "Correct. " : "Not quite. The wrong line was " + "ABCD"[r.w] + ". ") + (r.y || "")));
+      const nx = fdEl("button", "fd-btn gold fg-main", st.i + 1 >= N ? "See result" : "Next round"); nx.type = "button";
+      nx.onclick = () => { st.i++; st.pick = -1; st.locked = false; paint(); };
+      w.appendChild(nx);
+    }
+  };
+  paint();
+}
+
+// ----- 3. Numbers Round -----
+function fgNumbersOpen() {
+  const day = fgDay(), pool = fgPool("nm"), N = 10, SECS = 12;
+  const sv = fdGet("nm:" + day);
+  const qs = []; for (let i = 0; i < N; i++) qs.push(pool[(((day * N + i) % pool.length) + pool.length) % pool.length]);
+  const st = { i: 0, pick: -2, left: SECS, score: 0, streak: 0, res: [] };
+  const sym = x => x === 1 ? "🟩" : x === 0 ? "🟥" : "⬛";
+  const text = () => "PPTNEETPGHUB Numbers Round\n" + (sv ? sv.score : st.score) + " of " + N + "\n" + (sv ? sv.res : st.res).map(sym).join("") + "\nCan you beat me? https://pptneetpghub.com/";
+  const answered = () => st.pick !== -2;
+  const settle = pick => { if (answered()) return; fdStopTimer(); st.pick = pick; const ok = pick === qs[st.i].a; if (pick === -1) { st.res.push(-1); st.streak = 0; } else if (ok) { st.score++; st.streak++; st.res.push(1); } else { st.streak = 0; st.res.push(0); } paint(); };
+  const paint = () => {
+    const w = fgShell(sv || st.i >= N ? "NUMBERS ROUND" : "QUESTION " + (st.i + 1) + " / " + N); if (!w) return;
+    if (sv || st.i >= N) {
+      if (!sv) fdSet("nm:" + day, { score: st.score, res: st.res });
+      const sc = sv ? sv.score : st.score;
+      w.appendChild(fdEl("h2", "fg-h", "Round complete"));
+      w.appendChild(fdEl("div", "fg-big", sc + " / " + N));
+      w.appendChild(fdEl("p", "fg-sub", sc >= 8 ? "These numbers are locked in." : "Revise these values once more tonight."));
+      w.appendChild(fdEl("div", "fg-grid", (sv ? sv.res : st.res).map(sym).join("")));
+      fgResultBtns(w, text()); return;
+    }
+    const q = qs[st.i];
+    const meta = fdEl("div", "fg-meta");
+    meta.appendChild(fdEl("span", null, "Streak ×" + st.streak));
+    const ring = fdEl("div", "fg-ring"); ring.id = "fgRing"; ring.style.setProperty("--p", (st.left / SECS * 100) + "%"); const rs = fdEl("span", null, String(st.left)); rs.id = "fgSec"; ring.appendChild(rs);
+    meta.appendChild(ring); w.appendChild(meta);
+    const bars = fdEl("div", "fg-bars"); for (let i = 0; i < N; i++) bars.appendChild(fdEl("i", i < st.i ? "d" : "")); w.appendChild(bars);
+    const qc = fdEl("div", "fg-q"); qc.appendChild(fdEl("small", null, String(q.s || "General").toUpperCase() + " · VALUE")); qc.appendChild(document.createTextNode(q.q)); w.appendChild(qc);
+    q.o.forEach((o, i) => {
+      const b = fdEl("button", "fg-opt" + (answered() && i === q.a ? " ok" : "") + (answered() && st.pick === i && i !== q.a ? " bad" : "")); b.type = "button";
+      b.appendChild(fdEl("b", null, "ABCD"[i])); b.appendChild(fdEl("span", null, o));
+      b.onclick = () => settle(i); w.appendChild(b);
+    });
+    if (answered()) {
+      w.appendChild(fdEl("div", "fg-why " + (st.pick === q.a ? "y" : "n"), (st.pick === -1 ? "Time up. " : st.pick === q.a ? "Correct. " : "Not quite. ") + (q.n || "")));
+      const nx = fdEl("button", "fd-btn gold fg-main", st.i + 1 >= N ? "See result" : "Next"); nx.type = "button";
+      nx.onclick = () => { st.i++; st.pick = -2; st.left = SECS; paint(); }; w.appendChild(nx);
+    } else {
+      w.appendChild(fdEl("p", "fg-hint", "Numbers you must remember, " + SECS + " seconds each"));
+      st.t0 = Date.now(); const base = st.left;
+      FD.tick = setInterval(() => {
+        st.left = Math.max(0, base - Math.floor((Date.now() - st.t0) / 1000));
+        const a = document.getElementById("fgSec"), r2 = document.getElementById("fgRing");
+        if (a) a.textContent = String(st.left); if (r2) r2.style.setProperty("--p", (st.left / SECS * 100) + "%");
+        if (st.left <= 0) settle(-1);
+      }, 250);
+    }
+  };
+  paint();
 }
 
 // ---------- question runner (used by practice and mock) ----------
