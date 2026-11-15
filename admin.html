@@ -954,6 +954,7 @@
     </div>
     <!-- Home sample (for visitors who are not signed in) -->
     <div id="samplePanel" style="display:none;">
+<details style="margin-bottom:16px"><summary style="cursor:pointer;background:#fff;border:1px solid var(--border);border-radius:18px;padding:16px 20px;font-weight:700;font-size:14px;color:var(--gray)">Old home sample and Daily 10 pool (not used on the home page now). Also holds the public SEO page settings (/sign, /q). Tap to open.</summary><div style="margin-top:12px">
       <div class="card">
         <h3>Home sample: 10 free questions</h3>
         <p class="hint" style="margin-top:-6px">Shown on the home page to visitors who are not signed in. Exactly 10 mix-subject questions, answers shown after each one. No pictures. Paste them in the same format as Add Test, then press Save. You can replace them any time.</p>
@@ -981,6 +982,7 @@
         <div class="t-actions"><button class="btn outline" id="wp_save">Save public pages setting</button></div>
         <p class="hint" id="wp_status"></p>
       </div>
+</div></details>
       <div class="card">
         <h3>Daily Match: free pairs pool</h3>
         <p class="hint" style="margin-top:-6px">One pair per line: <b>Type | Left | Right</b>. Type is <b>D</b> (Drug | Mechanism), <b>S</b> (Disease | Feature) or <b>F</b> (Finding | Associated condition). The home page shows 6 new pairs every day, in order, and starts again from the first when the pool ends. Keep each side short (left up to 34 letters, right up to 52). Use only pairs with one clear right answer. Everything saved here is public.</p>
@@ -5881,7 +5883,7 @@ async function rejectPayment(utr, p) {
   var GROUPS = [
     { t: '', items: [['homePanel', '🏠', 'Home'], ['paymentsPanel', '💳', 'Payments', 'pendingCount', 1]] },
     { t: 'ADD & PUBLISH', items: [['resourcesPanel', '➕', 'Add Resource'], ['dropsPanel', '🔥', 'Recent Drops'], ['bulkPanel', '📦', 'Bulk upload'], ['testsPanel', '📝', 'Add Test'], ['gtPanel', '🏁', 'Real Test (GT)'], ['seriesPanel', '📚', 'Series'], ['cardsPanel', '🃏', 'Card Test'], ['imgTestPanel', '🖼️', 'Image Tests'], ['bankPanel', '❓', 'Question Bank'], ['gamesPanel', '🎮', 'Member Games'], ['mnPanel', '🧠', 'Mnemonics', 'mnCount'], ['newsPanel', '📰', 'News'], ['counsellingPanel', '🎓', 'Counselling']] },
-    { t: 'FREE SECTION', items: [['freePoolPanel', '✍️', 'Free pool (daily 20)'], ['freeMockPanel', '📋', 'Free mock'], ['freePdfPanel', '📄', 'Free PDF'], ['samplePanel', '🧩', 'Daily Match & Daily 10'], ['dailyPanel', '🩺', 'Daily Diagnosis'], ['tipsPanel', '💡', 'Study Tips']] },
+    { t: 'FREE SECTION', items: [['freePoolPanel', '✍️', 'Free pool (daily 20)'], ['freeMockPanel', '📋', 'Free mock'], ['freePdfPanel', '📄', 'Free PDF'], ['samplePanel', '🧩', 'Daily Match & home cards'], ['dailyPanel', '🩺', 'Daily Diagnosis'], ['tipsPanel', '💡', 'Study Tips']] },
     { t: 'PEOPLE', items: [['membersPanel', '👥', 'Members'], ['freeResPanel', '🙋', 'Free users & results'], ['resultsPanel', '📊', 'Results'], ['lbPanel', '🏆', 'Top 10'], ['reportsPanel', '🚩', 'Reports', 'repCount']] },
     { t: 'LIBRARY & SYSTEM', items: [['listPanel', '🗂️', 'All Resources'], ['statsPanel', '📈', 'Stats'], ['backupPanel', '💾', 'Backup'], ['launchPanel', '✅', 'Launch check']] }
   ];
@@ -5891,7 +5893,7 @@ async function rejectPayment(utr, p) {
     ['newsPanel', '📰', 'News', 'Ticker news'], ['counsellingPanel', '🎓', 'Counselling', 'Counselling updates'],
     ['gamesPanel', '🎮', 'Game content', 'Blitz, Case Sprint…'], ['mnPanel', '🧠', 'Mnemonic', 'Review submissions'],
     ['freePdfPanel', '📄', 'Free PDF', 'This week\'s free one', 'f'], ['freeMockPanel', '📋', 'Free mock', 'Weekly free test', 'f'],
-    ['freePoolPanel', '✍️', 'Daily 20 pool', 'Free practice', 'f'], ['samplePanel', '🧩', 'Daily games', 'Match & Daily 10', 'f'],
+    ['freePoolPanel', '✍️', 'Daily 20 pool', 'Free practice', 'f'], ['samplePanel', '🧩', 'Daily games', 'Match pairs pool', 'f'],
     ['dailyPanel', '🩺', 'Daily Diagnosis', 'Free puzzle', 'f'], ['tipsPanel', '💡', 'Study tip', 'Ranker Vault', 'f']
   ];
   var LABEL = {}, GROUPOF = {};

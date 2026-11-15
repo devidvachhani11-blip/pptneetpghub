@@ -3719,7 +3719,7 @@ function paintTicker() {
   if (!sec || !tr) return;
   const L = [];
   try { if (typeof SIGNS !== 'undefined') { const g = SIGNS[((istDay(Date.now()) % SIGNS.length) + SIGNS.length) % SIGNS.length]; L.push(["TODAY'S SIGN", g[0] + ' · ' + g[1], '#freeHub']); } } catch (e) {}
-  L.push(['FREE', 'Daily 10 questions, Daily Diagnosis and a sample PDF', '#freeHub']);
+  L.push(['FREE', 'Daily 20 practice questions with 3 traps, Daily Diagnosis and a free PDF', '#freeHub']);
   TK.news.forEach(n => L.push([String(n.category || 'UPDATE').toUpperCase().slice(0, 14), n.title, '/news/' + encodeURIComponent(n.slug)]));
   L.push(['MORE', 'See all news and counselling updates', '/news']);
   const build = () => { const f = document.createDocumentFragment(); L.forEach(x => { const a = document.createElement('a'); a.href = x[2]; const b = document.createElement('b'); b.textContent = x[0]; a.appendChild(b); a.appendChild(document.createTextNode(x[1])); f.appendChild(a); }); return f; };
