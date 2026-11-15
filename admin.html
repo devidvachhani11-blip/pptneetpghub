@@ -434,6 +434,55 @@
 .sr-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--border,#E6DFC9)}
 .sr-item:first-child{border-top:0}.sr-item b{display:block;font-size:14px}.sr-item span{font-size:12px;color:#6E7A8A}
 .sr-item button{flex:none;padding:8px 14px;border-radius:10px;border:1.5px solid #0A1A33;background:#fff;font-weight:700;font-size:12.5px}
+
+  /* ===== ADMIN_SIDEBAR: grouped navigation (old tab buttons stay in the page, hidden) ===== */
+  body.has-sb .tabs, body.has-sb .grp-sw { display: none !important; }
+  #sbNav { display: none; }
+  body.has-sb #sbNav {
+    display: flex; flex-direction: column; gap: 2px; position: fixed; left: 0; top: var(--hh, 56px); bottom: 0; width: 256px;
+    background: linear-gradient(180deg, #0A1830, #0c1f40); color: #fff; padding: 14px 12px 24px; overflow-y: auto; z-index: 15;
+    transform: translateX(-105%); transition: transform .22s ease; -webkit-overflow-scrolling: touch;
+  }
+  body.has-sb #sbNav.open { transform: none; box-shadow: 0 0 40px rgba(0,0,0,.5); }
+  #sbBack { display: none; position: fixed; inset: 0; top: var(--hh, 56px); background: rgba(5,12,26,.55); z-index: 14; }
+  #sbBack.open { display: block; }
+  #sbToggle { display: none; width: 40px; height: 36px; border: 1.5px solid rgba(255,255,255,.35); border-radius: 10px; background: transparent; margin-right: 10px; flex: none; align-items: center; justify-content: center; }
+  #sbToggle i { display: block; width: 16px; height: 2px; background: #fff; box-shadow: 0 5px #fff, 0 -5px #fff; }
+  body.has-sb #sbToggle { display: inline-flex; }
+  #sbSearch { width: 100%; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.07); color: #fff; border-radius: 12px; padding: 9px 12px; font-size: 13px; margin: 0 0 8px; }
+  #sbSearch::placeholder { color: #8fa1c2; }
+  .sb-g { font-size: 10.5px; font-weight: 800; letter-spacing: 1.6px; color: #7f93b6; padding: 14px 10px 6px; cursor: pointer; display: flex; justify-content: space-between; user-select: none; }
+  .sb-g.shut + .sb-list { display: none; }
+  .sb-it { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; font-size: 13.5px; color: #d6dff0; background: transparent; border: 0; width: 100%; text-align: left; font-weight: 500; }
+  .sb-it i { width: 22px; text-align: center; font-style: normal; font-size: 14px; }
+  .sb-it:hover { background: rgba(255,255,255,.06); }
+  .sb-it.on { background: rgba(212,175,85,.18); color: #fff; font-weight: 700; box-shadow: inset 3px 0 #D4AF55; }
+  .sb-it b { margin-left: auto; background: #D4AF55; color: #0A1830; font-size: 10.5px; padding: 1px 8px; border-radius: 99px; font-weight: 800; }
+  .sb-it b.red { background: #d9534f; color: #fff; }
+  #sbCrumb { font-size: 12px; color: var(--gray); margin: 0 0 12px; }
+  #sbCrumb b { color: var(--navy); }
+  @media (min-width: 900px) {
+    body.has-sb #sbNav { transform: none; box-shadow: none; }
+    body.has-sb #sbToggle, #sbBack { display: none !important; }
+    body.has-sb .wrap { margin-left: 272px; margin-right: 24px; max-width: 980px; }
+    body.has-sb .site-header { padding-left: 24px; }
+  }
+  @media (max-width: 520px) { body.has-sb .brand em { display: none; } body.has-sb #sbToggle { margin-right: 4px; width: 36px; } body.has-sb .site-header { gap: 8px; padding-left: 12px; padding-right: 12px; } body.has-sb .account-pill { padding: 7px 12px; } }
+  .qa-wrap { margin-bottom: 18px; }
+  .qa-h { font-size: 11px; font-weight: 800; letter-spacing: 1.6px; color: #9a7f2e; margin: 4px 0 10px; }
+  .qa-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .qa-t { background: #fff; border: 1.5px solid var(--border); border-radius: 16px; padding: 14px; text-align: left; color: var(--navy); }
+  .qa-t .ic { width: 36px; height: 36px; border-radius: 11px; background: var(--navy); display: grid; place-items: center; font-size: 17px; margin-bottom: 8px; }
+  .qa-t.f .ic { background: #F3ECD3; }
+  .qa-t.pri { background: var(--gold-b); border-color: var(--gold-b); }
+  .qa-t b { display: block; font-size: 13.5px; font-weight: 800; }
+  .qa-t span { display: block; font-size: 11.5px; color: var(--gray); margin-top: 2px; line-height: 1.3; }
+  .qa-t.pri span { color: #3a3216; }
+  .att-r { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid #f0ead6; font-size: 13.5px; }
+  .att-r:first-of-type { border-top: 0; }
+  .att-r .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--gold-b); flex: none; }
+  .att-r .dot.red { background: #d9534f; } .att-r .dot.ok { background: var(--teal); }
+  .att-r button { margin-left: auto; background: var(--navy); color: #fff; border-radius: 99px; padding: 6px 14px; font-size: 12px; font-weight: 700; }
 </style>
 
 </head>
@@ -495,6 +544,7 @@
       <button class="tab-btn g-prem" data-panel="launchPanel">Launch check</button>
       <button class="tab-btn g-prem" data-panel="membersPanel">Members</button>
       <button class="tab-btn g-prem" data-panel="listPanel">All Resources</button>
+      <button class="tab-btn g-prem" data-panel="bulkPanel">Bulk upload</button>
     </div>
 
     <!-- Home -->
@@ -5823,6 +5873,126 @@ async function rejectPayment(utr, p) {
     showToast('Failed to reject: ' + e.message, true);
   }
 }
+</script>
+
+<script>
+/* ADMIN_SIDEBAR: builds the grouped sidebar, Home quick-add grid and mobile drawer. It only clicks the existing tab buttons. */
+(function () {
+  var GROUPS = [
+    { t: '', items: [['homePanel', '🏠', 'Home'], ['paymentsPanel', '💳', 'Payments', 'pendingCount', 1]] },
+    { t: 'ADD & PUBLISH', items: [['resourcesPanel', '➕', 'Add Resource'], ['dropsPanel', '🔥', 'Recent Drops'], ['bulkPanel', '📦', 'Bulk upload'], ['testsPanel', '📝', 'Add Test'], ['gtPanel', '🏁', 'Real Test (GT)'], ['seriesPanel', '📚', 'Series'], ['cardsPanel', '🃏', 'Card Test'], ['imgTestPanel', '🖼️', 'Image Tests'], ['bankPanel', '❓', 'Question Bank'], ['gamesPanel', '🎮', 'Member Games'], ['mnPanel', '🧠', 'Mnemonics', 'mnCount'], ['newsPanel', '📰', 'News'], ['counsellingPanel', '🎓', 'Counselling']] },
+    { t: 'FREE SECTION', items: [['freePoolPanel', '✍️', 'Free pool (daily 20)'], ['freeMockPanel', '📋', 'Free mock'], ['freePdfPanel', '📄', 'Free PDF'], ['samplePanel', '🧩', 'Daily Match & Daily 10'], ['dailyPanel', '🩺', 'Daily Diagnosis'], ['tipsPanel', '💡', 'Study Tips']] },
+    { t: 'PEOPLE', items: [['membersPanel', '👥', 'Members'], ['freeResPanel', '🙋', 'Free users & results'], ['resultsPanel', '📊', 'Results'], ['lbPanel', '🏆', 'Top 10'], ['reportsPanel', '🚩', 'Reports', 'repCount']] },
+    { t: 'LIBRARY & SYSTEM', items: [['listPanel', '🗂️', 'All Resources'], ['statsPanel', '📈', 'Stats'], ['backupPanel', '💾', 'Backup'], ['launchPanel', '✅', 'Launch check']] }
+  ];
+  var QUICK = [
+    ['resourcesPanel', '➕', 'Resource (PDF)', 'Upload a file for Premium', 'pri'], ['dropsPanel', '🔥', 'Recent Drop', 'Panel + public SEO page'],
+    ['testsPanel', '📝', 'Test', 'Premium test'], ['bankPanel', '❓', 'Questions', 'Add to the bank'],
+    ['newsPanel', '📰', 'News', 'Ticker news'], ['counsellingPanel', '🎓', 'Counselling', 'Counselling updates'],
+    ['gamesPanel', '🎮', 'Game content', 'Blitz, Case Sprint…'], ['mnPanel', '🧠', 'Mnemonic', 'Review submissions'],
+    ['freePdfPanel', '📄', 'Free PDF', 'This week\'s free one', 'f'], ['freeMockPanel', '📋', 'Free mock', 'Weekly free test', 'f'],
+    ['freePoolPanel', '✍️', 'Daily 20 pool', 'Free practice', 'f'], ['samplePanel', '🧩', 'Daily games', 'Match & Daily 10', 'f'],
+    ['dailyPanel', '🩺', 'Daily Diagnosis', 'Free puzzle', 'f'], ['tipsPanel', '💡', 'Study tip', 'Ranker Vault', 'f']
+  ];
+  var LABEL = {}, GROUPOF = {};
+  GROUPS.forEach(function (g) { g.items.forEach(function (it) { LABEL[it[0]] = it[2]; GROUPOF[it[0]] = g.t || 'Home'; }); });
+
+  function btnFor(panel) { return document.querySelector('.tab-btn[data-panel="' + panel + '"]'); }
+  function go(panel) { var b = btnFor(panel); if (b) b.click(); closeDrawer(); window.scrollTo(0, 0); }
+  function closeDrawer() { var n = document.getElementById('sbNav'), k = document.getElementById('sbBack'); if (n) n.classList.remove('open'); if (k) k.classList.remove('open'); }
+
+  var shut = {};
+  try { shut = JSON.parse(localStorage.getItem('adm_sb_shut') || '{}') || {}; } catch (e) { shut = {}; }
+
+  function build() {
+    var area = document.getElementById('adminArea'), hdr = document.querySelector('.site-header');
+    if (!area || document.getElementById('sbNav')) return;
+    var nav = document.createElement('nav'); nav.id = 'sbNav';
+    var s = document.createElement('input'); s.id = 'sbSearch'; s.type = 'search'; s.placeholder = 'Find a section…'; nav.appendChild(s);
+    GROUPS.forEach(function (g) {
+      var wrap = document.createElement('div'); wrap.className = 'sb-grp';
+      if (g.t) {
+        var gh = document.createElement('div'); gh.className = 'sb-g' + (shut[g.t] ? ' shut' : ''); gh.innerHTML = '<span>' + g.t.replace('&', '&amp;') + '</span><span>▾</span>';
+        gh.onclick = function () { gh.classList.toggle('shut'); shut[g.t] = gh.classList.contains('shut'); try { localStorage.setItem('adm_sb_shut', JSON.stringify(shut)); } catch (e) {} };
+        wrap.appendChild(gh);
+      }
+      var list = document.createElement('div'); list.className = 'sb-list';
+      g.items.forEach(function (it) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'sb-it'; b.dataset.go = it[0];
+        b.innerHTML = '<i>' + it[1] + '</i><span>' + it[2].replace('&', '&amp;') + '</span>' + (it[3] ? '<b class="' + (it[4] ? 'red' : '') + '" data-cnt="' + it[3] + '" style="display:none"></b>' : '');
+        b.onclick = function () { go(it[0]); };
+        list.appendChild(b);
+      });
+      wrap.appendChild(list); nav.appendChild(wrap);
+    });
+    area.insertBefore(nav, area.firstChild);
+    var back = document.createElement('div'); back.id = 'sbBack'; back.onclick = closeDrawer; document.body.appendChild(back);
+    if (hdr) {
+      var t = document.createElement('button'); t.id = 'sbToggle'; t.type = 'button'; t.setAttribute('aria-label', 'Menu'); t.innerHTML = '<i></i>';
+      t.onclick = function () { nav.classList.toggle('open'); back.classList.toggle('open'); };
+      hdr.insertBefore(t, hdr.firstChild);
+      var setH = function () { document.documentElement.style.setProperty('--hh', hdr.offsetHeight + 'px'); };
+      setH(); window.addEventListener('resize', setH);
+    }
+    s.addEventListener('input', function () {
+      var q = s.value.trim().toLowerCase();
+      nav.querySelectorAll('.sb-grp').forEach(function (w) {
+        var any = false;
+        w.querySelectorAll('.sb-it').forEach(function (b) { var ok = !q || b.textContent.toLowerCase().indexOf(q) > -1; b.style.display = ok ? '' : 'none'; if (ok) any = true; });
+        w.style.display = any ? '' : 'none';
+        var gh = w.querySelector('.sb-g'); if (gh && q) gh.classList.remove('shut');
+      });
+    });
+    // crumb above panels
+    var hp = document.getElementById('homePanel');
+    if (hp) { var c = document.createElement('div'); c.id = 'sbCrumb'; hp.parentNode.insertBefore(c, hp); }
+    // Home: quick add + needs attention
+    if (hp) {
+      var q = document.createElement('div'); q.className = 'qa-wrap';
+      q.innerHTML = '<div class="qa-h">ADD SOMETHING NEW</div><div class="qa-grid">' + QUICK.map(function (x) {
+        return '<button type="button" class="qa-t ' + (x[4] || '') + '" data-go="' + x[0] + '"><div class="ic">' + x[1] + '</div><b>' + x[2] + '</b><span>' + x[3] + '</span></button>';
+      }).join('') + '</div>';
+      var att = document.createElement('div'); att.className = 'card'; att.id = 'attCard';
+      att.innerHTML = '<h3>Needs you</h3><div id="attRows"></div>';
+      hp.insertBefore(att, hp.firstChild); hp.insertBefore(q, hp.firstChild);
+      q.addEventListener('click', function (e) { var t = e.target.closest('[data-go]'); if (t) go(t.dataset.go); });
+      att.addEventListener('click', function (e) { var t = e.target.closest('[data-go]'); if (t) go(t.dataset.go); });
+    }
+    syncBadges(); sync('homePanel');
+  }
+
+  function cnt(id) { var el = document.getElementById(id); if (!el) return 0; var n = parseInt(el.textContent, 10); return el.style.display === 'none' || !n ? 0 : n; }
+  function syncBadges() {
+    document.querySelectorAll('#sbNav [data-cnt]').forEach(function (b) { var n = cnt(b.dataset.cnt); b.textContent = n; b.style.display = n ? '' : 'none'; });
+    var rows = document.getElementById('attRows'); if (!rows) return;
+    var p = cnt('pendingCount'), r = cnt('repCount'), m = cnt('mnCount');
+    var out = '';
+    out += p ? '<div class="att-r"><span class="dot red"></span>' + p + ' payment' + (p > 1 ? 's' : '') + ' waiting for review<button data-go="paymentsPanel">Review</button></div>' : '<div class="att-r"><span class="dot ok"></span>No payments waiting<button data-go="paymentsPanel">Open</button></div>';
+    out += r ? '<div class="att-r"><span class="dot"></span>' + r + ' open report' + (r > 1 ? 's' : '') + '<button data-go="reportsPanel">Open</button></div>' : '<div class="att-r"><span class="dot ok"></span>Mistake reports: open the tab to check<button data-go="reportsPanel">Open</button></div>';
+    out += m ? '<div class="att-r"><span class="dot"></span>' + m + ' mnemonic' + (m > 1 ? 's' : '') + ' to review<button data-go="mnPanel">Review</button></div>' : '';
+    out += '<div class="att-r"><span class="dot"></span>Recent Drops: replace the oldest one when you add a new PDF<button data-go="dropsPanel">Open</button></div>';
+    rows.innerHTML = out;
+  }
+
+  function sync(panel) {
+    document.querySelectorAll('#sbNav .sb-it').forEach(function (b) { b.classList.toggle('on', b.dataset.go === panel); });
+    var c = document.getElementById('sbCrumb');
+    if (c) c.innerHTML = (GROUPOF[panel] && GROUPOF[panel] !== 'Home' ? GROUPOF[panel].charAt(0) + GROUPOF[panel].slice(1).toLowerCase().replace('&amp;', '&') + ' › ' : '') + '<b>' + (LABEL[panel] || '') + '</b>';
+  }
+
+  function start() {
+    build();
+    document.querySelectorAll('.tab-btn').forEach(function (b) { b.addEventListener('click', function () { sync(b.dataset.panel); }); });
+    ['pendingCount', 'repCount', 'mnCount'].forEach(function (id) {
+      var el = document.getElementById(id); if (!el) return;
+      new MutationObserver(syncBadges).observe(el, { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ['style'] });
+    });
+    var area = document.getElementById('adminArea');
+    var flag = function () { document.body.classList.toggle('has-sb', area.style.display === 'block'); };
+    new MutationObserver(flag).observe(area, { attributes: true, attributeFilter: ['style'] }); flag();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+})();
 </script>
 </body>
 </html>
