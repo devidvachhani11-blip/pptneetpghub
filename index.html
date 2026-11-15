@@ -1027,6 +1027,60 @@
   .lib-pill.ini { background: #F0E6FC; color: #6B2FB3; font-weight: 800; }
   .lib-scrim { display: none; }
 
+  /* ---- member sidebar + recent drops panel ---- */
+  .mb-nav { display: none; }
+  .mb-burger { display: none; width: 38px; height: 38px; border-radius: 11px; background: rgba(255,255,255,.1); color: #fff; border: 0; font-size: 18px; margin-right: 8px; cursor: pointer; flex: none; }
+  .mb-scrim { display: none; }
+  .lib-right { display: contents; }
+  .mb-dp { display: none; }
+  .mb-nav { flex-direction: column; background: linear-gradient(180deg, #0A1830, #0c1f40); color: #fff; padding: 14px 12px 30px; overflow-y: auto; z-index: 70; gap: 1px; -webkit-overflow-scrolling: touch; }
+  .mb-sw { display: grid; grid-template-columns: 1fr 1fr; background: rgba(255,255,255,.08); border-radius: 12px; padding: 4px; margin: 2px 0 8px; }
+  .mb-sw button { font: inherit; font-size: 12.5px; font-weight: 700; padding: 8px 0; border-radius: 9px; color: #9fb0cc; background: transparent; border: 0; cursor: pointer; }
+  .mb-sw button.on { background: #D4AF55; color: #0A1830; }
+  .mb-g { font-size: 10px; font-weight: 700; letter-spacing: 1.6px; color: #7f93b6; padding: 12px 10px 4px; }
+  .mb-it { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 10px; font: inherit; font-size: 13.5px; color: #d6dff0; background: transparent; border: 0; text-align: left; cursor: pointer; width: 100%; white-space: nowrap; }
+  .mb-it svg { flex: none; opacity: .9; }
+  .mb-it:hover { background: rgba(255,255,255,.07); }
+  .mb-it.on { background: rgba(212,175,85,.18); color: #fff; font-weight: 600; box-shadow: inset 3px 0 #D4AF55; }
+  .mb-it b { margin-left: auto; background: #D4AF55; color: #0A1830; font-size: 10px; padding: 1px 7px; border-radius: 99px; font-weight: 700; }
+  .mb-it b.s { background: rgba(255,255,255,.14); color: #cfd9ee; }
+  .mb-dp { background: var(--white, #fff); border: 1px solid var(--border); border-radius: 18px; padding: 16px 14px; }
+  .mb-dp h3 { margin: 0; font-size: 15px; font-weight: 800; color: var(--navy); display: flex; justify-content: space-between; align-items: center; }
+  .mb-dp h3 a { font-size: 12px; color: #9a7f2e; font-weight: 700; cursor: pointer; }
+  .mb-dp .sb { font-size: 12px; color: var(--gray); margin: 2px 0 10px; }
+  .mb-ch { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .mb-ch button { font: inherit; font-size: 11.5px; font-weight: 600; padding: 4px 11px; border-radius: 99px; border: 1.5px solid var(--border); color: var(--gray); background: transparent; cursor: pointer; }
+  .mb-ch button.on { background: var(--navy); color: #EACF85; border-color: var(--navy); }
+  .mb-dc { display: block; width: 100%; text-align: left; font: inherit; border: 1.5px solid var(--border); border-radius: 14px; padding: 10px 12px; margin-bottom: 8px; background: var(--paper-alt, #fffdf7); cursor: pointer; color: var(--ink); }
+  .mb-dc.new { border-color: #D4AF55; }
+  .mb-dc .t { font-size: 13px; font-weight: 700; line-height: 1.35; }
+  .mb-dc .m { display: flex; gap: 5px; margin-top: 6px; align-items: center; flex-wrap: wrap; }
+  .mb-dc .tg { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: #E6ECF7; color: #2c4a8a; }
+  .mb-dc .tg.n { background: #FFF0C7; color: #7a5a05; }
+  .mb-dc em { margin-left: auto; font-style: normal; font-size: 10.5px; color: var(--gray); }
+  .mb-dm { display: block; margin: 14px 0 6px; }
+  .mb-dm .mb-dp { display: block; }
+  @media (min-width: 1100px) {
+    #libraryView.mbon .mb-nav { display: flex; position: fixed; left: 0; top: var(--mbh, 60px); bottom: 0; width: 250px; }
+    #libraryView.mbon .lib-wrap { max-width: none; margin: 0; padding-left: 274px; padding-right: 22px; grid-template-columns: minmax(0, 1fr) 310px; }
+    #libraryView.mbon.v-progress .lib-wrap, #libraryView.mbon.v-notebook .lib-wrap { grid-template-columns: minmax(0, 1fr); }
+    #libraryView.mbon .lib-right { display: flex; flex-direction: column; gap: 14px; position: sticky; top: 84px; max-height: calc(100vh - 104px); overflow-y: auto; }
+    #libraryView.mbon .lib-right .lib-side { position: static; max-height: none; }
+    #libraryView.mbon.v-progress .lib-right, #libraryView.mbon.v-notebook .lib-right { display: none; }
+    #libraryView.mbon .mb-dp { display: block; }
+    #libraryView.mbon .mb-dm { display: none; }
+    #libraryView.mbon #hubTabs { display: none !important; }
+    #libraryView.mbon .lib-fbtn { display: none; }
+  }
+  @media (max-width: 1099px) {
+    #libraryView.mbon .mb-burger { display: inline-flex; align-items: center; justify-content: center; }
+    #libraryView.mbon .lib-brand .lg { display: none; }
+    #libraryView.mbon .lib-brand { display: inline-flex; align-items: center; }
+    #libraryView.mbon .mb-nav { display: flex; position: fixed; left: 0; top: 0; bottom: 0; width: min(84vw, 300px); transform: translateX(-105%); visibility: hidden; transition: transform .25s ease, visibility .25s; box-shadow: 8px 0 40px rgba(0,0,0,.4); padding-top: calc(14px + env(safe-area-inset-top, 0px)); }
+    #libraryView.mbon .mb-nav.open { transform: none; visibility: visible; }
+    #libraryView.mbon .mb-scrim.on { display: block; position: fixed; inset: 0; background: rgba(10,24,48,.5); z-index: 65; }
+  }
+
   @media (max-width: 900px) {
     .lib-wrap { grid-template-columns: 1fr; }
     .lib-side {
@@ -2562,7 +2616,7 @@
 <!-- ================= MEMBER LIBRARY ================= -->
 <div id="libraryView" style="display:none;">
 <header class="lib-head">
-  <div class="lib-brand"><img class="lg" src="/logo-96.webp" width="32" height="32" alt="">PPTNEETPGHUB<span class="lib-pr"><i>&middot;</i>Premium</span></div>
+  <div class="lib-brand"><button class="mb-burger" id="mbBurger" type="button" aria-label="Menu">&#9776;</button><img class="lg" src="/logo-96.webp" width="32" height="32" alt="">PPTNEETPGHUB<span class="lib-pr"><i>&middot;</i>Premium</span></div>
   <div class="lib-head-r">
     <button class="lib-hbtn lib-tbtn" id="themeBtn" aria-label="Switch between light and dark mode" title="Light / dark"><svg class="moon" width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><svg class="sun" width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
     <button class="lib-hbtn lib-fbtn" id="libFilterBtn" aria-controls="libSide">
@@ -2574,6 +2628,7 @@
   </div>
 </header>
 
+<nav class="mb-nav" id="mbNav" aria-label="Member menu"></nav><div class="mb-scrim" id="mbScrim"></div>
 <div class="lib-wrap">
   <main class="lib-main">
     <div class="lib-title">
@@ -2603,6 +2658,8 @@
         <div class="rs-card" id="libResume" style="display:none;"></div>
         <div class="rs-card" id="hubNew" style="display:none;"></div>
       </div>
+      <div id="hubPlayHome"></div>
+      <div class="mb-dm" id="mbDropsM"></div>
       <div class="hb-sec">MY SPACE</div>
       <div class="hb-grid" id="hubSpace"></div>
       <button class="hb-tg" id="hubTgRow" type="button" style="display:none;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F8F83" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3l-9 18-2-8-8-2z"/></svg><div><b>Telegram &middot; optional</b><br>Only for discussion. All study material stays here on the website.</div><span class="o" id="hubTgBtn">Open</span></button>
@@ -2632,6 +2689,7 @@
     <div class="lib-legal"><a href="/terms" target="_blank" rel="noopener">Terms</a><a href="/privacy" target="_blank" rel="noopener">Privacy</a><a href="/refund" target="_blank" rel="noopener">Refunds</a></div>
   </main>
 
+  <div class="lib-right"><div class="mb-dp" id="mbDrops"></div>
   <aside class="lib-side" id="libSide" aria-label="Filter by subject">
     <div class="lib-drawer-top"><b>Filter by subject</b><button id="libFilterClose" aria-label="Close filter">&times;</button></div>
     <div class="lib-scroll">
@@ -2644,7 +2702,7 @@
       <div id="libSubjects"></div>
     </div>
     <div class="lib-drawer-foot"><button id="libFilterDone">Show results</button></div>
-  </aside>
+  </aside></div>
 </div>
 <div class="lib-scrim" id="libScrim"></div>
 </div><!-- /libraryView -->
@@ -3068,7 +3126,7 @@ function fdKey(k) { return "pptFree:" + fdEmail() + ":" + k; }
 function fdGet(k) { try { return JSON.parse(localStorage.getItem(fdKey(k)) || "null"); } catch (e) { return null; } }
 function fdSet(k, v) { try { localStorage.setItem(fdKey(k), JSON.stringify(v)); } catch (e) {} }
 function fdEl(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
-function fdMain() { return document.getElementById("freeDash") ? document.getElementById("fdMain") : null; }
+function fdMain() { if (FD.host) return FD.host; return document.getElementById("freeDash") ? document.getElementById("fdMain") : null; }
 
 // Called from updateView(). Shows or hides the free space.
 function fdSync() {
@@ -3226,15 +3284,16 @@ function fgShell(label) {
   fdStopTimer(); FD.view = "game"; m.innerHTML = "";
   const w = fdEl("div", "fg");
   const top = fdEl("div", "fg-top");
-  const back = fdEl("button", "fg-back", "‹ Back"); back.type = "button"; back.onclick = () => { fdStopTimer(); fdHome(); };
+  const back = fdEl("button", "fg-back", "‹ Back"); back.type = "button"; back.onclick = fgBack;
   top.appendChild(back); top.appendChild(fdEl("span", "fg-pill", label));
   w.appendChild(top); m.appendChild(w); window.scrollTo(0, 0); return w;
 }
+function fgBack() { fdStopTimer(); if (FD.host) gmClose(); else fdHome(); }
 function fgResultBtns(w, text) {
   const row = fdEl("div", "fg-row");
   const sh = fdEl("button", "fd-btn gold", "Share result"); sh.type = "button";
   const msg = fdEl("p", "fg-hint", ""); sh.onclick = () => { msg.textContent = fgShare(text); };
-  const bk = fdEl("button", "fd-btn", "My free space"); bk.type = "button"; bk.onclick = () => fdHome();
+  const bk = fdEl("button", "fd-btn", FD.host ? "Back" : "My free space"); bk.type = "button"; bk.onclick = fgBack;
   row.appendChild(sh); row.appendChild(bk); w.appendChild(row); w.appendChild(msg);
 }
 
@@ -6727,7 +6786,10 @@ const HB_ICON = {
   puzzle: '<path d="M10 4a2 2 0 1 1 4 0v2h4v4h-2a2 2 0 1 0 0 4h2v4h-4v-2a2 2 0 1 0-4 0v2H6v-4h2a2 2 0 1 0 0-4H6V6h4z"/>',
   duel: '<path d="M5 19 19 5M14 5h5v5M5 5l14 14"/>',
   wall: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>',
-  plus: '<path d="M12 5v14M5 12h14"/>'
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  pill: '<rect x="3" y="8.5" width="18" height="7" rx="3.5" transform="rotate(-35 12 12)"/><path d="m9.6 7.9 4.8 8.2"/>',
+  wrong: '<path d="M5 6h14M5 12h14M5 18h9"/><path d="m16 15 5 5M21 15l-5 5"/>',
+  num: '<path d="M9 4 7 20M17 4l-2 16M4 9h16M3 15h16"/>'
 };
 function hbIcon(n, sz) { return '<svg width="' + (sz || 22) + '" height="' + (sz || 22) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + HB_ICON[n] + '</svg>'; }
 function hubExamGet() { try { return localStorage.getItem("pptHubExam") === "INICET" ? "INICET" : "NEET PG"; } catch (e) { return "NEET PG"; } }
@@ -6781,8 +6843,101 @@ function renderHub() {
   const nbn = NB.loaded && NB.items.filter(nbInEx).length ? String(NB.items.filter(nbInEx).length) : "";
   hbTile(sp, { icon: "chart", title: "Progress Report", sub: "Scores \u00B7 weak areas", exam: 1, go: () => setLibView("progress") });
   hbTile(sp, { icon: "note", title: "Mistake Notebook", sub: "Wrong answers saved", badge: nbn, exam: 1, go: () => setLibView("notebook") });
-  paintResume(); paintHubNew();
+  paintResume(); paintHubNew(); paintHubPlay("hubPlayHome");
 }
+
+// ---------------------------------------------------------------- Member sidebar + Recent Drops panel
+const MB = { f: "all", shut: {} };
+function mbGo(fn) { return () => { try { fn(); } catch (e) { console.error(e); } mbClose(); window.scrollTo(0, 0); }; }
+function mbPage(p, tab) { hubGo(p); if (tab) { lib.tab = tab; render(); } }
+function mbClose() { const n = document.getElementById("mbNav"); if (n) n.classList.remove("open"); const c = document.getElementById("mbScrim"); if (c) c.classList.remove("on"); }
+function mbActive() {
+  if (libView === "progress") return "progress";
+  if (libView === "notebook") return "notebook";
+  if (libView === "community") return PLAY.sec === "duel" ? "duel" : "wall";
+  if (!HUB.page) return "home";
+  if (HUB.page === "tests") return lib.tab === "Image Tests" ? "t_img" : lib.tab === "Real Test" ? "t_gt" : "t_mock";
+  if (HUB.page === "resources") return lib.tab === "New" ? "drops" : lib.tab === "PYTs" ? "pyt" : lib.tab === "PYQs" ? "pyq" : "res";
+  return HUB.page === "practice" ? "prac" : HUB.page === "decks" ? "decks" : "";
+}
+function mbDropList() {
+  const ini = lib.exam === "INICET";
+  return ALL.filter(it => !isCardTab(it.tab) && isInicet(it) === ini && it.t).sort((a, b) => b.t - a.t);
+}
+function mbNavPaint() {
+  const nav = document.getElementById("mbNav"); if (!nav) return;
+  const ini = lib.exam === "INICET", cur = mbActive(), L = libLoaded && !libError;
+  const c = L ? hubCounts() : { res: 0, resNew: 0, tests: 0, decks: 0 };
+  const dn = L ? mbDropList().filter(it => daysOld(it.t) <= 7).length : 0;
+  nav.innerHTML = "";
+  const sw = libEl("div", "mb-sw");
+  [["NEET PG", false], ["INICET", true]].forEach(a => { const b = libEl("button", ini === a[1] ? "on" : "", a[0]); b.type = "button"; b.onclick = () => { hubSetExam(a[0]); mbClose(); }; sw.appendChild(b); });
+  nav.appendChild(sw);
+  const it = (key, icon, t, badge, fn, soft) => {
+    const b = libEl("button", "mb-it" + (cur === key ? " on" : "")); b.type = "button";
+    b.innerHTML = hbIcon(icon, 18) + "<span>" + esc(t) + "</span>" + (badge ? '<b class="' + (soft ? "s" : "") + '">' + esc(String(badge)) + "</b>" : "");
+    b.onclick = mbGo(fn); nav.appendChild(b);
+  };
+  const g = t => nav.appendChild(libEl("div", "mb-g", t));
+  let pb = ""; if (PR.index && PR.index.daily > 0 && PR.index.total) { try { pb = (PR.index.daily - prLeft()) + "/" + PR.index.daily; } catch (e) {} }
+  it("home", "target", lib.exam + " Home", "", () => { hubGo(null); setLibView("library"); });
+  g("DAILY PRACTICE");
+  it("prac", "bolt", "Start Practice", pb, () => mbPage("practice"));
+  g("DAILY GAMES");
+  it("g_dg", "pill", "Daily Drug Guess", "", () => pgOpen("dg"));
+  it("g_wl", "wrong", "Spot the Wrong Line", "", () => pgOpen("wl"));
+  it("g_nm", "num", "Numbers Round", "", () => pgOpen("nm"));
+  it("g_bl", "timer", "One-Liner Blitz", "", () => gmOpen("blitz"));
+  it("g_cs", "casep", "Case Sprint", "", () => gmOpen("case"));
+  it("g_pc", "gem", "Pearl Collector", "", () => gmOpen("pearl"));
+  it("g_pm", "puzzle", "Premium Match", "", () => mtOpen(true));
+  it("duel", "duel", "1v1 Duel", "", () => { PLAY.sec = "duel"; setLibView("community"); });
+  it("wall", "wall", "Mnemonic Wall", "", () => { PLAY.sec = "mn"; setLibView("community"); });
+  g("STUDY");
+  it("res", "book", "Resources", L && c.resNew ? c.resNew : "", () => mbPage("resources"));
+  it("pyt", "clip", "PYTs", "", () => mbPage("resources", "PYTs"));
+  it("pyq", "clip", "PYQs", "", () => mbPage("resources", "PYQs"));
+  it("decks", "cards", "Card Decks", L && c.decks ? c.decks : "", () => mbPage("decks"), true);
+  it("drops", "bolt", "Drops", dn || "", () => mbPage("resources", "New"));
+  g("TESTS");
+  it("t_mock", "note", "Mock Test", "", () => mbPage("tests", "Tests"));
+  it("t_img", "clip", "Image Test", "", () => mbPage("tests", "Image Tests"));
+  it("t_gt", "chart", "GT Test", "", () => mbPage("tests", "Real Test"));
+  g("MY SPACE");
+  it("progress", "chart", "Progress Report", "", () => setLibView("progress"));
+  it("notebook", "note", "Mistake Notebook", NB.loaded ? (NB.items.filter(nbInEx).length || "") : "", () => setLibView("notebook"), true);
+  it("help", "plus", "Settings & Help", "", () => { const b = document.getElementById("libFilterBtn"); if (b) b.click(); });
+}
+function mbDropsHtml(box, mobile) {
+  box.innerHTML = "";
+  if (!libLoaded || libError) return;
+  const all = mbDropList();
+  const f = MB.f, list = all.filter(it => f === "week" ? daysOld(it.t) <= 7 : f === "PYTs" || f === "PYQs" ? it.tab === f : true).slice(0, mobile ? 4 : 8);
+  const h = libEl("h3"); h.appendChild(document.createTextNode("Recent Drops"));
+  const va = libEl("a", null, "View all →"); va.onclick = () => { mbPage("resources", "All"); window.scrollTo(0, 0); }; h.appendChild(va);
+  box.appendChild(h); box.appendChild(libEl("div", "sb", "Only " + lib.exam + " · latest first"));
+  if (!mobile) {
+    const ch = libEl("div", "mb-ch");
+    [["all", "All"], ["week", "This week"], ["PYTs", "PYTs"], ["PYQs", "PYQs"]].forEach(a => { const b = libEl("button", MB.f === a[0] ? "on" : "", a[1]); b.type = "button"; b.onclick = () => { MB.f = a[0]; mbDropsPaint(); }; ch.appendChild(b); });
+    box.appendChild(ch);
+  }
+  if (!list.length) { box.appendChild(libEl("div", "sb", "Nothing here yet.")); return; }
+  list.forEach(it => {
+    const isNew = daysOld(it.t) <= 7;
+    const d = libEl("button", "mb-dc" + (isNew ? " new" : "")); d.type = "button";
+    d.innerHTML = '<div class="t">' + esc(it.title) + '</div><div class="m"><span class="tg">' + esc(subjLabel(it.subject)) + "</span>" + (it.tab && it.tab !== "All" ? '<span class="tg">' + esc(it.tab === "Real Test" ? "GT" : it.tab === "Tests" ? "Mock" : it.tab) + "</span>" : "") + (isNew ? '<span class="tg n">New</span>' : "") + "<em>" + esc(agoText(it.t)) + "</em></div>";
+    d.onclick = () => hubOpenItem(it); box.appendChild(d);
+  });
+}
+function mbDropsPaint() { const a = document.getElementById("mbDrops"), b = document.getElementById("mbDropsM"); if (a) mbDropsHtml(a, false); if (b) { const w = libEl("div", "mb-dp"); mbDropsHtml(w, true); b.innerHTML = ""; b.appendChild(w); } }
+function mbPaint() {
+  const lv = document.getElementById("libraryView"); if (!lv) return;
+  lv.classList.add("mbon");
+  const hd = lv.querySelector(".lib-head"); if (hd) lv.style.setProperty("--mbh", hd.offsetHeight + "px");
+  mbNavPaint(); mbDropsPaint();
+}
+document.getElementById("mbBurger").onclick = () => { document.getElementById("mbNav").classList.add("open"); document.getElementById("mbScrim").classList.add("on"); };
+document.getElementById("mbScrim").onclick = mbClose;
 function paintHubNew() {
   const box = document.getElementById("hubNew"); if (!box) return;
   if (!libLoaded || libError) { box.style.display = "none"; return; }
@@ -6798,16 +6953,20 @@ function paintHubNew() {
   box.appendChild(row);
 }
 function prHasIni() { return !!(PR.index && PR.index.subjects && PR.index.subjects.some(x => /inicet/i.test(x.subject || ""))); }
-function paintHubPlay() {
-  const box = document.getElementById("hubPlay"); if (!box) return;
+function paintHubPlay(id) {
+  const home = id === "hubPlayHome";
+  const box = document.getElementById(id || "hubPlay"); if (!box) return;
   box.innerHTML = "";
-  if (lib.exam === "INICET") { if (prHasIni()) return; const c = libEl("div", "hb-soon"); c.innerHTML = '<div class="ib">' + hbIcon("target", 26) + "</div><b>INICET practice pool</b>Coming soon. It will have its own questions, separate from NEET PG."; box.appendChild(c); return; }
+  if (lib.exam === "INICET" && !home) { if (!prHasIni()) { const c = libEl("div", "hb-soon"); c.innerHTML = '<div class="ib">' + hbIcon("target", 26) + "</div><b>INICET practice pool</b>Coming soon. It will have its own questions, separate from NEET PG."; box.appendChild(c); } }
   box.appendChild(libEl("div", "hb-sec", "DAILY GAMES"));
-  if (!GM.P && !GM.loading) gmEnsure().then(() => { if (HUB.page === "practice" && libView === "library") paintHubPlay(); });
+  if (!GM.P && !GM.loading && window.__fb) gmEnsure().then(() => { if (libView === "library") { if (HUB.page === "practice") paintHubPlay(); else if (!HUB.page) paintHubPlay("hubPlayHome"); } });
   const g = libEl("div", "hb-grid"), I = gmInfo(), P = GM.P;
   const mini = (icon, t, p, fn, dis) => { const b = document.createElement("button"); b.type = "button"; b.className = "hb-mini"; b.disabled = !!dis; b.innerHTML = '<div class="ib">' + hbIcon(icon, 20) + "</div><div><h5>" + esc(t) + "</h5><p>" + esc(p) + "</p></div>"; b.onclick = fn; g.appendChild(b); };
   const st = (n, ok) => !P ? "Opening\u2026" : GM.err ? "Could not load" : n ? ok : "Coming soon";
   const off = (n) => !P || GM.err || !n;
+  mini("pill", "Daily Drug Guess", pgDone("dg") ? "Done today" : "5 clues", () => pgOpen("dg"));
+  mini("wrong", "Spot the Wrong Line", pgDone("wl") ? "Done today" : "5 rounds", () => pgOpen("wl"));
+  mini("num", "Numbers Round", pgDone("nm") ? "Done today" : "10 questions", () => pgOpen("nm"));
   mini("timer", "One-Liner Blitz", st(P && P.b.length, I && I.left > 0 ? I.left + " of " + GM_DAILY + " plays left" : "Done for today"), () => gmOpen("blitz"), off(P && P.b.length));
   mini("casep", "Case Sprint", st(P && P.c.length, I ? I.cdone + " of " + GM_DAILY + " cases done" : ""), () => gmOpen("case"), off(P && P.c.length));
   mini("gem", "Pearl Collector", st(P && P.p.length, I ? I.pearls + " collected" : ""), () => gmOpen("pearl"), off(P && P.p.length));
@@ -6854,6 +7013,7 @@ function render() {
   document.getElementById("vwProg").classList.toggle("on", prog);
   document.getElementById("vwNb").classList.toggle("on", nbk);
   renderHeading();
+  try { mbPaint(); } catch (e) { console.error(e); }
   paintExpiry();
   paintTg();
   paintTop10();
@@ -8362,10 +8522,21 @@ function gmBody() { const b = document.getElementById("gmBody"); b.innerHTML = "
 function gmTime(t) { document.getElementById("gmTime").textContent = t || ""; }
 function gmTitle(t) { document.getElementById("gmTitle").textContent = t; }
 function gmClose(fromApp) {
-  clearInterval(GM.iv); clearTimeout(GM.to);
+  clearInterval(GM.iv); clearTimeout(GM.to); fdStopTimer(); FD.host = null;
   document.getElementById("gmOv").classList.remove("on"); document.body.style.overflow = "";
   if (fromApp !== true) navDone("game");
-  if (HUB.page === "practice" && libView === "library") paintHubPlay();
+  if (libView === "library") { if (HUB.page === "practice") paintHubPlay(); else if (!HUB.page) paintHubPlay("hubPlayHome"); }
+}
+// Premium copies of the three daily games (same game code as the free space, shown in the game overlay)
+const PG_NAMES = { dg: "Daily Drug Guess", wl: "Spot the Wrong Line", nm: "Numbers Round" };
+function pgDone(k) { try { return !!fdGet(k + ":" + fgDay()); } catch (e) { return false; } }
+async function pgOpen(kind) {
+  if (!FD.gp) { try { await fgLoadPools(); } catch (e) { FD.gp = {}; } }
+  const ov = document.getElementById("gmOv");
+  GM.kind = "pg"; GM.ctx = {}; clearInterval(GM.iv);
+  ov.classList.add("on"); document.body.style.overflow = "hidden"; navPush("game", { close: gmClose });
+  gmTime(""); gmTitle(PG_NAMES[kind]); FD.host = gmBody();
+  if (kind === "dg") fgDrugOpen(); else if (kind === "wl") fgWrongOpen(); else fgNumbersOpen();
 }
 async function gmOpen(kind) {
   await gmEnsure();
