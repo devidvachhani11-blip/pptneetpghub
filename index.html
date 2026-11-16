@@ -3147,6 +3147,7 @@ function fdSync() {
   const lv = document.getElementById("landingView");
   if (!lv) return;
   const on = fdOn();
+  if (authResolved && currentUser && membershipChecked && !isPaidMember) fdTouch();   // count every signed-in non-member, even if the free page is not shown
   lv.classList.toggle("free-mode", on);
   const back = document.getElementById("fdBack");
   if (back) back.style.display = (authResolved && currentUser && membershipChecked && !isPaidMember && FD.off) ? "block" : "none";
