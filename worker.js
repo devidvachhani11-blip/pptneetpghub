@@ -1689,6 +1689,11 @@ async function handleStats(request, env) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    // Google sign-in on iPhone/iPad: serve Firebase's sign-in helper pages from our own domain.
+    if (url.pathname.startsWith('/__/auth/') || url.pathname.startsWith('/__/firebase/')) {
+      const t = new URL(request.url); t.protocol = 'https:'; t.hostname = 'pptneetpghub.firebaseapp.com'; t.port = '';
+      return fetch(new Request(t.toString(), request));
+    }
     if (request.method === 'GET' || request.method === 'HEAD') {
       if (isOn(env.COMING_SOON)) {
         const pv = await previewParam(env, url);

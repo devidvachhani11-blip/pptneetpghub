@@ -27,15 +27,18 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import {
-    getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+    getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
   import {
     getFirestore, collection, getDocs, doc, getDoc, setDoc, addDoc, query, where, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
+  const IS_IOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  window.__IS_IOS = IS_IOS;
   const firebaseConfig = {
     apiKey: "AIzaSyC19L8F1NV-akV-2pWswnwh67RIQmzcCwY",
-    authDomain: "pptneetpghub.firebaseapp.com",
+    // iPhone/iPad: Safari blocks the cross-site storage the Google sign-in needs, so there we use our own domain (the Worker passes /__/auth/* through to Firebase).
+    authDomain: (IS_IOS && /(^|\.)pptneetpghub\.com$/.test(location.hostname)) ? location.host : "pptneetpghub.firebaseapp.com",
     projectId: "pptneetpghub",
     storageBucket: "pptneetpghub.firebasestorage.app",
     messagingSenderId: "75959705573",
@@ -49,7 +52,8 @@
   const provider = new GoogleAuthProvider();
 
   // Expose to the rest of the page's plain-script code
-  window.__fb = { auth, db, provider, signInWithPopup, signOut, onAuthStateChanged, collection, getDocs, doc, getDoc, setDoc, addDoc, query, where, serverTimestamp };
+  window.__fb = { auth, db, provider, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged, collection, getDocs, doc, getDoc, setDoc, addDoc, query, where, serverTimestamp };
+  getRedirectResult(auth).catch(e => { window.__redirErr = e; console.error('Redirect sign-in failed', e); });
   window.dispatchEvent(new Event('fbReady'));
 </script>
 <style>
@@ -2837,6 +2841,7 @@ let membershipChecked = false; // avoids flashing "not a member" before the chec
 // ---------- Landing + payment state ----------
 let authResolved = false;
 let signInIntent = null;
+try { signInIntent = sessionStorage.getItem('pptSignInIntent') || null; } catch (e) {}
 let currentPrice = 500;          // overridden by Firestore config/pricing
 let paymentInfo = { latest: null };
 let utrDraft = "";
@@ -3765,15 +3770,22 @@ onFbReady(() => {
       if (fdOn()) showToast("Welcome! Your free space is ready.");
       else { if (signInIntent === "member") showToast("This Google account isn't a member yet. Follow the steps below to join."); goToJoin(); }
     }
-    signInIntent = null;
+    signInIntent = null; try { sessionStorage.removeItem('pptSignInIntent'); } catch (e) {}
   });
 });
 
 async function signIn(intent) {
   if (!window.__fb) { showToast('Sign-in is still loading. Try again in a moment.', true); return; }
   signInIntent = intent;
-  const { auth, provider, signInWithPopup } = window.__fb;
+  const { auth, provider, signInWithPopup, signInWithRedirect } = window.__fb;
   try {
+    if (window.__IS_IOS) {
+      // iPhone/iPad: popups are unreliable (and fail in the home-screen app), so go to Google and come back.
+      if (inAppName()) { signInIntent = null; showInApp(true); return; }
+      try { sessionStorage.setItem('pptSignInIntent', intent || ''); } catch (e) {}
+      await signInWithRedirect(auth, provider);
+      return;
+    }
     await signInWithPopup(auth, provider);
   } catch (e) {
     signInIntent = null;
