@@ -707,17 +707,77 @@ function tipsCta() {
 }
 const allTips = (env) => allPublished(env).then(list => list.filter(n => n.section === 'tips'));
 
+// Premium look for the /study-tips list only. Everything is scoped under .tp so News and Counselling pages keep their own style.
+const TIP_ICONS = {
+  'Study plan': '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/>',
+  'Revision': '<path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/>',
+  'Mock tests and PYQs': '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>',
+  'Subject tips': '<path d="M12 3v18M4 7c3-2 6-2 8 0 2-2 5-2 8 0v12c-3-2-6-2-8 0-2-2-5-2-8 0z"/>',
+  'Exam day': '<circle cx="12" cy="13" r="7"/><path d="M12 9v4l3 2M9 3h6"/>',
+  'Motivation': '<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>',
+  'Ranker Vault': '<path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z"/>',
+  '5-min Ward Revision': '<path d="M12 4v16M4 12h16"/>'
+};
+const tipIcon = (c) => '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (TIP_ICONS[c] || TIP_ICONS['Subject tips']) + '</svg>';
+const TIPS_CSS = '.tp{--g:#D4AF55;--g2:#EACF85;--nv:#0A1830;--ln:#E9E0CC}' +
+  '.tp .hero{margin:6px 0 0;border-radius:24px;background:radial-gradient(120% 90% at 100% 0%,#244a8f 0%,#16305f 40%,#0A1830 100%);padding:22px 20px 20px;color:#fff;position:relative;overflow:hidden;box-shadow:0 14px 30px -12px rgba(10,24,48,.55)}' +
+  '.tp .hero:before{content:"";position:absolute;right:-60px;top:-60px;width:190px;height:190px;border-radius:50%;border:1px solid rgba(212,175,85,.35)}' +
+  '.tp .hero:after{content:"";position:absolute;right:-20px;top:-20px;width:110px;height:110px;border-radius:50%;border:1px solid rgba(212,175,85,.25)}' +
+  '.tp .kick{display:inline-block;font-size:10.5px;font-weight:600;letter-spacing:1.6px;color:var(--g2);background:rgba(212,175,85,.14);border:1px solid rgba(212,175,85,.35);padding:5px 11px;border-radius:999px;position:relative}' +
+  '.tp .hero h1{color:#fff;font-size:clamp(27px,7vw,36px);line-height:1.15;margin:14px 0 8px;position:relative}.tp .hero h1 span{color:var(--g2)}' +
+  '.tp .hero .lead{color:#c9d4ea;font-size:14px;max-width:420px;position:relative;margin:0}' +
+  '.tp .srch{margin-top:16px;position:relative}.tp .srch input{width:100%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:14px;padding:12px 14px;font:inherit;font-size:14px;color:#fff;outline:none}.tp .srch input::placeholder{color:#b4c2de}.tp .srch input:focus{border-color:var(--g)}' +
+  '.tp .rl{display:flex;justify-content:space-between;align-items:center;margin:20px 2px 10px;font-size:11px;font-weight:600;letter-spacing:1.5px;color:#8a7a4a}.tp .rl em{font-style:normal;letter-spacing:0;font-weight:500;color:#6E7A8A}' +
+  '.tp .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}' +
+  '.tp .tile{display:flex;align-items:center;gap:10px;min-height:60px;padding:10px 12px;border-radius:18px;background:#fff;border:1.5px solid var(--ln);font-size:13px;font-weight:600;line-height:1.3;color:#26324a;text-decoration:none;box-shadow:0 8px 16px -14px rgba(10,24,48,.5)}' +
+  '.tp .tile .ic{flex:none;width:34px;height:34px;border-radius:11px;background:#F6EFD9;display:grid;place-items:center}.tp .tile .ic svg{width:17px;height:17px;stroke:#9a7a1f}' +
+  '.tp .tile small{display:block;font-size:10px;font-weight:600;letter-spacing:.6px;color:var(--g2);margin-top:1px}' +
+  '.tp .tile.all{grid-column:1/-1;font-size:14.5px;font-weight:700;padding:12px 16px}' +
+  '.tp .tile.on,.tp .tile.vault{background:linear-gradient(135deg,#0A1830,#16305f);color:#fff;border-color:rgba(212,175,85,.5);box-shadow:0 12px 22px -12px rgba(10,24,48,.65)}' +
+  '.tp .tile.on .ic,.tp .tile.vault .ic{background:rgba(212,175,85,.2)}.tp .tile.on .ic svg,.tp .tile.vault .ic svg{stroke:var(--g2)}' +
+  '.tp .tile.all.on .ic{background:var(--g)}.tp .tile.all.on .ic svg{stroke:var(--nv)}' +
+  '.tp .sec{display:flex;justify-content:space-between;align-items:baseline;margin:24px 2px 10px}.tp .sec h2{margin:0;font-size:18px}.tp .sec span{font-size:12px;color:#6E7A8A}' +
+  '.tp .item.tc{display:flex;gap:13px;border:1.5px solid var(--ln);border-radius:20px;padding:15px;margin-bottom:12px;box-shadow:0 8px 18px -14px rgba(10,24,48,.45);position:relative}.tp .item.tc:hover{border-color:var(--g)}' +
+  '.tp .tc .ico{flex:none;width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:var(--nv)}.tp .tc .ico svg{width:22px;height:22px;stroke:var(--g2)}' +
+  '.tp .tc .tcb{min-width:0;flex:1}.tp .tc .mrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}.tp .tc .pill{margin:0;font-size:11px;border-radius:999px;padding:4px 11px}.tp .tc .pill.v{background:var(--nv);color:var(--g2)}' +
+  '.tp .tc b{font-size:15.5px;line-height:1.35;margin:8px 0 5px}.tp .tc .s{font-size:13px;line-height:1.55;color:#5b6678}' +
+  '.tp .item.tc.feat{display:block;padding:18px 18px 16px;background:linear-gradient(160deg,#fff 0%,#FFF8E6 100%);border-color:#E7D49A;box-shadow:0 14px 26px -16px rgba(154,122,31,.55)}.tp .tc.feat .ico{display:none}.tp .tc.feat b{font-size:20px;margin:12px 0 8px}.tp .tc.feat .s{font-size:14px}' +
+  '.tp .badge{position:absolute;right:16px;top:-11px;background:linear-gradient(135deg,#D4AF55,#EACF85);color:#0A1830;font-size:10.5px;font-weight:700;letter-spacing:1px;padding:5px 12px;border-radius:999px;box-shadow:0 6px 12px -6px rgba(154,122,31,.8)}' +
+  '.tp .rd{display:flex;align-items:center;justify-content:space-between;margin-top:14px;font-size:13px;font-weight:600;color:var(--nv)}.tp .rd i{width:34px;height:34px;border-radius:50%;background:var(--nv);display:grid;place-items:center;font-style:normal;color:var(--g2);font-size:16px}' +
+  '.tp .cta{background:linear-gradient(135deg,#0A1830,#16305f);border:1px solid rgba(212,175,85,.4);border-radius:24px;position:relative;overflow:hidden;text-align:left;padding:24px 20px}.tp .cta b{font-size:19px}.tp .cta .cta-row{justify-content:flex-start}' +
+  '.tp .none{display:none;text-align:center;color:#6E7A8A;padding:14px 0}' +
+  '@media(min-width:640px){.tp .grid{grid-template-columns:repeat(4,1fr)}.tp .hero{padding:30px 28px 26px}}' +
+  '@media(max-width:560px){.tp .cta .cta-row{align-items:stretch}}';
+function tipCard(n, first, cat) {
+  const isRank = n.category === 'Ranker Vault';
+  const pill = '<span class="pill ' + (isRank ? 'v' : 't') + '">' + (isRank ? '&#9819; ' : '') + h(n.category) + '</span>';
+  const extra = n.category === '5-min Ward Revision' ? '<span class="pill">5 min</span>' : '';
+  const by = n.rankerName ? '<span class="meta">by ' + h(n.rankerName) + (n.rankerRank ? ' &middot; ' + h(n.rankerRank) : '') + '</span>' : '';
+  const feat = first && !cat;
+  const badge = feat ? '<span class="badge">' + (n.pinned ? 'PINNED' : 'LATEST') + '</span>' : '';
+  const inner = '<span class="mrow">' + pill + extra + '<span class="meta">' + h(niceDate(n.date)) + '</span>' + by + '</span><b>' + h(n.title) + '</b><span class="s">' + h(clip(n.summary, 170)) + '</span>' +
+    (feat ? '<span class="rd"><span>Read tip</span><i>&rarr;</i></span>' : '');
+  return '<a class="item tc' + (feat ? ' feat' : '') + '" href="' + pathOf(n) + '">' + badge + (feat ? '' : '<span class="ico">' + tipIcon(n.category) + '</span>') + '<span class="tcb">' + inner + '</span></a>';
+}
+
 async function tipsListPage(env, url) {
   const site = siteOf(env, url);
   const cat = url.searchParams.get('c') || '';
   const all = await allTips(env);
   const list = all.filter(n => !cat || n.category === cat);
   const pinned = list.filter(n => n.pinned && !cat), rest = list.filter(n => !(n.pinned && !cat));
-  const chips = '<div class="chips"><a href="/study-tips"' + (!cat ? ' class="on"' : '') + '>All</a>' +
-    TIP_CATEGORIES.map(c => '<a href="' + (CAT_PAGES[c] || ('/study-tips?c=' + encodeURIComponent(c))) + '"' + (cat === c ? ' class="on"' : '') + '>' + h(c) + '</a>').join('') + '</div>';
-  const body = '<div class="crumbs"><a href="/">Home</a> › Study tips</div><h1>NEET PG study tips</h1>' +
-    '<p class="lead">Simple, practical advice on planning, revision, mock tests and staying consistent.</p>' + chips +
-    (list.length ? pinned.concat(rest).map(itemCard).join('') : '<p>No study tips here yet. Check back soon.</p>') + tipsCta();
+  const ordered = pinned.concat(rest);
+  const tiles = '<a class="tile all' + (!cat ? ' on' : '') + '" href="/study-tips"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg></span>All tips</a>' +
+    TIP_CATEGORIES.map(c => '<a class="tile' + (c === 'Ranker Vault' ? ' vault' : '') + (cat === c ? ' on' : '') + '" href="' + (CAT_PAGES[c] || ('/study-tips?c=' + encodeURIComponent(c))) + '"><span class="ic">' + tipIcon(c) + '</span><span>' + h(c) + (c === 'Ranker Vault' ? '<small>HOW TOPPERS PREPARED</small>' : '') + '</span></a>').join('');
+  const body = '<style>' + TIPS_CSS + '</style><div class="tp"><div class="crumbs"><a href="/">Home</a> › Study tips</div>' +
+    '<div class="hero"><span class="kick">&#9733; STUDY TIPS</span><h1>NEET PG<br><span>study tips</span></h1>' +
+    '<p class="lead">Simple, practical advice on planning, revision, mock tests and staying consistent.</p>' +
+    '<div class="srch"><input id="tpq" type="search" placeholder="Search tips, subjects, revision..." aria-label="Search study tips" autocomplete="off"></div></div>' +
+    '<div class="rl"><span>BROWSE BY TOPIC</span><em>' + TIP_CATEGORIES.length + ' topics</em></div><div class="grid">' + tiles + '</div>' +
+    '<div class="sec"><h2>' + (cat ? h(cat) : 'Latest tips') + '</h2><span>Newest first</span></div>' +
+    '<div id="tpl">' + (ordered.length ? ordered.map((n, i) => tipCard(n, i === 0, cat)).join('') : '<p>No study tips here yet. Check back soon.</p>') + '</div>' +
+    '<p class="none" id="tpn">No tips match your search.</p>' + tipsCta() + '</div>' +
+    '<script>(function(){var q=document.getElementById("tpq");if(!q)return;var items=document.querySelectorAll("#tpl .item"),none=document.getElementById("tpn");q.addEventListener("input",function(){var v=q.value.trim().toLowerCase(),shown=0;items.forEach(function(e){var ok=!v||e.textContent.toLowerCase().indexOf(v)>-1;e.style.display=ok?"":"none";if(ok)shown++;});none.style.display=(v&&!shown)?"block":"none";});})();</script>';
   return htmlResponse(shell(site, {
     title: 'NEET PG study tips: revision, mock tests, planning | PPTNEETPGHUB',
     desc: 'Practical NEET PG and INICET study tips: how to plan revision, use mock tests, remember more and stay consistent through a long preparation.',
