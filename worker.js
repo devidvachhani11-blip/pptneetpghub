@@ -760,24 +760,73 @@ function tipCard(n, first, cat) {
   return '<a class="item tc' + (feat ? ' feat' : '') + '" href="' + pathOf(n) + '">' + badge + (feat ? '' : '<span class="ico">' + tipIcon(n.category) + '</span>') + '<span class="tcb">' + inner + '</span></a>';
 }
 
+const SL_CSS = '.tp .rs{margin-top:24px}.tp .rsh{display:flex;align-items:center;gap:10px;margin:0 2px}' +
+  '.tp .rsh .crown{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#D4AF55,#EACF85);display:grid;place-items:center;flex:none}.tp .rsh .crown svg{width:21px;height:21px;fill:#0A1830}' +
+  '.tp .rsh b{font-family:Georgia,serif;font-size:21px;display:block;line-height:1.1;color:#0d1b36}.tp .rsh small{font-size:11.5px;color:#5b6678}.tp .rsh a.all{margin-left:auto;font-size:12px;font-weight:600;color:#9a7a1f;text-decoration:none;white-space:nowrap}' +
+  '.tp .slw{position:relative}.tp .sl{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:14px 2px 28px;margin:0 -2px -10px}.tp .sl::-webkit-scrollbar{display:none}' +
+  '.tp .rc{flex:none;width:min(300px,82vw);scroll-snap-align:start;display:block;border-radius:26px;background:linear-gradient(160deg,#16305f 0%,#0d1f3e 60%,#0A1830 100%);border:1px solid rgba(212,175,85,.35);padding:18px 16px 16px;color:#fff;position:relative;overflow:hidden;box-shadow:0 16px 30px -14px rgba(10,24,48,.7);text-decoration:none}' +
+  '.tp .rc:before{content:"";position:absolute;right:-60px;top:-60px;width:170px;height:170px;border-radius:50%;border:1px solid rgba(212,175,85,.28)}' +
+  '.tp .rc .rtop{display:flex;align-items:center;gap:13px;position:relative}' +
+  '.tp .rc .rv-rk{width:68px;height:68px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#F7E3A4,#D4AF55 60%,#a8832c);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#0A1830;flex:none;box-shadow:0 0 0 4px rgba(212,175,85,.16),0 8px 18px -6px #D4AF55aa;line-height:1;text-align:center}' +
+  '.tp .rc .rv-rk small{font-size:9px;font-weight:700;letter-spacing:1.4px}.tp .rc .rv-rk b{font-family:Georgia,serif;font-size:21px}.tp .rc .rv-rk.t b{font-size:14px;padding:0 5px;line-height:1.15}' +
+  '.tp .rc .nm{min-width:0}.tp .rc .nm small{font-size:9.5px;letter-spacing:1.5px;color:#EACF85;font-weight:600;display:block}.tp .rc .nm h3{font-size:18px;line-height:1.2;margin:2px 0 0;color:#fff;font-weight:700}' +
+  '.tp .rc .nm h3:after{content:"";display:block;width:40px;height:3px;border-radius:2px;background:#D4AF55;margin-top:6px}.tp .rc .nm em{display:block;font-style:normal;font-size:11px;color:#9fb0cf;margin-top:6px}' +
+  '.tp .rc .tt{font-family:Georgia,serif;font-size:19px;line-height:1.28;margin:16px 0 7px;font-weight:700;position:relative;color:#fff;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}' +
+  '.tp .rc .sm{font-size:12.5px;line-height:1.55;color:#b8c6e0;position:relative;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}' +
+  '.tp .rc .fo{display:flex;align-items:center;justify-content:space-between;margin-top:14px;position:relative}.tp .rc .rd{font-size:13px;font-weight:700;color:#EACF85}' +
+  '.tp .rc .go{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#D4AF55,#EACF85);color:#0A1830;display:grid;place-items:center;font-weight:700}' +
+  '.tp .rc .vchip{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:#fff;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);padding:5px 10px;border-radius:999px}.tp .rc .vchip i{color:#ff3355;font-style:normal}' +
+  '.tp .dots{display:flex;justify-content:center;gap:7px;margin-top:-2px}.tp .dots button{width:7px;height:7px;border:0;padding:0;border-radius:4px;background:#d8cda8;cursor:pointer;transition:width .25s,background .25s}.tp .dots button.on{width:22px;background:#D4AF55}' +
+  '.tp .slb{display:none}' +
+  '@media(min-width:640px){.tp .slb{display:grid;place-items:center;position:absolute;top:50%;transform:translateY(-70%);width:38px;height:38px;border-radius:50%;border:1px solid rgba(212,175,85,.6);background:#0A1830;color:#EACF85;cursor:pointer;font-size:16px;z-index:2}.tp .slb.p{left:-10px}.tp .slb.n{right:-10px}}' +
+  '.tp .item.tc.rkdup{display:none}';
+function rankerSlider(list) {
+  if (!list.length) return '';
+  const cards = list.map(n => {
+    const yt = ytInfo(n.rankerYoutube);
+    const top = n.rankerName ? '<div class="rtop">' + rvRank(n.rankerRank) + '<div class="nm"><small>TIP BY</small><h3>' + h(n.rankerName) + '</h3>' + (n.rankerYear ? '<em>NEET PG ' + h(n.rankerYear) + '</em>' : '') + '</div></div>' : '';
+    return '<a class="rc" href="' + pathOf(n) + '">' + top + '<span class="tt">' + h(n.title) + '</span><span class="sm">' + h(clip(n.summary, 130)) + '</span>' +
+      '<span class="fo">' + (yt && yt.video ? '<span class="vchip"><i>&#9654;</i> Video</span>' : '<span class="rd">Read tip</span>') + '<span class="go">&rarr;</span></span></a>';
+  }).join('');
+  return '<div class="rs" id="rks"><div class="rsh"><span class="crown">' + RV_CROWN + '</span><div><b>Ranker Vault</b><small>How toppers prepared</small></div><a class="all" href="/rankers">View all &rarr;</a></div>' +
+    '<div class="slw"><button class="slb p" type="button" aria-label="Previous">&#8249;</button><div class="sl" id="rksl">' + cards + '</div><button class="slb n" type="button" aria-label="Next">&#8250;</button></div>' +
+    '<div class="dots" id="rkdots"></div></div>';
+}
+const SL_JS = '<script>(function(){var sl=document.getElementById("rksl");if(!sl)return;var cs=sl.querySelectorAll(".rc"),dots=document.getElementById("rkdots"),n=cs.length,cur=0,timer=null,pause=0;' +
+  'function step(){return n>1?cs[1].offsetLeft-cs[0].offsetLeft:sl.clientWidth;}' +
+  'for(var i=0;i<n;i++){(function(i){var b=document.createElement("button");b.type="button";b.setAttribute("aria-label","Tip "+(i+1));b.onclick=function(){go(i);hold();};dots.appendChild(b);})(i);}' +
+  'function mark(){var k=Math.max(0,Math.min(n-1,Math.round(sl.scrollLeft/step())));cur=k;var d=dots.children;for(var j=0;j<d.length;j++)d[j].className=j===k?"on":"";}' +
+  'function go(i){sl.scrollTo({left:i*step(),behavior:"smooth"});}' +
+  'function hold(){pause=Date.now()+7000;}' +
+  'sl.addEventListener("scroll",function(){mark();},{passive:true});' +
+  '["touchstart","pointerdown","mouseenter","focusin"].forEach(function(e){sl.addEventListener(e,hold,{passive:true});});' +
+  'var pb=document.querySelector(".slb.p"),nb=document.querySelector(".slb.n");if(pb)pb.onclick=function(){go(Math.max(0,cur-1));hold();};if(nb)nb.onclick=function(){go(Math.min(n-1,cur+1));hold();};' +
+  'mark();if(n>1&&!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){setInterval(function(){if(document.hidden||Date.now()<pause)return;go(cur>=n-1?0:cur+1);},4000);}' +
+  '})();</script>';
 async function tipsListPage(env, url) {
   const site = siteOf(env, url);
   const cat = url.searchParams.get('c') || '';
   const all = await allTips(env);
   const list = all.filter(n => !cat || n.category === cat);
-  const pinned = list.filter(n => n.pinned && !cat), rest = list.filter(n => !(n.pinned && !cat));
+  const rkAll = all.filter(n => n.category === RANKER_CAT);
+  const rkSlides = cat ? [] : rkAll.filter(n => n.pinned).concat(rkAll.filter(n => !n.pinned)).slice(0, 10);
+  const inSlider = new Set(rkSlides.map(n => n.id));
+  const mainList = list.filter(n => !inSlider.has(n.id));
+  const pinned = mainList.filter(n => n.pinned && !cat), rest = mainList.filter(n => !(n.pinned && !cat));
   const ordered = pinned.concat(rest);
+  const dupHtml = rkSlides.map(n => tipCard(n, false, cat).replace('class="item tc', 'class="item tc rkdup')).join('');
   const tiles = '<a class="tile all' + (!cat ? ' on' : '') + '" href="/study-tips"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg></span>All tips</a>' +
     TIP_CATEGORIES.map(c => '<a class="tile' + (c === 'Ranker Vault' ? ' vault' : '') + (cat === c ? ' on' : '') + '" href="' + (CAT_PAGES[c] || ('/study-tips?c=' + encodeURIComponent(c))) + '"><span class="ic">' + tipIcon(c) + '</span><span>' + h(c) + (c === 'Ranker Vault' ? '<small>HOW TOPPERS PREPARED</small>' : '') + '</span></a>').join('');
-  const body = '<style>' + TIPS_CSS + '</style><div class="tp"><div class="crumbs"><a href="/">Home</a> › Study tips</div>' +
+  const body = '<style>' + TIPS_CSS + SL_CSS + '</style><div class="tp"><div class="crumbs"><a href="/">Home</a> › Study tips</div>' +
     '<div class="hero"><span class="kick">&#9733; STUDY TIPS</span><h1>NEET PG<br><span>study tips</span></h1>' +
     '<p class="lead">Simple, practical advice on planning, revision, mock tests and staying consistent.</p>' +
     '<div class="srch"><input id="tpq" type="search" placeholder="Search tips, subjects, revision..." aria-label="Search study tips" autocomplete="off"></div></div>' +
     '<div class="rl"><span>BROWSE BY TOPIC</span><em>' + TIP_CATEGORIES.length + ' topics</em></div><div class="grid">' + tiles + '</div>' +
+    rankerSlider(rkSlides) +
     '<div class="sec"><h2>' + (cat ? h(cat) : 'Latest tips') + '</h2><span>Newest first</span></div>' +
-    '<div id="tpl">' + (ordered.length ? ordered.map((n, i) => tipCard(n, i === 0, cat)).join('') : '<p>No study tips here yet. Check back soon.</p>') + '</div>' +
+    '<div id="tpl">' + (ordered.length ? ordered.map((n, i) => tipCard(n, i === 0, cat)).join('') : (rkSlides.length ? '' : '<p>No study tips here yet. Check back soon.</p>')) + dupHtml + '</div>' +
     '<p class="none" id="tpn">No tips match your search.</p>' + tipsCta() + '</div>' +
-    '<script>(function(){var q=document.getElementById("tpq");if(!q)return;var items=document.querySelectorAll("#tpl .item"),none=document.getElementById("tpn");q.addEventListener("input",function(){var v=q.value.trim().toLowerCase(),shown=0;items.forEach(function(e){var ok=!v||e.textContent.toLowerCase().indexOf(v)>-1;e.style.display=ok?"":"none";if(ok)shown++;});none.style.display=(v&&!shown)?"block":"none";});})();</script>';
+    '<script>(function(){var q=document.getElementById("tpq");if(!q)return;var items=document.querySelectorAll("#tpl .item"),none=document.getElementById("tpn"),rs=document.getElementById("rks");q.addEventListener("input",function(){var v=q.value.trim().toLowerCase(),shown=0;if(rs)rs.style.display=v?"none":"";items.forEach(function(e){var dup=e.classList.contains("rkdup"),ok=!v||e.textContent.toLowerCase().indexOf(v)>-1;if(dup)e.style.display=(v&&ok)?"flex":"none";else e.style.display=ok?"":"none";if(ok&&(!dup||v))shown++;});none.style.display=(v&&!shown)?"block":"none";});})();</script>' + SL_JS;
   return htmlResponse(shell(site, {
     title: 'NEET PG study tips: revision, mock tests, planning | PPTNEETPGHUB',
     desc: 'Practical NEET PG and INICET study tips: how to plan revision, use mock tests, remember more and stay consistent through a long preparation.',
@@ -1275,7 +1324,7 @@ function ytInfo(u) {
 function rvRank(r) {
   r = String(r || '').trim();
   if (!r) return '';
-  const m = r.match(/^(?:AIR|Rank)?\s*#?\s*(\d{1,6})$/i);
+  const m = r.match(/^(?:AIR|Rank)?[\s\-:#.]*(\d{1,6})$/i);
   return m ? '<span class="rv-rk"><small>AIR</small><b>' + h(m[1]) + '</b></span>' : '<span class="rv-rk t"><b>' + h(clip(r, 18)) + '</b></span>';
 }
 const RV_CSS = '.rv{--g:#D4AF55;--g2:#EACF85;background:#07101f radial-gradient(120% 40% at 100% 0%,#1d3f7c66,transparent 70%);border-radius:28px;padding:22px 16px 22px;color:#fff;margin:8px 0 18px;box-shadow:0 18px 40px -20px #000}' +
