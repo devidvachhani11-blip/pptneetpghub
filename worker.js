@@ -1255,24 +1255,112 @@ async function qPage(env, url, n) {
 async function catListPage(env, url, path) {
   const site = siteOf(env, url), info = CAT_PAGE_INFO[path];
   const list = (await allTips(env)).filter(n => n.category === info.cat);
+  if (info.cat === RANKER_CAT) return rankersPage(site, info, path, list);
   const body = '<div class="crumbs"><a href="/">Home</a> › <a href="/study-tips">Study tips</a> › ' + h(info.h1) + '</div><h1>' + h(info.h1) + '</h1><p class="lead">' + h(info.lead) + '</p>' +
     (list.length ? list.map(itemCard).join('') : '<p>' + h(info.empty) + '</p>') + tipsCta();
   return htmlResponse(shell(site, { title: info.title + ' | PPTNEETPGHUB', desc: info.desc, path, body, noindex: !list.length,
     ld: [crumbLd(site, [['Home', '/'], ['Study tips', '/study-tips'], [info.h1, path]])] }));
 }
 const YT_RE = /^https:\/\/(www\.|m\.)?youtube\.com\/[A-Za-z0-9@._\/-]{2,120}$/;
+// A ranker's YouTube link can be a channel/profile link or one video. Returns { video, id, url } or null.
+function ytInfo(u) {
+  u = String(u || '').trim();
+  let m = u.match(/^https:\/\/(?:www\.|m\.)?youtube\.com\/watch\?(?:[^#\s]*&)?v=([A-Za-z0-9_-]{11})(?:[&#][^\s]*)?$/);
+  if (!m) m = u.match(/^https:\/\/youtu\.be\/([A-Za-z0-9_-]{11})(?:[?#][^\s]*)?$/);
+  if (!m) m = u.match(/^https:\/\/(?:www\.|m\.)?youtube\.com\/(?:shorts|live|embed)\/([A-Za-z0-9_-]{11})(?:[?#][^\s]*)?$/);
+  if (m) return { video: true, id: m[1], url: 'https://www.youtube.com/watch?v=' + m[1] };
+  if (YT_RE.test(u)) return { video: false, url: u };
+  return null;
+}
+function rvRank(r) {
+  r = String(r || '').trim();
+  if (!r) return '';
+  const m = r.match(/^(?:AIR|Rank)?\s*#?\s*(\d{1,6})$/i);
+  return m ? '<span class="rv-rk"><small>AIR</small><b>' + h(m[1]) + '</b></span>' : '<span class="rv-rk t"><b>' + h(clip(r, 18)) + '</b></span>';
+}
+const RV_CSS = '.rv{--g:#D4AF55;--g2:#EACF85;background:#07101f radial-gradient(120% 40% at 100% 0%,#1d3f7c66,transparent 70%);border-radius:28px;padding:22px 16px 22px;color:#fff;margin:8px 0 18px;box-shadow:0 18px 40px -20px #000}' +
+  '.rv *{box-sizing:border-box}.rv a{text-decoration:none;color:inherit}' +
+  '.rv .rv-crown{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#D4AF55,#EACF85);display:grid;place-items:center;box-shadow:0 10px 26px -8px #D4AF55aa}.rv .rv-crown svg{width:28px;height:28px;fill:#0A1830}' +
+  '.rv .rv-kick{display:block;margin-top:14px;font-size:10.5px;font-weight:600;letter-spacing:2px;color:var(--g2)}' +
+  '.rv h1{font-family:Georgia,serif;font-size:clamp(28px,7.5vw,38px);line-height:1.12;margin:8px 0 10px;font-weight:700;color:#fff}.rv h1 span{color:var(--g);font-style:italic}' +
+  '.rv .rv-lead{font-size:14px;line-height:1.6;color:#b8c6e0;margin:0}' +
+  '.rv .rv-trust{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}.rv .rv-trust span{font-size:11px;font-weight:600;color:var(--g2);border:1px solid rgba(212,175,85,.28);background:rgba(212,175,85,.06);padding:6px 11px;border-radius:999px}' +
+  '.rv .rv-lbl{margin:22px 4px 10px;font-size:11px;letter-spacing:2px;font-weight:600;color:#8d7d4d}' +
+  '.rv .rv-card{border-radius:24px;background:linear-gradient(160deg,#16305f 0%,#0d1f3e 60%,#0A1830 100%);border:1px solid rgba(212,175,85,.3);padding:18px 16px 16px;position:relative;overflow:hidden}' +
+  '.rv .rv-card:before{content:"";position:absolute;right:-70px;top:-70px;width:190px;height:190px;border-radius:50%;border:1px solid rgba(212,175,85,.27);pointer-events:none}' +
+  '.rv .rv-top{display:flex;align-items:center;gap:14px;position:relative}' +
+  '.rv .rv-rk{width:76px;height:76px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#F7E3A4,#D4AF55 60%,#a8832c);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#0A1830;box-shadow:0 0 0 5px rgba(212,175,85,.14),0 10px 22px -6px #D4AF55aa;flex:none;text-align:center;line-height:1}' +
+  '.rv .rv-rk small{font-size:9.5px;font-weight:700;letter-spacing:1.5px}.rv .rv-rk b{font-family:Georgia,serif;font-size:26px}.rv .rv-rk.t b{font-size:15px;padding:0 6px;line-height:1.15}' +
+  '.rv .rv-nm small{font-size:10px;letter-spacing:1.6px;color:var(--g2);font-weight:600;display:block}.rv .rv-nm h3{font-size:20px;line-height:1.2;margin:3px 0 0;font-weight:700;color:#fff}' +
+  '.rv .rv-nm h3:after{content:"";display:block;width:46px;height:3px;border-radius:2px;background:var(--g);margin-top:7px}.rv .rv-nm em{display:block;font-style:normal;font-size:11.5px;color:#9fb0cf;margin-top:7px}' +
+  '.rv .rv-ttl{font-family:Georgia,serif;font-size:21px;line-height:1.28;margin:16px 0 8px;font-weight:700;position:relative;color:#fff}' +
+  '.rv .rv-sum{font-size:13px;line-height:1.6;color:#b8c6e0;margin:0;position:relative}' +
+  '.rv .rv-vid{display:block;margin-top:14px;border-radius:16px;overflow:hidden;position:relative;aspect-ratio:16/9;background:#0b1a33;border:1px solid rgba(212,175,85,.25)}.rv .rv-vid img{width:100%;height:100%;object-fit:cover;display:block}' +
+  '.rv .rv-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:60px;height:42px;border-radius:13px;background:#f03;display:grid;place-items:center;box-shadow:0 8px 22px -4px #f039}.rv .rv-play:after{content:"";border-left:15px solid #fff;border-top:9px solid transparent;border-bottom:9px solid transparent;margin-left:4px}' +
+  '.rv .rv-vb{position:absolute;left:0;right:0;bottom:0;padding:24px 14px 10px;background:linear-gradient(transparent,rgba(0,0,0,.78));font-size:12px;font-weight:600}.rv .rv-vb small{display:block;font-weight:500;color:#cdd7ea;font-size:10.5px}' +
+  '.rv .rv-if{display:block;width:100%;aspect-ratio:16/9;border:0;border-radius:16px;margin-top:14px;background:#000}' +
+  '.rv .rv-btns{display:flex;gap:10px;margin-top:14px;position:relative}.rv .rv-b1,.rv .rv-b2{flex:1;text-align:center;font-weight:700;font-size:13px;padding:13px 8px;border-radius:14px}' +
+  '.rv .rv-b1{background:linear-gradient(135deg,#D4AF55,#EACF85);color:#0A1830}.rv .rv-b2{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.17);color:#fff;font-weight:600}.rv .rv-b2 i{color:#ff3355;font-style:normal;margin-right:4px}' +
+  '.rv .rv-ig{display:block;margin-top:12px;font-size:12px;color:var(--g2);text-align:center}' +
+  '.rv .rv-row{display:flex;gap:12px;margin-top:12px;border-radius:20px;background:#0d1f3e;border:1px solid #22365c;padding:13px}.rv .rv-th{width:112px;height:70px;border-radius:12px;position:relative;flex:none;overflow:hidden;background:#0b1a33;border:1px solid rgba(212,175,85,.25)}.rv .rv-th img{width:100%;height:100%;object-fit:cover;display:block}' +
+  '.rv .rv-th .rv-play{width:36px;height:26px;border-radius:8px}.rv .rv-th .rv-play:after{border-left-width:10px;border-top-width:6px;border-bottom-width:6px;margin-left:3px}.rv .rv-th.c{display:grid;place-items:center;background:linear-gradient(135deg,#1a2f57,#0b1a33)}.rv .rv-th.c svg{width:30px;height:30px;fill:var(--g)}' +
+  '.rv .rv-rw{min-width:0}.rv .rv-pill{display:inline-block;font-size:10px;font-weight:700;letter-spacing:1px;color:#0A1830;background:linear-gradient(135deg,#D4AF55,#EACF85);padding:3px 9px;border-radius:999px}' +
+  '.rv .rv-rw b{display:block;font-size:14px;margin:6px 0 2px;line-height:1.25;color:#fff}.rv .rv-rw span.m{font-size:11.5px;color:#9fb0cf;line-height:1.4;display:block}.rv .rv-rw em{display:block;margin-top:4px;font-style:normal;font-size:11px;color:var(--g2)}' +
+  '.rv .rv-cta{margin-top:24px;border-radius:20px;border:1px dashed rgba(212,175,85,.3);padding:18px;text-align:center}.rv .rv-cta b{font-family:Georgia,serif;font-size:18px;display:block;color:#fff}.rv .rv-cta span{font-size:12.5px;color:#9fb0cf;display:block;margin:6px 0 0;line-height:1.5}' +
+  '.rv .rv-none{color:#b8c6e0;margin:20px 4px 0}' +
+  '.rv.rv-box{padding:16px 14px;margin:18px 0}.rv.rv-box .rv-card{padding:14px}.rv.rv-box .rv-top{margin-bottom:0}' +
+  '@media(min-width:720px){.rv{padding:28px 26px}.rv .rv-feat{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:center}.rv .rv-feat .rv-vid{margin-top:0}}';
+const RV_JS = '<script>document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest(".rv-vid[data-id]");if(!a)return;e.preventDefault();var f=document.createElement("iframe");f.src="https://www.youtube-nocookie.com/embed/"+a.getAttribute("data-id")+"?autoplay=1&rel=0";f.allow="autoplay; encrypted-media; picture-in-picture; fullscreen";f.setAttribute("allowfullscreen","");f.title="Video explanation";f.className="rv-if";a.replaceWith(f);});</script>';
+const RV_CROWN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z"/></svg>';
+function rvThumb(yt, name) {
+  return '<img src="https://i.ytimg.com/vi/' + yt.id + '/hqdefault.jpg" alt="' + h((name ? name + ': ' : '') + 'video explanation') + '" loading="lazy" width="480" height="270">';
+}
+function rvVideo(yt, name) {
+  if (!yt || !yt.video) return '';
+  return '<a class="rv-vid" href="' + h(yt.url) + '" data-id="' + yt.id + '" target="_blank" rel="noopener nofollow">' + rvThumb(yt, name) + '<span class="rv-play"></span><span class="rv-vb">Watch the full explanation<small>youtube.com' + (name ? ' · ' + h(name) : '') + '</small></span></a>';
+}
+function rvLinks(n, yt) {
+  const insta = /^@?[A-Za-z0-9._]{2,40}$/.test(n.rankerInsta) ? '<a class="rv-ig" href="https://www.instagram.com/' + h(n.rankerInsta.replace(/^@/, '')) + '/" target="_blank" rel="noopener nofollow">@' + h(n.rankerInsta.replace(/^@/, '')) + ' on Instagram</a>' : '';
+  return { insta, ytBtn: yt ? '<a class="rv-b2" href="' + h(yt.url) + '" target="_blank" rel="noopener nofollow"><i>&#9654;</i> ' + (yt.video ? 'Watch on YouTube' : 'YouTube channel') + '</a>' : '' };
+}
+function rvPerson(n) {
+  return '<div class="rv-top">' + rvRank(n.rankerRank) + '<div class="rv-nm"><small>TIP BY</small><h3>' + h(n.rankerName) + '</h3>' + (n.rankerYear ? '<em>NEET PG ' + h(n.rankerYear) + '</em>' : '') + '</div></div>';
+}
 function rankerBox(n) {
   if (!n.rankerName) return '';
-  const insta = /^@?[A-Za-z0-9._]{2,40}$/.test(n.rankerInsta) ? '<a href="https://www.instagram.com/' + h(n.rankerInsta.replace(/^@/, '')) + '/" target="_blank" rel="noopener nofollow">@' + h(n.rankerInsta.replace(/^@/, '')) + ' on Instagram</a>' : '';
-  const yt = YT_RE.test(n.rankerYoutube || '') ? '<a href="' + h(n.rankerYoutube) + '" target="_blank" rel="noopener nofollow">' + h(n.rankerName) + ' on YouTube</a>' : '';
-  return '<div class="src" style="border-left-color:#C9A24B"><b>Tip by ' + h(n.rankerName) + '</b><br>' + h([n.rankerRank, n.rankerYear ? 'NEET PG ' + n.rankerYear : ''].filter(Boolean).join(' · ')) + (insta ? '<br>' + insta : '') + (yt ? '<br>' + yt : '') + '</div>';
+  const yt = ytInfo(n.rankerYoutube), lk = rvLinks(n, yt);
+  return '<style>' + RV_CSS + '</style><div class="rv rv-box"><div class="rv-card">' + rvPerson(n) + rvVideo(yt, n.rankerName) +
+    (lk.ytBtn && !(yt && yt.video) ? '<div class="rv-btns">' + lk.ytBtn + '</div>' : '') + lk.insta + '</div></div>' + (yt && yt.video ? RV_JS : '');
+}
+function rvFeatured(n) {
+  const yt = ytInfo(n.rankerYoutube), lk = rvLinks(n, yt), p = pathOf(n);
+  return '<div class="rv-card"><div class="rv-feat"><div>' + (n.rankerName ? rvPerson(n) : '') + '<h2 class="rv-ttl"><a href="' + p + '">' + h(n.title) + '</a></h2><p class="rv-sum">' + h(clip(n.summary, 200)) + '</p></div>' +
+    '<div>' + rvVideo(yt, n.rankerName) + '<div class="rv-btns"><a class="rv-b1" href="' + p + '">Read the tip</a>' + lk.ytBtn + '</div>' + lk.insta + '</div></div></div>';
+}
+function rvRow(n) {
+  const yt = ytInfo(n.rankerYoutube), rk = String(n.rankerRank || '').trim();
+  const th = yt && yt.video ? '<div class="rv-th">' + rvThumb(yt, n.rankerName) + '<span class="rv-play"></span></div>' : '<div class="rv-th c">' + RV_CROWN + '</div>';
+  return '<a class="rv-row" href="' + pathOf(n) + '">' + th + '<div class="rv-rw">' + (rk ? '<span class="rv-pill">' + h(clip(rk, 18)) + '</span>' : '') + '<b>' + h(n.title) + '</b>' +
+    '<span class="m">' + h([n.rankerName, n.rankerYear ? 'NEET PG ' + n.rankerYear : ''].filter(Boolean).join(' · ')) + '</span>' + (yt && yt.video ? '<em>&#9654; Video explanation</em>' : '') + '</div></a>';
+}
+function rankersPage(site, info, path, list) {
+  const parts = info.h1.split(': ');
+  const h1 = parts.length > 1 ? h(parts[0]) + ':<br><span>' + h(parts.slice(1).join(': ')) + '</span>' : h(info.h1);
+  const body = '<style>' + RV_CSS + '</style><div class="crumbs"><a href="/">Home</a> › <a href="/study-tips">Study tips</a> › Ranker Vault</div>' +
+    '<div class="rv"><div class="rv-crown">' + RV_CROWN + '</div><span class="rv-kick">RANKER VAULT</span><h1>' + h1 + '</h1><p class="rv-lead">' + h(info.lead) + '</p>' +
+    '<div class="rv-trust"><span>Real rankers</span><span>Own words</span><span>Video explained</span></div>' +
+    (list.length ? '<div class="rv-lbl">FEATURED RANKER TIP</div>' + rvFeatured(list[0]) + (list.length > 1 ? '<div class="rv-lbl">MORE FROM THE VAULT</div>' + list.slice(1).map(rvRow).join('') : '') : '<p class="rv-none">' + h(info.empty) + '</p>') +
+    '</div>' + tipsCta() + RV_JS;
+  return htmlResponse(shell(site, { title: info.title + ' | PPTNEETPGHUB', desc: info.desc, path, body, noindex: !list.length,
+    ld: [crumbLd(site, [['Home', '/'], ['Study tips', '/study-tips'], [info.h1, path]])] }));
 }
 function authorLd(n, site) {
   if (!n.rankerName) return orgLd(site);
   const p = { '@type': 'Person', name: n.rankerName, description: [n.rankerRank, n.rankerYear ? 'NEET PG ' + n.rankerYear : ''].filter(Boolean).join(', ') };
   const same = [];
   if (/^@?[A-Za-z0-9._]{2,40}$/.test(n.rankerInsta)) same.push('https://www.instagram.com/' + n.rankerInsta.replace(/^@/, '') + '/');
-  if (YT_RE.test(n.rankerYoutube || '')) same.push(n.rankerYoutube);
+  const yt = ytInfo(n.rankerYoutube);
+  if (yt && !yt.video) same.push(yt.url);
   if (same.length) p.sameAs = same.length === 1 ? same[0] : same;
   return p;
 }

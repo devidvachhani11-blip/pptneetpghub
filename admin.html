@@ -3189,7 +3189,7 @@ function openNewsEdit(row, defSection) {
   rkWrap.appendChild(edField('Rank', edInput('n_rrank', r.rankerRank || '', 'e.g. AIR 120')));
   rkWrap.appendChild(edField('NEET PG year (optional)', edInput('n_ryear', r.rankerYear || '', 'e.g. 2025')));
   rkWrap.appendChild(edField('Instagram handle (optional)', edInput('n_rinsta', r.rankerInsta || '', '@handle')));
-  rkWrap.appendChild(edField('YouTube channel link (optional)', edInput('n_ryt', r.rankerYoutube || '', 'https://www.youtube.com/@channelname')));
+  rkWrap.appendChild(edField('YouTube link (optional): explanation video or channel', edInput('n_ryt', r.rankerYoutube || '', 'https://www.youtube.com/watch?v=... or https://www.youtube.com/@channelname')));
   body.appendChild(rkWrap);
   const text = edArea('n_body', r.body, 12); text.className = 't-area';
   body.appendChild(edField('Full text', text));
@@ -3239,7 +3239,10 @@ async function saveNewsEdit() {
   if (NEWS.rows.some(x => x.slug === data.slug && (!row || x.id !== row.id))) throw soft('Another item already uses this web address.');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(data.date)) throw soft('Choose the date.');
   if (!data.summary) throw soft('Add a short summary. It is shown in Google results.');
-  if (data.rankerYoutube && !/^https:\/\/(www\.|m\.)?youtube\.com\/[A-Za-z0-9@._\/-]{2,120}$/.test(data.rankerYoutube)) throw soft('The YouTube link must look like https://www.youtube.com/@channelname (a channel link, no extra ? parts).');
+  if (data.rankerYoutube && !(function (u) {
+    return /^https:\/\/(?:www\.|m\.)?youtube\.com\/watch\?(?:[^#\s]*&)?v=[A-Za-z0-9_-]{11}(?:[&#][^\s]*)?$/.test(u) || /^https:\/\/youtu\.be\/[A-Za-z0-9_-]{11}(?:[?#][^\s]*)?$/.test(u) ||
+      /^https:\/\/(?:www\.|m\.)?youtube\.com\/(?:shorts|live|embed)\/[A-Za-z0-9_-]{11}(?:[?#][^\s]*)?$/.test(u) || /^https:\/\/(www\.|m\.)?youtube\.com\/[A-Za-z0-9@._\/-]{2,120}$/.test(u);
+  })(data.rankerYoutube)) throw soft('The YouTube link must be a video link (youtube.com/watch?v=..., youtu.be/... or /shorts/...) or a channel link like https://www.youtube.com/@channelname.');
   if (data.sourceUrl && !/^https?:\/\//i.test(data.sourceUrl)) throw soft('The source link must start with https://');
   if (!data.body) throw soft('Add the full text.');
   if (data.published && /TODO/.test(data.body)) throw soft('The text still has TODO notes. Replace them with real details from the official notice, or untick Published.');
