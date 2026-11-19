@@ -1321,6 +1321,7 @@
   .fdc-c, .fdc-l { aspect-ratio: 3 / 4; border-radius: 14px; overflow: hidden; position: relative; border: 1px solid #E5E7EB; background: #F6F1E7; }
   .fdc-c { cursor: zoom-in; } .fdc-c img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0; transition: opacity .25s; -webkit-user-drag: none; user-select: none; } .fdc-c img.on { opacity: 1; }
   .fdc-c i { position: absolute; left: 8px; bottom: 8px; background: #1F8F5F; color: #fff; font-style: normal; font-size: 10px; font-weight: 800; padding: 3px 7px; border-radius: 6px; }
+  .fdc-err { position: absolute; inset: 0; display: grid; place-items: center; padding: 12px; text-align: center; font-size: 12px; font-weight: 600; color: #0A1830; }
   .fdc-l { background: repeating-linear-gradient(135deg, #EDE6D3 0 12px, #F6F1E7 12px 24px); display: grid; place-items: center; text-align: center; color: #0A1830; font-size: 12px; font-weight: 700; filter: blur(0); }
   .fdc-l svg { display: block; margin: 0 auto 6px; }
   #fdcLb { position: fixed; inset: 0; z-index: 210; background: rgba(10,24,48,.96); display: none; align-items: center; justify-content: center; padding: 16px; }
@@ -3761,7 +3762,10 @@ async function fdcLoad(img, key) {
       u = URL.createObjectURL(await res.blob()); FDC.urls.set(key, u);
     }
     img.src = u; img.classList.add("on"); img.parentNode.__src = u;
-  } catch (e) { console.error("free card", e); }
+  } catch (e) {
+    console.error("free card", e);
+    const t = img.parentNode; if (t && !t.querySelector(".fdc-err")) { const m = fdEl("div", "fdc-err", "Couldn't load this card (" + String((e && e.message) || "error").replace("HTTP ", "") + "). Tap to retry."); t.appendChild(m); t.onclick = () => { m.remove(); fdcLoad(img, key); t.onclick = () => { if (t.__src) fdcOpenLb(t.__src); }; }; }
+  }
 }
 function fdFlashcards() {
   const m = fdMain(); m.innerHTML = ""; FD.view = "cards";
