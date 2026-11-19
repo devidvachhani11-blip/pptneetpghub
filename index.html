@@ -6881,7 +6881,7 @@ function renderTiles(box, tabArg) {
 
 // ---------- Flashcards page (members): series grouped as Medicine / Pharmacology / OBG ----------
 const FC2 = { tab: "", chip: "all", q: "", thumbs: new Map(), queue: [], busy: 0, io: null, root: null };
-function fc2Group(name) { const n = String(name).toLowerCase(); if (/pharm|drug/.test(n)) return "Pharmacology"; if (/obg|obstet|gyn/.test(n)) return "OBG"; return "Medicine"; }
+function fc2Group(name) { const n = String(name).toLowerCase().trim(); if (/^(medicine|med\b)/.test(n)) return "Medicine"; if (/^pharm/.test(n)) return "Pharmacology"; if (/^(obg|obstet|gyn)/.test(n)) return "OBG"; if (/pharm|drug/.test(n)) return "Pharmacology"; if (/obg|obstet|gyn/.test(n)) return "OBG"; return "Medicine"; }
 function fc2Rel(it) { return it.releaseAt || it.t || 0; }
 function fc2IsNew(it) { const r = fc2Rel(it); return r > 0 && Date.now() - r < 3 * 86400000; }
 function fc2IsRevised(it) { const e = CARDS.map[it.id]; return !!(e && e[0] === 2); }
