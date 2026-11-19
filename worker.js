@@ -198,6 +198,35 @@ async function handleFreeFile(request, env, url) {
   return new Response(obj.body, { headers });
 }
 
+// ---------- Free flashcards: signed-in users may read only the 2 cards per series the site lists in Firestore sample/freecards ----------
+const freeCardsCache = { at: 0, keys: new Set() };
+async function freeCardKeys(env) {
+  if (Date.now() - freeCardsCache.at < 60 * 1000) return freeCardsCache.keys;
+  const res = await fetch('https://firestore.googleapis.com/v1/projects/' + env.PROJECT_ID + '/databases/(default)/documents/sample/freecards');
+  const keys = new Set();
+  if (res.status === 200) {
+    const f = ((await res.json()).fields) || {};
+    const ser = (f.series && f.series.arrayValue && f.series.arrayValue.values) || [];
+    ser.forEach(v => {
+      const m = (v.mapValue && v.mapValue.fields) || {};
+      const cs = (m.cards && m.cards.arrayValue && m.cards.arrayValue.values) || [];
+      cs.slice(0, 2).forEach(c => { const cf = (c.mapValue && c.mapValue.fields) || {}; if (cf.key && cf.key.stringValue) keys.add(cf.key.stringValue); });
+    });
+  } else if (res.status !== 404) throw new HttpError(502, 'Could not read the free cards');
+  freeCardsCache.at = Date.now(); freeCardsCache.keys = keys;
+  return keys;
+}
+async function handleFreeCard(request, env, url) {
+  await requireUser(request, env);
+  const key = cleanKey(url.searchParams.get('key'));
+  const ext = key.split('.').pop().toLowerCase();
+  if (RESERVED_PREFIXES.some(p => key.indexOf(p) === 0) || ['png', 'jpg', 'jpeg', 'webp'].indexOf(ext) === -1) throw new HttpError(404, 'File not found');
+  if (!(await freeCardKeys(env)).has(key)) throw new HttpError(404, 'File not found');
+  const obj = await env.FILES.get(key);
+  if (!obj) throw new HttpError(404, 'File not found');
+  return new Response(obj.body, { headers: { 'Content-Type': MIME[ext], 'Cache-Control': 'private, max-age=300', 'X-Content-Type-Options': 'nosniff' } });
+}
+
 async function handleUpload(request, env, url) {
   const user = await requireUser(request, env);
   if (!user.isAdmin) throw new HttpError(403, 'Admin only');
@@ -1911,6 +1940,7 @@ export default {
       if (url.pathname === '/api/stats' && request.method === 'GET') return await handleStats(request, env);
       if (url.pathname === '/api/sample-card' && request.method === 'GET') return await handleSampleCard(env, url);
       if (url.pathname === '/api/free-file' && request.method === 'GET') return await handleFreeFile(request, env, url);
+      if (url.pathname === '/api/free-card' && request.method === 'GET') return await handleFreeCard(request, env, url);
       if (url.pathname === '/api/file' && request.method === 'GET') return await handleGet(request, env, url);
       if (url.pathname === '/api/file' && request.method === 'DELETE') return await handleDelete(request, env, url);
       if (url.pathname === '/api/upload' && request.method === 'PUT') return await handleUpload(request, env, url);

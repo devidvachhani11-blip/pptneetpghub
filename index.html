@@ -1281,6 +1281,52 @@
   #libraryView.hp-decks #libList .sr-ico { width: 38px; height: 38px; border-radius: 11px; }
   #libraryView.hp-decks #libList .sr-btns { flex-direction: column; }
   #libraryView.hp-decks #libList .lib-empty { grid-column: 1 / -1; }
+  .fc2 { grid-column: 1 / -1; }
+  .fc2-prog { background: var(--navy); color: #fff; border-radius: 16px; padding: 13px 15px; display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; margin-bottom: 12px; }
+  .fc2-prog span { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--gold-b); font-weight: 700; }
+  .fc2-prog b { font-size: 14px; }
+  .fc2-prog u { grid-column: 1 / -1; height: 6px; border-radius: 6px; background: rgba(255,255,255,.18); overflow: hidden; text-decoration: none; display: block; }
+  .fc2-prog u i { display: block; height: 100%; background: var(--gold-b); border-radius: 6px; transition: width .4s; }
+  .fc2-today { margin-bottom: 12px; }
+  .fc2-today h5 { margin: 0 0 7px; font-size: 13px; color: var(--ink); }
+  .fc2-today .row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+  .fc2-today .mini { flex: 0 0 64px; height: 86px; border-radius: 10px; overflow: hidden; border: 1.5px solid var(--gold-b); background: #F6F1E7; cursor: pointer; }
+  .fc2-today .mini img, .fc2-card img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .25s; display: block; }
+  .fc2-today .mini img.on, .fc2-card img.on { opacity: 1; }
+  .fc2-tabs { display: flex; gap: 6px; margin-bottom: 10px; overflow-x: auto; }
+  .fc2-tabs button, .fc2-chips button { border: 1px solid var(--border); background: var(--white); color: var(--ink); border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .fc2-tabs button.on { background: var(--navy); color: var(--gold-b); border-color: var(--navy); }
+  .fc2-chips button.on { background: var(--gold-b); color: var(--navy); border-color: var(--gold-b); }
+  .fc2-chips { display: flex; gap: 6px; margin: 8px 0 12px; overflow-x: auto; }
+  .fc2-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 1px dashed var(--gold-b); border-radius: 12px; padding: 9px 12px; margin-bottom: 10px; font-size: 13px; font-weight: 600; color: var(--ink); }
+  .fc2-bar button { border: 0; background: var(--navy); color: var(--gold-b); border-radius: 999px; padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .fc2-bar button:disabled { opacity: .6; }
+  .fc2-q { width: 100%; box-sizing: border-box; border: 1px solid var(--border); border-radius: 12px; padding: 11px 13px; font-size: 14px; background: var(--white); color: var(--ink); }
+  .fc2-sh { display: flex; align-items: center; gap: 8px; margin: 14px 0 8px; }
+  .fc2-sh b { font-size: 15px; color: var(--ink); flex: 1; }
+  .fc2-sh span { font-size: 12px; color: var(--gray); }
+  .fc2-sh button { border: 1px solid var(--navy); background: transparent; color: var(--navy); border-radius: 999px; padding: 5px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
+  :where(html[data-eff="dark"]) .fc2-sh button { color: var(--gold-b); border-color: var(--gold-b); }
+  .fc2-g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .fc2-card { position: relative; aspect-ratio: 3 / 4; border-radius: 14px; overflow: hidden; background: #F6F1E7; border: 1px solid var(--border); cursor: pointer; }
+  .fc2-card .tg { position: absolute; left: 8px; top: 8px; font-style: normal; font-size: 10px; font-weight: 800; letter-spacing: .06em; padding: 3px 7px; border-radius: 6px; }
+  .fc2-card .tg.nw { background: var(--gold-b); color: var(--navy); }
+  .fc2-card .tg.rv { background: #1F8F5F; color: #fff; }
+  .fc2-card .ic { position: absolute; bottom: 8px; width: 32px; height: 32px; border-radius: 50%; border: 0; background: rgba(10,24,48,.82); color: #fff; font-size: 16px; line-height: 1; cursor: pointer; display: grid; place-items: center; }
+  .fc2-card .ic.star { right: 46px; } .fc2-card .ic.star.on { color: var(--gold-b); } .fc2-card .ic.dl { right: 8px; }
+  /* free flashcards */
+  .fdc-h { display: flex; align-items: baseline; justify-content: space-between; margin: 14px 0 8px; }
+  .fdc-h b { font-size: 15px; } .fdc-h small { color: #6B7280; font-size: 12px; }
+  .fdc-g { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .fdc-c, .fdc-l { aspect-ratio: 3 / 4; border-radius: 14px; overflow: hidden; position: relative; border: 1px solid #E5E7EB; background: #F6F1E7; }
+  .fdc-c { cursor: zoom-in; } .fdc-c img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0; transition: opacity .25s; -webkit-user-drag: none; user-select: none; } .fdc-c img.on { opacity: 1; }
+  .fdc-c i { position: absolute; left: 8px; bottom: 8px; background: #1F8F5F; color: #fff; font-style: normal; font-size: 10px; font-weight: 800; padding: 3px 7px; border-radius: 6px; }
+  .fdc-l { background: repeating-linear-gradient(135deg, #EDE6D3 0 12px, #F6F1E7 12px 24px); display: grid; place-items: center; text-align: center; color: #0A1830; font-size: 12px; font-weight: 700; filter: blur(0); }
+  .fdc-l svg { display: block; margin: 0 auto 6px; }
+  #fdcLb { position: fixed; inset: 0; z-index: 210; background: rgba(10,24,48,.96); display: none; align-items: center; justify-content: center; padding: 16px; }
+  #fdcLb.on { display: flex; } #fdcLb img { max-width: 100%; max-height: 90vh; border-radius: 10px; user-select: none; -webkit-user-drag: none; }
+  #fdcLb button { position: absolute; top: 12px; right: 12px; border: 0; border-radius: 999px; padding: 9px 16px; font-weight: 700; background: #D4AF55; color: #0A1830; cursor: pointer; }
+
   .hb-soon { text-align: center; border: 1.5px dashed var(--border); border-radius: 18px; padding: 28px 18px; color: var(--gray); font-size: 13px; line-height: 1.5; margin-top: 10px; }
   .hb-soon .ib { width: 52px; height: 52px; border-radius: 16px; background: #E4F2EE; color: #0F8F83; margin: 0 auto 12px; display: grid; place-items: center; }
   .hb-soon b { display: block; color: var(--navy); font-size: 16px; margin-bottom: 4px; }
@@ -3172,7 +3218,7 @@ function showInApp(failed) {
 // FREE TIER (new code). Reads only freepool / freemock / freepdf.
 // It never reads or writes any premium collection.
 // =====================================================================
-const FD = { off: false, was: false, pool: undefined, mock: undefined, pdfs: undefined, run: null, tick: null };
+const FD = { off: false, was: false, pool: undefined, mock: undefined, pdfs: undefined, fc: undefined, run: null, tick: null };
 function fdOn() { return !!(authResolved && currentUser && membershipChecked && !isPaidMember && !forceJoin && !FD.off && !(paymentInfo.latest && paymentInfo.latest.status === "pending")); }
 function fdEmail() { return String((currentUser && currentUser.email) || "").toLowerCase(); }
 function fdKey(k) { return "pptFree:" + fdEmail() + ":" + k; }
@@ -3211,6 +3257,7 @@ async function fdLoadAll() {
   } catch (e) { console.error("free pool", e); FD.pool = null; }
   try { const m = await getDoc(doc(db, "freemock", "current")); FD.mock = m.exists() ? m.data() : null; } catch (e) { FD.mock = null; }
   try { const p = await getDoc(doc(db, "freepdf", "list")); FD.pdfs = p.exists() ? (p.data().items || []) : []; } catch (e) { FD.pdfs = []; }
+  try { const c = await getDoc(doc(db, "sample", "freecards")); FD.fc = c.exists() ? (c.data().series || []) : []; } catch (e) { FD.fc = []; }
   try { await fgLoadPools(); } catch (e) {}
   if (fdOn() && !FD.run && FD.view === "home") fdHome();
 }
@@ -3286,6 +3333,8 @@ function fdHome() {
   r.appendChild(fdMini("📋", "Free mock test", loading ? "Loading…" : (mk ? mk.qs.length + " Q · " + mk.min + " min" : "New one every week"), mk ? (mDone ? "DONE" : "NEW") : "", !!mDone, fdMockStart, !mk));
   const np = (FD.pdfs || []).length;
   r.appendChild(fdMini("📄", "Free PDF", FD.pdfs === undefined ? "Loading…" : (np ? np + " short PDF" + (np > 1 ? "s" : "") + ", view-only" : "New one every week"), np ? "NEW" : "", false, fdPdfList, !np));
+  const nfc = (FD.fc || []).filter(x => x.cards && x.cards.length).length;
+  r.appendChild(fdMini("🗂️", "Flashcards", FD.fc === undefined ? "Loading…" : (nfc ? "2 free per series" : "Coming soon"), nfc ? "NEW" : "", false, fdFlashcards, !nfc));
   r.appendChild(fdMini("🧮", "Calculators", "Clinical", "", false, null, false, "/calculators"));
   r.appendChild(fdMini("💡", "Study tips", "High-yield reads", "", false, null, false, "/study-tips"));
   m.appendChild(r);
@@ -3693,6 +3742,55 @@ function fdShare(cfg, sc, n) {
     }, "image/png");
   };
   img.onload = draw; img.onerror = draw; img.src = "/logo-360.webp";
+}
+
+// ---------- Free flashcards: 2 cards of every series, the rest locked (no premium picture is ever sent) ----------
+const FDC = { urls: new Map() };
+function fdcOpenLb(src) {
+  let lb = document.getElementById("fdcLb");
+  if (!lb) { lb = fdEl("div"); lb.id = "fdcLb"; const im = document.createElement("img"); im.draggable = false; const b = fdEl("button", null, "Close"); b.type = "button"; lb.appendChild(im); lb.appendChild(b); lb.oncontextmenu = e => e.preventDefault(); lb.onclick = () => lb.classList.remove("on"); document.body.appendChild(lb); }
+  lb.querySelector("img").src = src; lb.classList.add("on");
+}
+async function fdcLoad(img, key) {
+  try {
+    let u = FDC.urls.get(key);
+    if (!u) {
+      const tok = await window.__fb.auth.currentUser.getIdToken();
+      const res = await fetch("/api/free-card?key=" + encodeURIComponent(key), { headers: { Authorization: "Bearer " + tok } });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      u = URL.createObjectURL(await res.blob()); FDC.urls.set(key, u);
+    }
+    img.src = u; img.classList.add("on"); img.parentNode.__src = u;
+  } catch (e) { console.error("free card", e); }
+}
+function fdFlashcards() {
+  const m = fdMain(); m.innerHTML = ""; FD.view = "cards";
+  const card = fdEl("div", "fd-card"); card.appendChild(fdEl("h2", null, "Free Flashcards"));
+  card.appendChild(fdEl("p", null, "2 cards from every series are free. View-only."));
+  const ser = (FD.fc || []).filter(s => s.cards && s.cards.length);
+  if (!ser.length) card.appendChild(fdEl("p", null, FD.fc === undefined ? "Loading…" : "New cards are coming soon."));
+  ["Medicine", "Pharmacology", "OBG"].forEach(gname => {
+    ser.filter(s => fc2Group(s.name) === gname).forEach(s => {
+      const h = fdEl("div", "fdc-h"); h.appendChild(fdEl("b", null, s.name)); h.appendChild(fdEl("small", null, gname + " · " + s.total + (s.total === 1 ? " card" : " cards"))); card.appendChild(h);
+      const g = fdEl("div", "fdc-g");
+      s.cards.slice(0, 2).forEach(c => {
+        const t = fdEl("div", "fdc-c"), im = document.createElement("img"); im.alt = c.title || "Card"; im.draggable = false; t.appendChild(im); t.appendChild(fdEl("i", null, "FREE"));
+        t.oncontextmenu = e => { e.preventDefault(); return false; };
+        t.onclick = () => { if (t.__src) fdcOpenLb(t.__src); };
+        g.appendChild(t); fdcLoad(im, c.key);
+      });
+      const locked = Math.max(0, (s.total || 0) - 2);
+      for (let i = 0; i < Math.min(2, locked); i++) {
+        const l = fdEl("div", "fdc-l"); const w = fdEl("div"); w.innerHTML = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0A1830" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>';
+        w.appendChild(document.createTextNode(i === 0 && locked > 2 ? "+" + locked + " more in Premium" : "Premium")); l.appendChild(w); g.appendChild(l);
+      }
+      card.appendChild(g);
+    });
+  });
+  const row = fdEl("div", "fd-row");
+  const go = fdEl("button", "fd-btn gold", "Go Premium →"); go.type = "button"; go.onclick = fdGoPremium; row.appendChild(go);
+  const back = fdEl("button", "fd-btn", "Back"); back.type = "button"; back.onclick = fdHome; row.appendChild(back);
+  card.appendChild(row); m.appendChild(card);
 }
 
 // ---------- Free PDFs (view-only, email watermark) ----------
@@ -6741,6 +6839,7 @@ function seriesGroups(tab, q) {
   return Object.keys(g).map(k => g[k]).sort((a, b) => (b.t - a.t) || a.name.localeCompare(b.name, undefined, { numeric: true }));
 }
 function renderTiles(box, tabArg) {
+  if ((tabArg || lib.tab) === "Series") return renderFlashcards(box);
   const tab = tabArg || lib.tab, ct = tab === "Card Test", groups = seriesGroups(tab, lib.q);
   if (!groups.length && tabArg) return;
   if (!groups.length) {
@@ -6778,6 +6877,131 @@ function renderTiles(box, tabArg) {
     tile.appendChild(ico); tile.appendChild(txt); tile.appendChild(btns);
     box.appendChild(tile);
   });
+}
+
+// ---------- Flashcards page (members): series grouped as Medicine / Pharmacology / OBG ----------
+const FC2 = { tab: "", chip: "all", q: "", thumbs: new Map(), queue: [], busy: 0, io: null, root: null };
+function fc2Group(name) { const n = String(name).toLowerCase(); if (/pharm|drug/.test(n)) return "Pharmacology"; if (/obg|obstet|gyn/.test(n)) return "OBG"; return "Medicine"; }
+function fc2Rel(it) { return it.releaseAt || it.t || 0; }
+function fc2IsNew(it) { const r = fc2Rel(it); return r > 0 && Date.now() - r < 3 * 86400000; }
+function fc2IsRevised(it) { const e = CARDS.map[it.id]; return !!(e && e[0] === 2); }
+function fc2Cards() {
+  const out = [];
+  seriesGroups("Series", "").forEach(g => seriesDeck("Series", g.name, lib.exam).forEach(it => { it.__g = fc2Group(g.name); it.__s = g.name; out.push(it); }));
+  return out;
+}
+function fc2Thumb(img, it) {
+  FC2.queue.push([img, it]); fc2Pump();
+}
+function fc2Pump() {
+  while (FC2.busy < 3 && FC2.queue.length) {
+    const job = FC2.queue.shift(), img = job[0], it = job[1];
+    if (!img.isConnected) continue;
+    FC2.busy++;
+    (async () => {
+      try {
+        let u = FC2.thumbs.get(it.id);
+        if (!u) {
+          if (String(it.fileUrl).indexOf("r2:") === 0) { const r = await fetchSecure(it.fileUrl.slice(3)); u = URL.createObjectURL(await r.blob()); }
+          else u = it.fileUrl;
+          FC2.thumbs.set(it.id, u);
+        }
+        img.src = u; img.classList.add("on");
+      } catch (e) {} finally { FC2.busy--; fc2Pump(); }
+    })();
+  }
+}
+function fc2Observe(img, it) {
+  if (FC2.thumbs.has(it.id)) { img.src = FC2.thumbs.get(it.id); img.classList.add("on"); return; }
+  if (!("IntersectionObserver" in window)) { fc2Thumb(img, it); return; }
+  if (!FC2.io) FC2.io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { FC2.io.unobserve(e.target); fc2Thumb(e.target, e.target.__it); } }), { rootMargin: "300px" });
+  img.__it = it; FC2.io.observe(img);
+}
+function fc2Tile(it, deck) {
+  const t = libEl("div", "fc2-card");
+  const im = document.createElement("img"); im.alt = it.title; im.draggable = false; t.appendChild(im); fc2Observe(im, it);
+  if (fc2IsRevised(it)) t.appendChild(libEl("i", "tg rv", "REVISED")); else if (fc2IsNew(it)) t.appendChild(libEl("i", "tg nw", "NEW"));
+  fcLoadSaved();
+  const st = libEl("button", "ic star" + (FC.saved.has(it.id) ? " on" : ""), FC.saved.has(it.id) ? "★" : "☆"); st.type = "button"; st.setAttribute("aria-label", "Save card");
+  st.onclick = e => { e.stopPropagation(); if (FC.saved.has(it.id)) FC.saved.delete(it.id); else FC.saved.add(it.id); fcPersistSaved(); const on = FC.saved.has(it.id); st.classList.toggle("on", on); st.textContent = on ? "★" : "☆"; };
+  const dl = libEl("button", "ic dl", "↓"); dl.type = "button"; dl.setAttribute("aria-label", "Download card");
+  dl.onclick = e => { e.stopPropagation(); doDownload(it); };
+  t.appendChild(st); t.appendChild(dl);
+  t.onclick = () => openDeck(deck, it.id, it.__s);
+  return t;
+}
+function fc2Paint() {
+  const r = FC2.root; if (!r || !r.isConnected) return;
+  const all = fc2Cards(), tabs = ["Medicine", "Pharmacology", "OBG"];
+  const cnt = {}; tabs.forEach(k => cnt[k] = 0); all.forEach(c => cnt[c.__g]++);
+  if (!FC2.tab || !cnt[FC2.tab]) FC2.tab = tabs.find(k => cnt[k]) || "Medicine";
+  // progress
+  const rev = all.filter(fc2IsRevised).length, pr = r.querySelector(".fc2-prog");
+  pr.querySelector("b").textContent = CARDS.loaded ? rev + " of " + all.length + " cards" : "…";
+  pr.querySelector("u i").style.width = (CARDS.loaded && all.length ? Math.round(rev / all.length * 100) : 0) + "%";
+  // today's new
+  const nw = all.filter(fc2IsNew).sort((a, b) => fc2Rel(b) - fc2Rel(a)).slice(0, 10), ts = r.querySelector(".fc2-today");
+  ts.innerHTML = ""; ts.style.display = nw.length ? "" : "none";
+  if (nw.length) {
+    ts.appendChild(libEl("h5", null, "Today's new cards"));
+    const row = libEl("div", "row");
+    nw.forEach(it => { const d = libEl("div", "mini"), im = document.createElement("img"); im.alt = it.title; d.appendChild(im); fc2Observe(im, it); d.onclick = () => openDeck(seriesDeck("Series", it.__s, lib.exam), it.id, it.__s); row.appendChild(d); });
+    ts.appendChild(row);
+  }
+  // tabs
+  const tb = r.querySelector(".fc2-tabs"); tb.innerHTML = "";
+  tabs.forEach(k => { if (!cnt[k]) return; const b = libEl("button", FC2.tab === k ? "on" : "", k + " · " + cnt[k]); b.type = "button"; b.onclick = () => { FC2.tab = k; fc2Paint(); }; tb.appendChild(b); });
+  // download bar
+  const inTab = all.filter(c => c.__g === FC2.tab), bar = r.querySelector(".fc2-bar");
+  bar.querySelector("span").textContent = "Download " + FC2.tab + " series";
+  const dlb = bar.querySelector("button"), canZip = inTab.some(x => String(x.fileUrl || "").indexOf("r2:") === 0);
+  dlb.style.display = canZip ? "" : "none";
+  dlb.onclick = async () => {
+    if (zipState.busy) { showToast("Another download is running. Please wait.", true); return; }
+    const iv = setInterval(() => { dlb.textContent = zipState.busy ? "Preparing " + zipState.done + "/" + zipState.total : "Download all"; dlb.disabled = zipState.busy; }, 300);
+    try { await downloadZip(inTab, "PPT " + FC2.tab + " flashcards"); } finally { clearInterval(iv); dlb.textContent = "Download all"; dlb.disabled = false; }
+  };
+  // chips
+  const cs = r.querySelector(".fc2-chips"); cs.innerHTML = "";
+  [["all", "All"], ["new", "New"], ["rev", "Revised"], ["star", "Starred"]].forEach(c => { const b = libEl("button", FC2.chip === c[0] ? "on" : "", c[1]); b.type = "button"; b.onclick = () => { FC2.chip = c[0]; fc2Paint(); }; cs.appendChild(b); });
+  // grid
+  fcLoadSaved();
+  const q = FC2.q.trim().toLowerCase(), gr = r.querySelector(".fc2-grid"); gr.innerHTML = "";
+  const names = []; inTab.forEach(c => { if (names.indexOf(c.__s) === -1) names.push(c.__s); });
+  let shown = 0;
+  names.forEach(n => {
+    const deck = seriesDeck("Series", n, lib.exam);
+    const list = deck.filter(it => {
+      if (q && (n + " " + it.title).toLowerCase().indexOf(q) === -1) return false;
+      if (FC2.chip === "new") return fc2IsNew(it);
+      if (FC2.chip === "rev") return fc2IsRevised(it);
+      if (FC2.chip === "star") return FC.saved.has(it.id);
+      return true;
+    });
+    if (!list.length) return;
+    const h = libEl("div", "fc2-sh"); h.appendChild(libEl("b", null, n));
+    const due = CARDS.loaded ? cardCounts(deck).due : 0;
+    const rv = libEl("button", null, due ? "Revise (" + due + ")" : "Study"); rv.type = "button"; rv.onclick = () => openDeck(deck, deck[0].id, n, due ? "revise" : undefined);
+    h.appendChild(libEl("span", null, deck.length + (deck.length === 1 ? " card" : " cards"))); h.appendChild(rv); gr.appendChild(h);
+    const g2 = libEl("div", "fc2-g2"); list.forEach(it => g2.appendChild(fc2Tile(it, deck))); gr.appendChild(g2); shown += list.length;
+  });
+  if (!shown) gr.appendChild(libEl("div", "lib-empty", q || FC2.chip !== "all" ? "No cards match this filter." : "No cards here yet. New cards appear as soon as they are added."));
+}
+function renderFlashcards(box) {
+  if (!seriesGroups("Series", "").length) { box.appendChild(libEl("div", "lib-empty", "No series yet. New series appear here as soon as they are added.")); return; }
+  const r = libEl("div", "fc2"); FC2.root = r;
+  const pr = libEl("div", "fc2-prog"); pr.appendChild(libEl("span", null, "Revised")); pr.appendChild(libEl("b", null, "…")); const u = document.createElement("u"); u.appendChild(document.createElement("i")); pr.appendChild(u); r.appendChild(pr);
+  r.appendChild(libEl("div", "fc2-today"));
+  r.appendChild(libEl("div", "fc2-tabs"));
+  const bar = libEl("div", "fc2-bar"); bar.appendChild(libEl("span")); const b = libEl("button", null, "Download all"); b.type = "button"; bar.appendChild(b); r.appendChild(bar);
+  const inp = document.createElement("input"); inp.type = "search"; inp.className = "fc2-q"; inp.placeholder = "Search cards"; inp.value = FC2.q; inp.setAttribute("aria-label", "Search cards");
+  inp.oninput = () => { FC2.q = inp.value; clearTimeout(FC2.qt); FC2.qt = setTimeout(fc2Paint, 200); };
+  r.appendChild(inp);
+  r.appendChild(libEl("div", "fc2-chips"));
+  r.appendChild(libEl("div", "fc2-grid"));
+  box.appendChild(r);
+  fc2Paint();
+  if (!CARDS.loaded) loadCards().then(fc2Paint);
 }
 
 function renderHeading() {

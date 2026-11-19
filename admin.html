@@ -777,6 +777,7 @@
       </div>
       <div class="card">
         <h3>Your series</h3>
+        <p class="hint">The first 2 cards of every series are shown free to signed-in visitors. This updates by itself.</p>
         <div id="sr_list"><p class="hint">Loading\u2026</p></div>
       </div>
     </div>
@@ -2190,6 +2191,30 @@ function groupCards(rows, tab) {
   return Object.keys(g).map(k => g[k]).sort((p, q) => natCompare(p.name, q.name));
 }
 
+// ---- Free cards: the first 2 released cards of every series are free for signed-in non-members.
+// Kept in the public doc sample/freecards. It updates by itself whenever the lists load. ----
+let FREECARDS_SIG = '';
+async function syncFreeCards(rows) {
+  try {
+    const now = Date.now(), g = {};
+    rows.forEach(x => {
+      if (x.tab !== 'Series' && x.tab !== 'Flashcards') return;
+      const n = seriesNameOf(x); if (!n || String(x.fileUrl || '').indexOf('r2:') !== 0 || !/\.(png|jpe?g|webp)$/i.test(String(x.fileUrl))) return;
+      const rel = x.releaseAt && x.releaseAt.toMillis ? x.releaseAt.toMillis() : 0; if (rel > now) return;
+      const k = n.toLowerCase(); (g[k] = g[k] || { name: n, rows: [] }).rows.push(x);
+    });
+    const series = Object.keys(g).map(k => g[k]).sort((p, q) => natCompare(p.name, q.name)).map(s => {
+      s.rows.sort((p, q) => (Number(p.seq) || (p.createdAt && p.createdAt.toMillis ? p.createdAt.toMillis() : 0)) - (Number(q.seq) || (q.createdAt && q.createdAt.toMillis ? q.createdAt.toMillis() : 0)) || natCompare(p.title, q.title));
+      return { name: s.name, total: s.rows.length, cards: s.rows.slice(0, 2).map(r => ({ key: String(r.fileUrl).slice(3), title: String(r.title || 'Card').slice(0, 80) })) };
+    });
+    const sig = JSON.stringify(series);
+    if (sig === FREECARDS_SIG) return;
+    const { db, doc, setDoc, serverTimestamp } = window.__fb;
+    await setDoc(doc(db, 'sample', 'freecards'), { series: series, count: series.length, updatedAt: serverTimestamp() });
+    FREECARDS_SIG = sig;
+  } catch (e) { console.error('free cards sync', e); }
+}
+
 // ---- Series ----
 const SR = { files: [] };
 function srAddFiles(list) {
@@ -2209,6 +2234,7 @@ async function loadSeriesAdmin() {
   const box = document.getElementById('sr_list');
   try {
     const rows = await readCardDocs(), groups = groupCards(rows, 'Series');
+    syncFreeCards(rows);
     const dl = document.getElementById('sr_names'); dl.innerHTML = '';
     groups.forEach(g => { const o = document.createElement('option'); o.value = g.name; dl.appendChild(o); });
     box.innerHTML = '';
@@ -4178,6 +4204,7 @@ async function loadResourcesList() {
     });
     rows.sort((a, b) => (b.t - a.t) || String(a.title).localeCompare(String(b.title), undefined, { numeric: true }));
     RLIST.rows = rows;
+    syncFreeCards(rows);
     RLIST.sel.clear();
     const ss = document.getElementById('l_subject');
     const keep = ss.value;
