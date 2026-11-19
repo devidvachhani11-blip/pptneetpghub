@@ -3769,7 +3769,7 @@ function fdFlashcards() {
   card.appendChild(fdEl("p", null, "2 cards from every series are free. View-only."));
   const ser = (FD.fc || []).filter(s => s.cards && s.cards.length);
   if (!ser.length) card.appendChild(fdEl("p", null, FD.fc === undefined ? "Loading…" : "New cards are coming soon."));
-  ["Medicine", "Pharmacology", "OBG"].forEach(gname => {
+  ["Medicine", "Pharmacology", "OBG", "Mixed"].forEach(gname => {
     ser.filter(s => fc2Group(s.name) === gname).forEach(s => {
       const h = fdEl("div", "fdc-h"); h.appendChild(fdEl("b", null, s.name)); h.appendChild(fdEl("small", null, gname + " · " + s.total + (s.total === 1 ? " card" : " cards"))); card.appendChild(h);
       const g = fdEl("div", "fdc-g");
@@ -6881,7 +6881,7 @@ function renderTiles(box, tabArg) {
 
 // ---------- Flashcards page (members): series grouped as Medicine / Pharmacology / OBG ----------
 const FC2 = { tab: "", chip: "all", q: "", thumbs: new Map(), queue: [], busy: 0, io: null, root: null };
-function fc2Group(name) { const n = String(name).toLowerCase().trim(); if (/^(medicine|med\b)/.test(n)) return "Medicine"; if (/^pharm/.test(n)) return "Pharmacology"; if (/^(obg|obstet|gyn)/.test(n)) return "OBG"; if (/pharm|drug/.test(n)) return "Pharmacology"; if (/obg|obstet|gyn/.test(n)) return "OBG"; return "Medicine"; }
+function fc2Group(name) { const n = String(name).toLowerCase().trim(); if (/^(medicine|med\b)/.test(n)) return "Medicine"; if (/^pharm/.test(n)) return "Pharmacology"; if (/^(obg|obstet|gyn)/.test(n)) return "OBG"; return "Mixed"; }
 function fc2Rel(it) { return it.releaseAt || it.t || 0; }
 function fc2IsNew(it) { const r = fc2Rel(it); return r > 0 && Date.now() - r < 3 * 86400000; }
 function fc2IsRevised(it) { const e = CARDS.map[it.id]; return !!(e && e[0] === 2); }
@@ -6932,7 +6932,7 @@ function fc2Tile(it, deck) {
 }
 function fc2Paint() {
   const r = FC2.root; if (!r || !r.isConnected) return;
-  const all = fc2Cards(), tabs = ["Medicine", "Pharmacology", "OBG"];
+  const all = fc2Cards(), tabs = ["Medicine", "Pharmacology", "OBG", "Mixed"];
   const cnt = {}; tabs.forEach(k => cnt[k] = 0); all.forEach(c => cnt[c.__g]++);
   if (!FC2.tab || !cnt[FC2.tab]) FC2.tab = tabs.find(k => cnt[k]) || "Medicine";
   // progress
