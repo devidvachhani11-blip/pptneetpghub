@@ -1294,7 +1294,7 @@
   .fc2-today .mini img, .fc2-card img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .25s; display: block; }
   .fc2-today .mini img.on, .fc2-card img.on { opacity: 1; }
   .fc2-tabs { display: flex; gap: 6px; margin-bottom: 10px; overflow-x: auto; }
-  .fc2-tabs button, .fc2-chips button { border: 1px solid var(--border); background: var(--white); color: var(--ink); border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .fc2-tabs button, .fc2-chips button { flex: 0 0 auto; border: 1px solid var(--border); background: var(--white); color: var(--ink); border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
   .fc2-tabs button.on { background: var(--navy); color: var(--gold-b); border-color: var(--navy); }
   .fc2-chips button.on { background: var(--gold-b); color: var(--navy); border-color: var(--gold-b); }
   .fc2-chips { display: flex; gap: 6px; margin: 8px 0 12px; overflow-x: auto; }
@@ -3769,9 +3769,10 @@ function fdFlashcards() {
   card.appendChild(fdEl("p", null, "2 cards from every series are free. View-only."));
   const ser = (FD.fc || []).filter(s => s.cards && s.cards.length);
   if (!ser.length) card.appendChild(fdEl("p", null, FD.fc === undefined ? "Loading…" : "New cards are coming soon."));
-  ["Medicine", "Pharmacology", "OBG", "Mixed"].forEach(gname => {
-    ser.filter(s => fc2Group(s.name) === gname).forEach(s => {
-      const h = fdEl("div", "fdc-h"); h.appendChild(fdEl("b", null, s.name)); h.appendChild(fdEl("small", null, gname + " · " + s.total + (s.total === 1 ? " card" : " cards"))); card.appendChild(h);
+  const sj = s => s.subject || fc2Group(s.name);
+  fc2Order(ser.map(sj).filter((k, i, a) => a.indexOf(k) === i)).forEach(gname => {
+    ser.filter(s => sj(s) === gname).forEach(s => {
+      const h = fdEl("div", "fdc-h"); h.appendChild(fdEl("b", null, s.name)); h.appendChild(fdEl("small", null, (gname === "Mixed" ? "Mix subjects" : gname) + " · " + s.total + (s.total === 1 ? " card" : " cards"))); card.appendChild(h);
       const g = fdEl("div", "fdc-g");
       s.cards.slice(0, 2).forEach(c => {
         const t = fdEl("div", "fdc-c"), im = document.createElement("img"); im.alt = c.title || "Card"; im.draggable = false; t.appendChild(im); t.appendChild(fdEl("i", null, "FREE"));
@@ -6561,6 +6562,7 @@ async function loadResourcesFromFirestore() {
         series: cardNow ? String(x.series || (tabNow === "Series" ? x.subject : "") || "").trim() : "",     // old subject-wise flashcards become a series named by their subject
         answer: typeof x.answer === "string" ? x.answer : "",
         seq: Number(x.seq) || 0,
+        fcSubject: typeof x.fcSubject === "string" ? x.fcSubject : "",
         title: x.title || "Untitled",
         meta: x.meta || "",
         type: x.type === "download" ? "download" : x.type === "test" ? "test" : "view",
@@ -6881,13 +6883,15 @@ function renderTiles(box, tabArg) {
 
 // ---------- Flashcards page (members): series grouped as Medicine / Pharmacology / OBG ----------
 const FC2 = { tab: "", chip: "all", q: "", thumbs: new Map(), queue: [], busy: 0, io: null, root: null };
-function fc2Group(name) { const n = String(name).toLowerCase().trim(); if (/^(medicine|med\b)/.test(n)) return "Medicine"; if (/^pharm/.test(n)) return "Pharmacology"; if (/^(obg|obstet|gyn)/.test(n)) return "OBG"; return "Mixed"; }
+function fc2Group(name) { const n = String(name).toLowerCase().trim(); const hit = SUBJECTS.concat(OTHER_SUBJECTS).find(k => n.indexOf(k.toLowerCase()) === 0); if (hit) return hit; if (/^med\b/.test(n)) return "Medicine"; if (/^(obstet|gyn)/.test(n)) return "OBG"; if (/^pharm/.test(n)) return "Pharmacology"; return "Mixed"; }
+function fc2Subj(deck, name) { const f = deck.find(x => x.fcSubject); return f ? f.fcSubject : fc2Group(name); }
+function fc2Order(found) { const base = SUBJECTS.concat(OTHER_SUBJECTS); const out = base.filter(k => found.indexOf(k) > -1); found.forEach(k => { if (k !== "Mixed" && out.indexOf(k) === -1) out.push(k); }); if (found.indexOf("Mixed") > -1) out.push("Mixed"); return out; }
 function fc2Rel(it) { return it.releaseAt || it.t || 0; }
 function fc2IsNew(it) { const r = fc2Rel(it); return r > 0 && Date.now() - r < 3 * 86400000; }
 function fc2IsRevised(it) { const e = CARDS.map[it.id]; return !!(e && e[0] === 2); }
 function fc2Cards() {
   const out = [];
-  seriesGroups("Series", "").forEach(g => seriesDeck("Series", g.name, lib.exam).forEach(it => { it.__g = fc2Group(g.name); it.__s = g.name; out.push(it); }));
+  seriesGroups("Series", "").forEach(g => seriesDeck("Series", g.name, lib.exam).forEach(it => { it.__g = fc2Subj(seriesDeck("Series", g.name, lib.exam), g.name); it.__s = g.name; out.push(it); }));
   return out;
 }
 function fc2Thumb(img, it) {
@@ -6932,8 +6936,9 @@ function fc2Tile(it, deck) {
 }
 function fc2Paint() {
   const r = FC2.root; if (!r || !r.isConnected) return;
-  const all = fc2Cards(), tabs = ["Medicine", "Pharmacology", "OBG", "Mixed"];
-  const cnt = {}; tabs.forEach(k => cnt[k] = 0); all.forEach(c => cnt[c.__g]++);
+  const all = fc2Cards(), cnt = {};
+  all.forEach(c => { cnt[c.__g] = (cnt[c.__g] || 0) + 1; });
+  const tabs = fc2Order(Object.keys(cnt));
   if (!FC2.tab || !cnt[FC2.tab]) FC2.tab = tabs.find(k => cnt[k]) || "Medicine";
   // progress
   const rev = all.filter(fc2IsRevised).length, pr = r.querySelector(".fc2-prog");
@@ -6950,10 +6955,10 @@ function fc2Paint() {
   }
   // tabs
   const tb = r.querySelector(".fc2-tabs"); tb.innerHTML = "";
-  tabs.forEach(k => { if (!cnt[k]) return; const b = libEl("button", FC2.tab === k ? "on" : "", k + " · " + cnt[k]); b.type = "button"; b.onclick = () => { FC2.tab = k; fc2Paint(); }; tb.appendChild(b); });
+  tabs.forEach(k => { if (!cnt[k]) return; const b = libEl("button", FC2.tab === k ? "on" : "", (k === "Mixed" ? "Mix subjects" : k) + " · " + cnt[k]); b.type = "button"; b.onclick = () => { FC2.tab = k; fc2Paint(); }; tb.appendChild(b); });
   // download bar
   const inTab = all.filter(c => c.__g === FC2.tab), bar = r.querySelector(".fc2-bar");
-  bar.querySelector("span").textContent = "Download " + FC2.tab + " series";
+  bar.querySelector("span").textContent = "Download " + (FC2.tab === "Mixed" ? "Mix subjects" : FC2.tab) + " series";
   const dlb = bar.querySelector("button"), canZip = inTab.some(x => String(x.fileUrl || "").indexOf("r2:") === 0);
   dlb.style.display = canZip ? "" : "none";
   dlb.onclick = async () => {

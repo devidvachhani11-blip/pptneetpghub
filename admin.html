@@ -763,6 +763,9 @@
         <label>Series name</label>
         <input type="text" id="sr_name" maxlength="60" list="sr_names" placeholder="e.g. Key Facts" autocomplete="off">
         <datalist id="sr_names"></datalist>
+        <label>Subject</label>
+        <select id="sr_subject"></select>
+        <p class="hint" style="margin-top:-4px">Choose the subject of this series. Choose "Mix subjects" for key facts or any series that covers many subjects. Members see the series under this subject.</p>
         <label>Card pictures</label>
         <input type="file" id="sr_files" class="file-inp" multiple accept=".png,.jpg,.jpeg,.webp">
         <p class="hint" id="sr_hint">Up to 10 MB each. PNG, JPG or WebP.</p>
@@ -2187,12 +2190,15 @@ function maxSeqOf(rows, tab, name) {
 }
 function groupCards(rows, tab) {
   const g = {};
-  rows.forEach(x => { if ((x.tab === 'Card Test' ? 'Card Test' : 'Series') !== tab) return; const n = seriesNameOf(x); if (!n) return; const k = n.toLowerCase(); (g[k] = g[k] || { name: n, ids: [], n: 0 }); g[k].ids.push(x.id); g[k].n++; });
+  rows.forEach(x => { if ((x.tab === 'Card Test' ? 'Card Test' : 'Series') !== tab) return; const n = seriesNameOf(x); if (!n) return; const k = n.toLowerCase(); (g[k] = g[k] || { name: n, ids: [], n: 0, subj: '' }); g[k].ids.push(x.id); g[k].n++; if (!g[k].subj && x.fcSubject) g[k].subj = x.fcSubject; });
   return Object.keys(g).map(k => g[k]).sort((p, q) => natCompare(p.name, q.name));
 }
 
 // ---- Free cards: the first 2 released cards of every series are free for signed-in non-members.
 // Kept in the public doc sample/freecards. It updates by itself whenever the lists load. ----
+function fcSubjectGuess(name) { const n = String(name || '').toLowerCase().trim(); const hit = KNOWN_SUBJECTS_ADMIN.find(k => n.indexOf(k.toLowerCase()) === 0); if (hit) return hit; if (/^med\b/.test(n)) return 'Medicine'; if (/^(obstet|gyn)/.test(n)) return 'OBG'; if (/^pharm/.test(n)) return 'Pharmacology'; return 'Mixed'; }
+function fcSubjectLabel(v) { return v === 'Mixed' ? 'Mix subjects' : v; }
+function fcFillSubjectSelect(sel, value) { sel.innerHTML = ''; subjectOptions(value).forEach(o => { const op = document.createElement('option'); op.value = Array.isArray(o) ? o[0] : o; op.textContent = Array.isArray(o) ? o[1] : o; sel.appendChild(op); }); sel.value = value || 'Mixed'; }
 let FREECARDS_SIG = '';
 async function syncFreeCards(rows) {
   try {
@@ -2205,7 +2211,8 @@ async function syncFreeCards(rows) {
     });
     const series = Object.keys(g).map(k => g[k]).sort((p, q) => natCompare(p.name, q.name)).map(s => {
       s.rows.sort((p, q) => (Number(p.seq) || (p.createdAt && p.createdAt.toMillis ? p.createdAt.toMillis() : 0)) - (Number(q.seq) || (q.createdAt && q.createdAt.toMillis ? q.createdAt.toMillis() : 0)) || natCompare(p.title, q.title));
-      return { name: s.name, total: s.rows.length, cards: s.rows.slice(0, 2).map(r => ({ key: String(r.fileUrl).slice(3), title: String(r.title || 'Card').slice(0, 80) })) };
+      const sj = (s.rows.find(r => r.fcSubject) || {}).fcSubject || fcSubjectGuess(s.name);
+      return { name: s.name, subject: sj, total: s.rows.length, cards: s.rows.slice(0, 2).map(r => ({ key: String(r.fileUrl).slice(3), title: String(r.title || 'Card').slice(0, 80) })) };
     });
     const sig = JSON.stringify(series);
     if (sig === FREECARDS_SIG) return;
@@ -2241,13 +2248,37 @@ async function loadSeriesAdmin() {
     if (!groups.length) { box.appendChild(mk('p', 'hint', 'No series yet. Upload your first cards above.')); return; }
     groups.forEach(g => {
       const r = mk('div', 'sr-item'), t = mk('div');
-      t.appendChild(mk('b', null, g.name)); t.appendChild(mk('span', null, g.n + (g.n === 1 ? ' card' : ' cards')));
-      const b = mk('button', null, 'Rename'); b.addEventListener('click', () => renameSeriesTo(g, 'Series'));
+      t.appendChild(mk('b', null, g.name)); t.appendChild(mk('span', null, fcSubjectLabel(g.subj || fcSubjectGuess(g.name)) + ' \u00B7 ' + g.n + (g.n === 1 ? ' card' : ' cards')));
+      const b = mk('button', null, 'Edit'); b.addEventListener('click', () => renameSeriesTo(g, 'Series'));
       r.appendChild(t); r.appendChild(b); box.appendChild(r);
     });
   } catch (e) { box.innerHTML = ''; box.appendChild(mk('p', 'hint', 'Could not load: ' + e.message)); }
 }
+function openSeriesEdit(g) {
+  const body = document.getElementById('edBody');
+  ED.mode = 'series'; ED.g = g;
+  body.appendChild(edField('Series name', edInput('e_sname', g.name)));
+  const sel = document.createElement('select'); sel.id = 'e_ssubj'; fcFillSubjectSelect(sel, g.subj || fcSubjectGuess(g.name));
+  body.appendChild(edField('Subject', sel));
+  body.appendChild(mk('p', 'hint', 'This changes all ' + g.n + (g.n === 1 ? ' card' : ' cards') + ' of the series. Card progress and saved stars stay as they are.'));
+  openEditModal('Edit series');
+}
+async function saveSeriesEdit() {
+  const g = ED.g, nn = document.getElementById('e_sname').value.replace(/\s+/g, ' ').trim(), sj = document.getElementById('e_ssubj').value || 'Mixed';
+  if (!nn) throw soft('The name cannot be empty.');
+  if (nn.length > 60) throw soft('Keep the name under 60 characters.');
+  const { db, doc, writeBatch } = window.__fb;
+  for (let i = 0; i < g.ids.length; i += 400) {
+    const b = writeBatch(db);
+    g.ids.slice(i, i + 400).forEach(id => b.update(doc(db, 'resources', id), { series: nn, tab: 'Series', fcSubject: sj }));
+    await b.commit();
+  }
+  FREECARDS_SIG = '';
+  showToast('\u2714 Saved: "' + nn + '" under ' + fcSubjectLabel(sj) + ' (' + g.n + ' cards).');
+  loadSeriesAdmin();
+}
 async function renameSeriesTo(g, tab) {
+  if (tab === 'Series') { openSeriesEdit(g); return; }
   const nn = (prompt('New name for "' + g.name + '":', g.name) || '').replace(/\s+/g, ' ').trim();
   if (!nn || nn === g.name) return;
   if (nn.length > 60) { showToast('Keep the name under 60 characters.', true); return; }
@@ -2268,11 +2299,14 @@ async function srUpload() {
   if (!SR.files.length) { showToast('Choose the card pictures first.', true); return; }
   if (!confirm('Add ' + SR.files.length + (SR.files.length === 1 ? ' card' : ' cards') + ' to the series "' + name + '"?')) return;
   const btn = document.getElementById('sr_upload'), st = document.getElementById('sr_status');
+  const subj = document.getElementById('sr_subject').value || 'Mixed';
   btn.disabled = true;
   try {
     const { db, collection, addDoc, serverTimestamp, Timestamp } = window.__fb;
     const rows = await readCardDocs();
     const base = Math.max(Date.now(), maxSeqOf(rows, 'Series', name) + 1);
+    const old = rows.filter(x => x.tab !== 'Card Test' && seriesNameOf(x).toLowerCase() === name.toLowerCase() && x.fcSubject !== subj);
+    if (old.length) { const { writeBatch, doc: dref } = window.__fb; for (let i = 0; i < old.length; i += 400) { const wb = writeBatch(db); old.slice(i, i + 400).forEach(x => wb.update(dref(db, 'resources', x.id), { fcSubject: subj })); await wb.commit(); } }
     const rel = relMs('sr_release');
     SR.files.forEach((f, i) => { if (f.__seq == null) f.__seq = base + i; });
     const todo = SR.files.slice(), failed = []; let done = 0, next = 0;
@@ -2283,7 +2317,7 @@ async function srUpload() {
           const key = await uploadToR2(f, name, () => {});
           await addDoc(collection(db, 'resources'), {
             subject: 'Series', exam: 'NEET PG', tab: 'Series', series: name, title: cleanCardTitle(f.name), meta: '',
-            type: 'download', fileUrl: 'r2:' + key, size: f.size, seq: f.__seq,
+            type: 'download', fileUrl: 'r2:' + key, size: f.size, seq: f.__seq, fcSubject: subj,
             releaseAt: rel ? Timestamp.fromMillis(rel) : null, createdAt: serverTimestamp()
           });
           done++; f.__done = true;
@@ -2552,6 +2586,8 @@ function initCards() {
   // Series
   document.getElementById('sr_files').addEventListener('change', (e) => { srAddFiles(e.target.files); e.target.value = ''; });
   document.getElementById('sr_upload').addEventListener('click', srUpload);
+  fcFillSubjectSelect(document.getElementById('sr_subject'), 'Mixed');
+  document.getElementById('sr_name').addEventListener('change', async () => { try { const nm = document.getElementById('sr_name').value.replace(/\s+/g, ' ').trim().toLowerCase(); if (!nm) return; const g = groupCards(await readCardDocs(), 'Series').find(x => x.name.toLowerCase() === nm); if (g) document.getElementById('sr_subject').value = g.subj || fcSubjectGuess(g.name); } catch (e) {} });
   document.getElementById('sr_clear').addEventListener('click', () => { SR.files = []; paintImgChips(SR, document.getElementById('sr_chips')); document.getElementById('sr_status').textContent = ''; srSizes(); });
   // Card Test
   document.getElementById('ct_files').addEventListener('change', (e) => { ctAdd(e.target.files); e.target.value = ''; });
@@ -3804,7 +3840,8 @@ async function saveEdit() {
   const btn = document.getElementById('edSave');
   ED.busy = true; btn.disabled = true; btn.textContent = 'Saving…';
   try {
-    if (ED.mode === 'card') await saveCardEdit();
+    if (ED.mode === 'series') await saveSeriesEdit();
+    else if (ED.mode === 'card') await saveCardEdit();
     else if (ED.mode === 'resource') await saveResourceEdit();
     else if (ED.mode === 'test') await saveTestEdit();
     else if (ED.mode === 'bulk') await saveBulkEdit();
