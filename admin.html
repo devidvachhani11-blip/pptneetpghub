@@ -4895,11 +4895,11 @@ async function loadHome() {
     fileEl.innerHTML = '';
     if (opens === null) { fileEl.appendChild(mk('div', 'empty', 'Open tracking is not available yet. Publish the new Firestore rules first.')); }
     else {
-      const op = {}; let students = 0;
+      const op = {}; let students = 0; const openedBy = new Set();
       opens.forEach(d => {
         const r = d.data().r || {}; let any = false;
         Object.keys(r).forEach(id => { const o = op[id] || (op[id] = { n: 0, s: 0 }); o.n += Number(r[id] && r[id].n) || 0; o.s++; any = true; });
-        if (any) students++;
+        if (any) { students++; openedBy.add(String(d.id).toLowerCase()); }
       });
       if (!students) { fileEl.appendChild(mk('div', 'empty', 'No data yet. Counting starts when students open files in the updated site.')); }
       else {
@@ -4914,6 +4914,13 @@ async function loadHome() {
         const never = cand.filter(x => !op[x.id]).sort((a, b) => String(a.subject).localeCompare(String(b.subject)) || String(a.title).localeCompare(String(b.title)));
         const least = cand.filter(x => op[x.id]).sort((a, b) => op[a.id].s - op[b.id].s || op[a.id].n - op[b.id].n).slice(0, 8);
         fileEl.appendChild(mk('p', 'hint', 'Based on ' + students + ' student' + (students === 1 ? '' : 's') + ' who opened something. Files newer than 7 days, scheduled files and flashcard decks are not listed.'));
+        // members who have not opened anything yet (live, ending soon or no end date)
+        const quiet = rows.filter(r => { const st = memStatus(r); return (st === 'live' || st === 'soon' || st === 'none') && !openedBy.has(String(r.email || r.id).toLowerCase()); });
+        fileEl.appendChild(mk('div', 'hm-sub', 'Members who opened nothing (' + quiet.length + ' of ' + active + ')'));
+        if (!quiet.length) fileEl.appendChild(mk('div', 'empty', 'Every active member has opened something.'));
+        quiet.slice(0, 40).forEach(r => { const row = mk('div', 'hm-row'), tx = mk('div', 'tx'); tx.appendChild(mk('b', null, r.name || r.email || r.id)); tx.appendChild(mk('span', null, r.name ? String(r.email || r.id) : '')); row.appendChild(tx); fileEl.appendChild(row); });
+        if (quiet.length > 40) fileEl.appendChild(mk('p', 'hint', '+ ' + (quiet.length - 40) + ' more.'));
+        fileEl.appendChild(mk('p', 'hint', 'Tracking started with the updated site. A member on an old cached copy, or who has not opened a file since, shows here.'));
         fileEl.appendChild(mk('div', 'hm-sub', 'Never opened (' + never.length + ')'));
         if (!never.length) fileEl.appendChild(mk('div', 'empty', 'Every file has been opened at least once.'));
         never.slice(0, 30).forEach(x => { const row = mk('div', 'hm-row'), tx = mk('div', 'tx'); tx.appendChild(mk('b', null, x.title || '—')); tx.appendChild(mk('span', null, (x.subject || '') + ' · ' + (x.tab || ''))); row.appendChild(tx); row.appendChild(mk('div', 'rt', '0 opens')); fileEl.appendChild(row); });
