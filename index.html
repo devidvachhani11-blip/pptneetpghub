@@ -2243,7 +2243,7 @@
       <a href="#faq">FAQ</a>
     </nav>
     <div class="l-actions">
-      <button class="btn-ghost-light sm" id="lhSignIn">Sign in</button>
+      <button class="btn-ghost-light sm" id="lhSignIn">Member Login</button>
       <button class="btn-gold sm" data-go="join">Go Premium</button>
       <div class="l-menu" id="lMenu">
         <button class="l-menu-btn" id="lMenuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="lMenuPanel">
@@ -2258,7 +2258,7 @@
           <a href="/counselling">Counselling</a>
           <a href="#faq">FAQ</a>
           <div class="sep"></div>
-          <button class="mi acct" id="menuSignIn">Member sign in</button>
+          <button class="mi acct" id="menuSignIn">Member Login</button>
         </div>
       </div>
     </div>
@@ -2398,8 +2398,7 @@
 <section class="hero" id="top">
   <div class="container">
     <img class="hero-logo" src="/logo-360.webp" width="360" height="360" alt="PPT Premium NEET PG logo: Pray, Patience, Trust">
-    <span class="tag">PPTNEETPGHUB PREMIUM</span>
-    <h1>Crack NEET PG 2027 <span>one phase at a time.</span></h1>
+        <h1>Crack NEET PG 2027 <span>one phase at a time.</span></h1>
     <p class="lede">Three phases. One payment. Complete preparation, step by step.</p>
     <p class="sub">Every resource, organised subject-wise on this website and released as you progress. INICET bonus resources included.</p>
     <div class="chips">
@@ -2420,6 +2419,21 @@
     </div>
     <div class="offer" id="offerBand"></div>
     <div class="hero-end"></div>
+  </div>
+</section>
+
+<section class="sec" id="phases" aria-label="Three phases">
+  <div class="container">
+    <div class="ph-wrap">
+      <div class="ph-intro"><div class="ph-k">YOUR NEET PG 2027 PLAN</div><h2>Climb one phase <em>at a time.</em></h2><p>Three phases. One payment. Every resource is released step by step, so you always know what to do next.</p><div class="ph-date"><b>Phase 1</b> planned to finish on <b>14 March 2027</b></div></div>
+      <div class="ph-cards" id="phCards">
+        <div class="ph-c on"><div class="ph-h"><div class="ph-s">PHASE 1 &middot; LIVE NOW</div><div class="ph-n">Foundation</div></div><div class="ph-b"><div class="ph-l">Basic level</div><ul><li>Basic resources, all subjects</li><li>Flashcards, mocks, practice pool</li><li>Daily practice, 3 basic GTs</li><li>PYT, most repeated questions</li></ul></div></div>
+        <div class="ph-c"><div class="ph-h"><div class="ph-s">PHASE 2 &middot; NEXT</div><div class="ph-n">Strengthen</div></div><div class="ph-b"><div class="ph-l">Moderate to hard</div><ul><li>Clinical practice</li><li>Image-based questions</li><li>Hardest-subject tips, special notes</li><li>Moderate GTs, hard mocks</li></ul></div></div>
+        <div class="ph-c"><div class="ph-h"><div class="ph-s">PHASE 3 &middot; NEXT</div><div class="ph-n">Final Sprint</div></div><div class="ph-b"><div class="ph-l">Last days</div><ul><li>Short copy of every subject</li><li>PPT Final Fire, 30 and 7-day revision</li><li>Hard practice pool</li><li>Mixed GTs, Final 100 Traps</li></ul></div></div>
+      </div>
+    </div>
+    <div class="ph-dots" id="phDots"><i class="on"></i><i></i><i></i></div>
+    <div class="ph-hint">Swipe to see all 3 phases &rarr;</div>
   </div>
 </section>
 
@@ -3946,8 +3960,8 @@ function updateView() {
   document.getElementById('libraryView').style.display = showLib ? 'block' : 'none';
   document.documentElement.classList.toggle('in-lib', showLib);
   if (authResolved && (!currentUser || membershipChecked)) document.body.classList.remove('booting');
-  document.getElementById('lhSignIn').textContent = currentUser ? 'Sign out' : 'Sign in';
-  document.getElementById('menuSignIn').textContent = currentUser ? 'Sign out' : 'Member sign in';
+  document.getElementById('lhSignIn').textContent = currentUser ? 'Sign out' : 'Member Login';
+  document.getElementById('menuSignIn').textContent = currentUser ? 'Sign out' : 'Member Login';
   try { fdSync(); } catch (e) { console.error('free space', e); }
   try { rdSync(); } catch (e) {}
   if (showLib) {
@@ -9288,5 +9302,184 @@ initLanding();
     <div class="rd-ft">Latest 3 drops. Tap one to see it in Premium.</div>
   </div>
 </div>
+<style id="redesign-2026">
+/* ===== 2026 redesign layer: navy / gold / white. Only visual overrides, no behaviour. ===== */
+#landingView{--rn:#0B1530;--rg:#C9A24A;--rg2:#E6C77A;--rc:#FBF8F1;background:#fff!important}
+#landingView .l-header,.l-header{background:#000F36!important}
+/* ---------- HERO ---------- */
+#landingView .hero{background:linear-gradient(90deg,#001544 0,rgba(0,21,68,.93) 34%,rgba(0,21,68,0) 62%),url(/hero-art.webp) 100% 0/auto 100% no-repeat,#001544!important;border-radius:0!important;padding:46px 0 0!important}
+#landingView .hero .tag{display:none!important}
+#landingView .hero .container>*{max-width:610px}
+#landingView .hero-logo{position:static!important;width:104px!important;height:104px!important;margin:0 0 4px!important}
+#landingView .hero h1{font-size:62px!important;line-height:1.08!important;max-width:620px!important;margin:18px 0 16px!important}
+#landingView .hero h1 span{color:var(--rg2)!important;font-style:italic}
+#landingView .hero .lede{font-size:17.5px!important;max-width:none!important;white-space:nowrap}
+#landingView .hero .sub{font-size:14.5px!important;color:#B6C3DD!important;max-width:540px!important}
+#landingView .hero .chip{border:1px solid rgba(230,199,122,.5)!important;background:rgba(230,199,122,.08)!important;color:var(--rg2)!important}
+#landingView .stats{margin:26px 0 0!important;display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:12px!important}
+#landingView .stat{background:rgba(255,255,255,.07)!important;border:1px solid rgba(230,199,122,.3)!important;border-radius:14px!important;color:#fff!important;box-shadow:none!important}
+#landingView .stat b{color:#fff!important}#landingView .stat span{color:#B6C3DD!important}
+#landingView .offer{order:8!important;margin:22px 0 0!important}
+#landingView .hero .container{padding-bottom:50px!important}
+#landingView .hero-end{display:none!important}
+/* ---------- PHASES (new) ---------- */
+#landingView #phases{background:radial-gradient(ellipse at 50% 0,#FFF8E6,#fff 62%);padding:84px 0 80px}
+#landingView #phases .ph-wrap{display:grid;grid-template-columns:1fr 1.9fr;gap:60px;align-items:end}
+#landingView #phases .ph-k{font-size:12px;font-weight:700;letter-spacing:.2em;color:#B8902F}
+#landingView #phases h2{font-family:var(--lora,Lora,serif);font-size:50px;line-height:1.1;font-weight:600;color:var(--rn);margin:14px 0 16px}
+#landingView #phases h2 em{color:#B8902F}
+#landingView #phases .ph-intro p{font-size:16px;line-height:1.6;color:#5C6478}
+#landingView #phases .ph-date{margin-top:22px;display:inline-block;border:1px solid #E8DFC8;border-radius:12px;padding:12px 16px;font-size:13.5px;color:#5C6478;background:#fff}
+#landingView #phases .ph-date b{color:var(--rn)}
+#landingView #phases .ph-cards{display:flex;gap:22px;align-items:flex-end}
+#landingView #phases .ph-c{flex:1;background:#fff;border:1px solid #EADFC2;border-radius:22px;overflow:hidden;box-shadow:0 18px 44px rgba(11,21,48,.12)}
+#landingView #phases .ph-c:nth-child(1){min-height:400px}#landingView #phases .ph-c:nth-child(2){min-height:455px}#landingView #phases .ph-c:nth-child(3){min-height:510px}
+#landingView #phases .ph-h{padding:22px 26px;background:linear-gradient(135deg,#F4EEDC,#FAF6EA);color:var(--rn)}
+#landingView #phases .ph-c.on .ph-h{background:linear-gradient(135deg,#0B1530,#1B2E66);color:#fff}
+#landingView #phases .ph-s{font-size:11px;letter-spacing:.18em;font-weight:700;color:#8A7A4A}#landingView #phases .ph-c.on .ph-s{color:var(--rg2)}
+#landingView #phases .ph-n{font-family:var(--lora,Lora,serif);font-size:26px;font-weight:600;line-height:1.2;white-space:nowrap}
+#landingView #phases .ph-b{padding:12px 26px 24px}
+#landingView #phases .ph-l{font-size:13px;font-weight:700;color:#8A7A4A;margin-top:12px;letter-spacing:.06em;text-transform:uppercase}
+#landingView #phases .ph-b ul{list-style:none;margin:0;padding:0}
+#landingView #phases .ph-b li{display:flex;gap:10px;margin-top:11px;font-size:14.5px;line-height:1.5;color:#3C455C}
+#landingView #phases .ph-b li:before{content:"✓";color:#B8902F;font-weight:800;flex:none}
+#landingView #phases .ph-dots,#landingView #phases .ph-hint{display:none}
+/* ---------- FREE HUB ---------- */
+#landingView #freeHub{background:radial-gradient(ellipse at 50% 0,#1B2E66 0,#0B1530 62%)!important;padding:80px 0!important}
+#landingView #freeHub .container{display:grid;grid-template-columns:1fr 1.1fr;gap:20px 56px;align-items:start}
+#landingView #freeHub .fh-head{grid-column:1;grid-row:1;display:block!important}
+#landingView #freeHub .fh-head h2{font-family:var(--lora,Lora,serif)!important;font-size:54px!important;line-height:1.1!important;color:#fff!important;font-weight:600!important}
+#landingView #freeHub .fh-head span{display:block;font-size:12px!important;font-weight:700;letter-spacing:.2em;color:var(--rg2)!important;margin-bottom:12px;background:none!important;border:0!important;padding:0!important;text-transform:uppercase}
+#landingView #freeHub .fh-login{grid-column:1;grid-row:2;background:none!important;border:0!important;padding:0!important;box-shadow:none!important}
+#landingView #freeHub .fh-lead{color:var(--rg2)!important}
+#landingView #freeHub .fh-list li span{color:#B9C2DC!important}
+#landingView #freeHub .fh-grid{grid-column:2;grid-row:1/3;background:#FBF8F1;border:2px solid var(--rg2);border-radius:26px;padding:30px;box-shadow:0 40px 80px rgba(0,0,0,.4)}
+#landingView #freeHub .fh-note{grid-column:2;color:#B9C2DC!important}
+#landingView #homeInstallSec{background:#0B1530!important;padding:0 0 70px!important}
+#landingView #homeInstallSec .sample-box{background:#fff!important;border:1px solid #E8DFC8!important;border-radius:22px!important;max-width:900px;margin:0 auto}
+/* ---------- THE PPT WAY ---------- */
+#landingView #clinical{background:#fff!important;padding:84px 0 40px!important}
+#landingView #clinical .wine-box{background:none!important;border:0!important;box-shadow:none!important;color:var(--rn)!important;padding:0!important}
+#landingView #clinical .wine-tag{background:none!important;border:0!important;color:#B8902F!important;letter-spacing:.2em;padding:0!important}
+#landingView #clinical .wine-box h2{color:var(--rn)!important;font-size:50px!important;line-height:1.12!important;max-width:760px}
+#landingView #clinical .wine-lead{color:#5C6478!important;font-size:17px!important;max-width:620px}
+#landingView #clinical .wine-list li{background:none!important;border:0!important;border-top:1px solid #E8DFC8!important;border-radius:0!important;padding:22px 0!important;display:grid!important;grid-template-columns:330px 1fr;gap:20px;align-items:center;box-shadow:none!important}
+#landingView #clinical .wine-list li b{font-family:var(--lora,Lora,serif);font-size:24px!important;font-weight:600;color:var(--rn)!important}
+#landingView #clinical .wine-list li span{color:#5C6478!important;font-size:15.5px!important}
+#landingView #clinical .wine-list li:before,#landingView #clinical .wine-list li:after{display:none!important}
+#landingView #clinical .wine-path span{background:#fff!important;color:var(--rn)!important;border:1px solid #EADFC2!important}
+#landingView #clinical .wine-path span:nth-of-type(2){background:#F7EFD6!important;color:#7B6A3A!important}
+#landingView #clinical .wine-path span:nth-of-type(3){background:linear-gradient(180deg,#E8C97B,#C9A24A)!important;color:var(--rn)!important;border:0!important}
+#landingView #clinical .wine-foot{color:#5C6478!important}
+/* ---------- RULES / COUNSELLING / TIPS ---------- */
+#landingView #rules{background:#F6F1E4!important;padding:60px 0 20px!important}
+#landingView #rules .rule-box{background:radial-gradient(ellipse at 50% 0,#1B2E66 0,#0B1530 62%)!important;color:#fff!important;border:0!important;border-radius:28px!important;padding:40px 44px!important}
+#landingView #rules .rule-box h2{color:#fff!important;font-family:var(--lora,Lora,serif)}
+#landingView #rules .rule-box li b{color:#fff!important}#landingView #rules .rule-box li p{color:#B9C2DC!important}
+#landingView #rules .rn{background:linear-gradient(180deg,#E8C97B,#C9A24A)!important;color:var(--rn)!important;border-radius:50%!important}
+#landingView #rules .rule-foot{color:var(--rg2)!important;letter-spacing:.35em;text-transform:uppercase}
+#landingView #restartSec{background:#F6F1E4!important;padding:20px 0 0!important}
+#landingView #restartSec .rb-ban{background:linear-gradient(160deg,#F3DD9B,#C9A24A)!important;border:0!important;border-radius:28px!important;color:var(--rn)!important;padding:42px 40px!important;box-shadow:none!important}
+#landingView #restartSec .rb-k{color:#0B1530!important;opacity:.7;letter-spacing:.2em}#landingView #restartSec .rb-t{color:var(--rn)!important;font-family:var(--lora,Lora,serif);font-size:34px!important;line-height:1.2}
+#landingView #restartSec .rb-p{color:#2B2A1E!important}
+#landingView #restartSec .rb-b{background:var(--rn)!important;color:var(--rg2)!important;border-radius:12px!important;padding:14px 26px!important;display:inline-block;font-weight:700}
+#landingView #tips{background:#F6F1E4!important;padding:20px 0 60px!important}
+#landingView #tips .sec-head h2{font-family:var(--lora,Lora,serif)!important;color:var(--rn)!important}
+#landingView #tips .upd{background:#fff!important;border:1px solid #E8DFC8!important;border-radius:18px!important;box-shadow:none!important}
+#landingView #tips .upd .pill{background:#F7EFD6!important;color:#8A6A12!important;border-radius:999px!important}
+#landingView #tips .upd-more{color:#B8902F!important;font-weight:700}
+/* ---------- LIMITED + PRICING ---------- */
+#landingView #pricing{background:#fff!important;padding:70px 0 40px!important}
+#landingView #pricing .ltd{background:radial-gradient(ellipse at 50% 0,#1B2E66 0,#0B1530 62%)!important;color:#fff!important;border:1px solid rgba(230,199,122,.3)!important;border-radius:28px!important}
+#landingView #pricing .ltd .n{background:linear-gradient(180deg,#F3DD9B,#C9A24A);-webkit-background-clip:text;background-clip:text;color:transparent!important}
+#landingView #pricing .ltd h3{font-family:var(--lora,Lora,serif)}#landingView #pricing .ltd h3 em{color:var(--rg2)!important}
+#landingView #pricing .sec-head h2{font-family:var(--lora,Lora,serif)!important;font-size:48px!important;color:var(--rn)!important}
+#landingView #pricing .note-blue{background:#FBF8F1!important;border:1px solid #E8DFC8!important;border-left:4px solid var(--rg)!important;border-radius:14px!important;color:#3C455C!important}
+#landingView #pricing .note-blue b{color:var(--rn)!important}
+#landingView #pricing .ladder{display:flex!important;gap:30px!important;margin-top:40px!important}
+#landingView #pricing .ladder .lr{flex:1;background:#fff!important;border:0!important;box-shadow:none!important;text-align:center;display:block!important;position:relative;padding-top:34px!important}
+#landingView #pricing .ladder .lr:before{content:"";position:absolute;top:0;left:50%;width:22px;height:22px;margin-left:-11px;border-radius:50%;background:#fff;border:3px solid #D8C896}
+#landingView #pricing .ladder .lr.now:before{background:var(--rg);border-color:var(--rg);box-shadow:0 0 0 8px rgba(201,162,74,.25)}
+#landingView #pricing .ladder .lr:after{content:"";position:absolute;top:10px;left:50%;width:100%;height:3px;background:#E8DFC8;z-index:-1}
+#landingView #pricing .ladder .lr:last-child:after{display:none}
+#landingView #pricing .ladder .lr .p{font-family:var(--lora,Lora,serif);font-size:64px!important;font-weight:600;color:#A9A28C!important;line-height:1.1}
+#landingView #pricing .ladder .lr.now .p{font-size:84px!important;color:var(--rn)!important}
+#landingView #pricing .ladder .lr b{color:var(--rn)!important}
+#landingView #pricing .ladder .lr .tg{display:block;color:#B8902F!important;background:none!important;letter-spacing:.12em;font-weight:700;margin-bottom:4px}
+#landingView #pricing .rise{color:#8A7A4A!important;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+#landingView #pricing .cta-dark{background:linear-gradient(120deg,#F3DD9B,#C9A24A)!important;color:var(--rn)!important;border:0!important;border-radius:0!important;box-shadow:none!important;display:flex;justify-content:space-between;align-items:center;gap:40px;padding:50px 60px!important;margin:50px calc(50% - 50vw) 0!important;width:auto;text-align:left!important}
+#landingView #pricing .cta-dark h3{color:var(--rn)!important;font-family:var(--lora,Lora,serif);font-size:42px!important}
+#landingView #pricing .cta-dark p{color:#2B2A1E!important;max-width:640px}
+#landingView #pricing .cta-dark .btn-gold{background:var(--rn)!important;color:var(--rg2)!important;box-shadow:none!important;white-space:nowrap}
+/* ---------- JOIN steps + FAQ ---------- */
+#landingView #join{background:#FBF8F1!important}
+#landingView #join .sec-head h2,#landingView #faq .sec-head h2{font-family:var(--lora,Lora,serif)!important;color:var(--rn)!important;font-size:46px!important}
+#landingView #join .steps .sn{background:#fff!important;border:2px solid #D8C896!important;color:#8A7A4A!important}
+#landingView #join .steps .active .sn,#landingView #join .steps .done .sn{background:linear-gradient(180deg,#E8C97B,#C9A24A)!important;border-color:transparent!important;color:var(--rn)!important}
+#landingView #join .join-card{background:#fff!important;border:1px solid #E8DFC8!important;border-radius:24px!important;box-shadow:0 20px 50px rgba(11,21,48,.08)!important}
+#landingView #faq{background:#fff!important}
+#landingView #faq details{background:#fff!important;border:1px solid #E8DFC8!important;border-radius:16px!important;box-shadow:0 6px 18px rgba(11,21,48,.05)!important}
+#landingView #faq summary{color:var(--rn)!important;font-weight:700}
+.l-footer{background:radial-gradient(ellipse at 50% 0,#1B2E66 0,#0B1530 62%)!important;border-top:1px solid rgba(230,199,122,.25)!important}
+.btn-gold,.btn.btn-gold{background:linear-gradient(180deg,#E8C97B,#C9A24A)!important;color:#0B1530!important}
+#cardSliderSec{display:none!important}
+/* ---------- MOBILE ---------- */
+@media (max-width:899px){
+ #landingView .hero{background:#001544!important;padding:300px 0 0!important}
+ #landingView .hero:before{content:"";position:absolute;top:0;left:0;right:0;height:320px;background:url(/hero-art.webp) 80% 14%/auto 380px no-repeat;-webkit-mask-image:linear-gradient(180deg,#000 70%,transparent);mask-image:linear-gradient(180deg,#000 70%,transparent)}
+ #landingView .hero .container{position:relative}
+ #landingView .hero-logo{display:none!important}
+ #landingView .hero h1{font-size:36px!important}
+ #landingView .hero .lede{font-size:16px!important;white-space:normal}
+ #landingView .stats{grid-template-columns:repeat(4,1fr)!important;gap:8px!important}
+ #landingView .hero .container>*{max-width:none}
+ #landingView #phases{padding:44px 0 40px}
+ #landingView #phases .ph-wrap{display:block}
+ #landingView #phases h2{font-size:34px}
+ #landingView #phases .ph-cards{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:14px;margin:26px -18px 0;padding:0 18px 8px;align-items:stretch;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+ #landingView #phases .ph-cards::-webkit-scrollbar{display:none}
+ #landingView #phases .ph-c{flex:0 0 292px;scroll-snap-align:start;min-height:0!important}
+ #landingView #phases .ph-h{padding:18px 20px}#landingView #phases .ph-n{font-size:23px}#landingView #phases .ph-b{padding:10px 20px 18px}
+ #landingView #phases .ph-dots{display:flex;justify-content:center;gap:8px;margin-top:14px}
+ #landingView #phases .ph-dots i{width:8px;height:8px;border-radius:8px;background:#E3D9BB;transition:.2s}
+ #landingView #phases .ph-dots i.on{width:26px;background:#C9A24A}
+ #landingView #phases .ph-hint{display:block;text-align:center;font-size:12px;color:#8A7A4A;margin-top:10px;font-weight:600}
+ #landingView #freeHub{padding:44px 0!important}
+ #landingView #freeHub .container{display:block}
+ #landingView #freeHub .fh-head h2{font-size:38px!important;margin-bottom:22px!important}
+ #landingView #freeHub .fh-grid{margin-top:26px;padding:18px;border-radius:22px}
+ #landingView #clinical{padding:44px 0 20px!important}
+ #landingView #clinical .wine-box h2{font-size:34px!important}
+ #landingView #clinical .wine-list li{grid-template-columns:1fr;gap:6px;padding:16px 0!important}
+ #landingView #clinical .wine-list li b{font-size:19px!important}
+ #landingView #rules .rule-box{padding:26px 22px!important}
+ #landingView #restartSec .rb-ban{padding:28px 22px!important}#landingView #restartSec .rb-t{font-size:27px!important}
+ #landingView #pricing{padding:44px 0 0!important}
+ #landingView #pricing .sec-head h2{font-size:36px!important}
+ #landingView #pricing .ladder{display:grid!important;gap:12px!important}
+ #landingView #pricing .ladder .lr{display:flex!important;align-items:center;gap:16px;text-align:left;padding:16px 18px 16px 54px!important;background:#FBF8F1!important;border:1px solid #EADFC2!important;border-radius:18px!important}
+ #landingView #pricing .ladder .lr.now{background:#0B1530!important}#landingView #pricing .ladder .lr.now b,#landingView #pricing .ladder .lr.now em{color:#fff!important}
+ #landingView #pricing .ladder .lr:before{top:50%;left:18px;margin:-9px 0 0;width:18px;height:18px}
+ #landingView #pricing .ladder .lr:after{display:none}
+ #landingView #pricing .ladder .lr .p{font-size:36px!important;width:122px;flex:none}#landingView #pricing .ladder .lr.now .p{font-size:44px!important;color:#E6C77A!important}
+ #landingView #pricing .cta-dark{display:block;padding:36px 18px!important}
+ #landingView #pricing .cta-dark h3{font-size:32px!important}
+}
+
+
+#landingView #freeHub .fh-list b{color:#fff!important}
+#landingView .stats .stat{background:rgba(255,255,255,.07)!important;border:1px solid rgba(230,199,122,.3)!important}
+#landingView .stats .stat b{color:#fff!important}#landingView .stats .stat span{color:#B6C3DD!important}
+#landingView{overflow-x:clip}
+#landingView #pricing .ladder{flex-direction:row!important;flex-wrap:nowrap!important;align-items:flex-start!important}
+#landingView #pricing .cta-dark h3 span,#landingView #pricing .cta-dark h3 em{color:#0B1530!important}
+.l-footer p{display:flex;flex-wrap:wrap;justify-content:center}.l-footer p a{white-space:nowrap}
+#landingView .hero .btn-ghost-light{background:rgba(0,21,68,.78)!important;backdrop-filter:blur(4px)}
+.l-footer p.foot-c{display:block}
+#landingView #freeHub .fh-head{display:flex!important;flex-direction:column-reverse;text-align:left!important;align-items:flex-start}
+#landingView .stats{background:none!important;box-shadow:none!important;border:0!important;padding:0!important}
+@media (max-width:899px){#landingView #pricing .ladder{flex-direction:column!important;align-items:stretch!important}}
+</style>
+<script>(function(){var c=document.getElementById('phCards'),d=document.getElementById('phDots');if(!c||!d)return;c.addEventListener('scroll',function(){var w=c.firstElementChild?c.firstElementChild.offsetWidth+14:1,i=Math.round(c.scrollLeft/w);[].forEach.call(d.children,function(x,k){x.className=k===i?'on':''})},{passive:true});})();</script>
 </body>
 </html>
