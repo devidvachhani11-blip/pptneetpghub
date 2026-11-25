@@ -378,6 +378,19 @@ function soonRoute(request, env, url) {
 function fsEq(field, value) {
   return { fieldFilter: { field: { fieldPath: field }, op: 'EQUAL', value: typeof value === 'boolean' ? { booleanValue: value } : { stringValue: value } } };
 }
+function parseRankerVideos(fv, legacy) {
+  const out = [];
+  const vals = (fv && fv.arrayValue && fv.arrayValue.values) || [];
+  vals.forEach(v => {
+    const m = (v.mapValue && v.mapValue.fields) || {};
+    const g = (k) => (m[k] && m[k].stringValue) || '';
+    const url = g('url');
+    if (url && ytInfo(url)) out.push({ url, type: g('type') === 'short' ? 'short' : g('type') === 'long' ? 'long' : '', label: g('label').slice(0, 60) });
+  });
+  if (!out.length && legacy && ytInfo(legacy)) out.push({ url: legacy, type: '', label: '' });
+  return out.slice(0, 15);
+}
+function rvCount(n) { return (n.rankerVideos || []).filter(v => { const y = ytInfo(v.url); return y && y.video; }).length; }
 function decodeNews(doc) {
   const f = doc.fields || {};
   const s = (k) => (f[k] && f[k].stringValue !== undefined ? f[k].stringValue : '');
@@ -391,6 +404,10 @@ function decodeNews(doc) {
     rankerName: s('rankerName'), rankerRank: s('rankerRank'), rankerYear: s('rankerYear'), rankerInsta: s('rankerInsta'), rankerYoutube: s('rankerYoutube'), faq: s('faq'),
     updatedAt: t('updatedAt') || t('createdAt') || (date ? date + 'T00:00:00Z' : '')
   };
+  // A ranker can have up to 15 YouTube links (newest first). Old items with one link keep working.
+  n.rankerVideos = parseRankerVideos(f.rankerVideos, n.rankerYoutube);
+  const pv = n.rankerVideos.find(v => { const y = ytInfo(v.url); return y && y.video; }) || n.rankerVideos[0];
+  n.rankerYoutube = pv ? pv.url : n.rankerYoutube;
   // Which page it belongs to: news, counselling or tips. Older items without the field are sorted by their type and category.
   const raw = s('section');
   if (n.type === 'tip' || raw === 'tips') n.section = 'tips';
@@ -815,7 +832,7 @@ function rankerSlider(list) {
     const yt = ytInfo(n.rankerYoutube);
     const top = n.rankerName ? '<div class="rtop">' + rvRank(n.rankerRank) + '<div class="nm"><small>TIP BY</small><h3>' + h(n.rankerName) + '</h3>' + (n.rankerYear ? '<em>NEET PG ' + h(n.rankerYear) + '</em>' : '') + '</div></div>' : '';
     return '<a class="rc" href="' + pathOf(n) + '">' + top + '<span class="tt">' + h(n.title) + '</span><span class="sm">' + h(clip(n.summary, 130)) + '</span>' +
-      '<span class="fo">' + (yt && yt.video ? '<span class="vchip"><i>&#9654;</i> Video</span>' : '<span class="rd">Read tip</span>') + '<span class="go">&rarr;</span></span></a>';
+      '<span class="fo">' + (yt && yt.video ? '<span class="vchip"><i>&#9654;</i> ' + (rvCount(n) > 1 ? rvCount(n) + ' videos' : 'Video') + '</span>' : '<span class="rd">Read tip</span>') + '<span class="go">&rarr;</span></span></a>';
   }).join('');
   return '<div class="rs" id="rks"><div class="rsh"><span class="crown">' + RV_CROWN + '</span><div><b>Ranker Vault</b><small>How toppers prepared</small></div><a class="all" href="/rankers">View all &rarr;</a></div>' +
     '<div class="slw"><button class="slb p" type="button" aria-label="Previous">&#8249;</button><div class="sl" id="rksl">' + cards + '</div><button class="slb n" type="button" aria-label="Next">&#8250;</button></div>' +
@@ -1356,7 +1373,7 @@ function rvRank(r) {
   const m = r.match(/^(?:AIR|Rank)?[\s\-:#.]*(\d{1,6})$/i);
   return m ? '<span class="rv-rk"><small>AIR</small><b>' + h(m[1]) + '</b></span>' : '<span class="rv-rk t"><b>' + h(clip(r, 18)) + '</b></span>';
 }
-const RV_CSS = '.rv{--g:#D4AF55;--g2:#EACF85;background:#07101f radial-gradient(120% 40% at 100% 0%,#1d3f7c66,transparent 70%);border-radius:28px;padding:22px 16px 22px;color:#fff;margin:8px 0 18px;box-shadow:0 18px 40px -20px #000}' +
+let RV_CSS = '.rv{--g:#D4AF55;--g2:#EACF85;background:#07101f radial-gradient(120% 40% at 100% 0%,#1d3f7c66,transparent 70%);border-radius:28px;padding:22px 16px 22px;color:#fff;margin:8px 0 18px;box-shadow:0 18px 40px -20px #000}' +
   '.rv *{box-sizing:border-box}.rv a{text-decoration:none;color:inherit}' +
   '.rv .rv-crown{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#D4AF55,#EACF85);display:grid;place-items:center;box-shadow:0 10px 26px -8px #D4AF55aa}.rv .rv-crown svg{width:28px;height:28px;fill:#0A1830}' +
   '.rv .rv-kick{display:block;margin-top:14px;font-size:10.5px;font-weight:600;letter-spacing:2px;color:var(--g2)}' +
@@ -1388,7 +1405,14 @@ const RV_CSS = '.rv{--g:#D4AF55;--g2:#EACF85;background:#07101f radial-gradient(
   '.rv .rv-none{color:#b8c6e0;margin:20px 4px 0}' +
   '.rv.rv-box{padding:16px 14px;margin:18px 0}.rv.rv-box .rv-card{padding:14px}.rv.rv-box .rv-top{margin-bottom:0}' +
   '@media(min-width:720px){.rv{padding:28px 26px}.rv .rv-feat{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:center}.rv .rv-feat .rv-vid{margin-top:0}}';
-const RV_JS = '<script>document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest(".rv-vid[data-id]");if(!a)return;e.preventDefault();var f=document.createElement("iframe");f.src="https://www.youtube-nocookie.com/embed/"+a.getAttribute("data-id")+"?autoplay=1&rel=0";f.allow="autoplay; encrypted-media; picture-in-picture; fullscreen";f.setAttribute("allowfullscreen","");f.title="Video explanation";f.className="rv-if";a.replaceWith(f);});</script>';
+RV_CSS += '.rv .rv-more{margin-top:16px;position:relative}.rv .rv-lbl2{font-size:10.5px;letter-spacing:1.6px;font-weight:600;color:var(--g2);margin-bottom:10px}.rv .rv-mg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}.rv .rv-mv{display:block}' +
+  '.rv .rv-mt{display:block;position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#0b1a33;border:1px solid rgba(212,175,85,.25)}.rv .rv-mt img{width:100%;height:100%;object-fit:cover;display:block}' +
+  '.rv .rv-mt .rv-play{width:34px;height:24px;border-radius:8px}.rv .rv-mt .rv-play:after{border-left-width:9px;border-top-width:5px;border-bottom-width:5px;margin-left:3px}' +
+  '.rv .rv-ty{position:absolute;left:6px;top:6px;font-size:9.5px;font-weight:700;letter-spacing:.8px;padding:3px 8px;border-radius:999px;background:#D4AF55;color:#0A1830}.rv .rv-ty.long{background:#fff}' +
+  '.rv .rv-mv b{display:block;font-size:12px;line-height:1.3;margin-top:6px;color:#fff;font-weight:600}' +
+  '.rv .rv-all{width:100%;margin-top:2px;background:rgba(255,255,255,.07);border:1px solid rgba(212,175,85,.4);color:var(--g2);border-radius:14px;padding:11px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}' +
+  '@media(min-width:720px){.rv .rv-mg{grid-template-columns:repeat(3,1fr)}}';
+const RV_JS = '<script>document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest(".rv-vid[data-id]");if(!a)return;e.preventDefault();var f=document.createElement("iframe");f.src="https://www.youtube-nocookie.com/embed/"+a.getAttribute("data-id")+"?autoplay=1&rel=0";f.allow="autoplay; encrypted-media; picture-in-picture; fullscreen";f.setAttribute("allowfullscreen","");f.title="Video explanation";f.className="rv-if";a.replaceWith(f);});document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest(".rv-all");if(!b)return;var m=b.parentNode.querySelector(".rv-hid");if(m)m.style.display="grid";b.remove();});</script>';
 const RV_CROWN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z"/></svg>';
 function rvThumb(yt, name) {
   return '<img src="https://i.ytimg.com/vi/' + yt.id + '/hqdefault.jpg" alt="' + h((name ? name + ': ' : '') + 'video explanation') + '" loading="lazy" width="480" height="270">';
@@ -1404,11 +1428,23 @@ function rvLinks(n, yt) {
 function rvPerson(n) {
   return '<div class="rv-top">' + rvRank(n.rankerRank) + '<div class="rv-nm"><small>TIP BY</small><h3>' + h(n.rankerName) + '</h3>' + (n.rankerYear ? '<em>NEET PG ' + h(n.rankerYear) + '</em>' : '') + '</div></div>';
 }
+function rvMore(n, primary) {
+  const items = (n.rankerVideos || []).map(v => Object.assign({ yt: ytInfo(v.url) }, v))
+    .filter(x => x.yt && x.yt.video && !(primary && primary.video && x.yt.id === primary.id));
+  if (!items.length) return '';
+  const tile = (x) => '<a class="rv-mv" href="' + h(x.yt.url) + '" target="_blank" rel="noopener nofollow"><span class="rv-mt">' + rvThumb(x.yt, n.rankerName) + '<span class="rv-play"></span>' +
+    (x.type ? '<span class="rv-ty ' + x.type + '">' + (x.type === 'short' ? 'SHORT' : 'LONG') + '</span>' : '') + '</span><b>' + h(x.label || (x.type === 'short' ? 'Short video' : 'Video')) + '</b></a>';
+  const head = items.slice(0, 5), rest = items.slice(5);
+  return '<div class="rv-more"><div class="rv-lbl2">MORE VIDEOS FROM ' + h(String(n.rankerName || 'THIS RANKER').toUpperCase()) + '</div><div class="rv-mg">' + head.map(tile).join('') + '</div>' +
+    (rest.length ? '<div class="rv-mg rv-hid" style="display:none">' + rest.map(tile).join('') + '</div><button type="button" class="rv-all">Show all ' + (items.length + 1) + ' videos</button>' : '') + '</div>';
+}
 function rankerBox(n) {
   if (!n.rankerName) return '';
-  const yt = ytInfo(n.rankerYoutube), lk = rvLinks(n, yt);
+  const yt = ytInfo(n.rankerYoutube), lk = rvLinks(n, yt), more = rvMore(n, yt);
+  const ch = (n.rankerVideos || []).map(v => ytInfo(v.url)).find(y => y && !y.video);
+  const chBtn = ch && yt && yt.video ? '<div class="rv-btns"><a class="rv-b2" href="' + h(ch.url) + '" target="_blank" rel="noopener nofollow"><i>&#9654;</i> YouTube channel</a></div>' : '';
   return '<style>' + RV_CSS + '</style><div class="rv rv-box"><div class="rv-card">' + rvPerson(n) + rvVideo(yt, n.rankerName) +
-    (lk.ytBtn && !(yt && yt.video) ? '<div class="rv-btns">' + lk.ytBtn + '</div>' : '') + lk.insta + '</div></div>' + (yt && yt.video ? RV_JS : '');
+    (lk.ytBtn && !(yt && yt.video) ? '<div class="rv-btns">' + lk.ytBtn + '</div>' : '') + more + chBtn + lk.insta + '</div></div>' + ((yt && yt.video) ? RV_JS : '');
 }
 function rvFeatured(n) {
   const yt = ytInfo(n.rankerYoutube), lk = rvLinks(n, yt), p = pathOf(n);
@@ -1419,7 +1455,7 @@ function rvRow(n) {
   const yt = ytInfo(n.rankerYoutube), rk = String(n.rankerRank || '').trim();
   const th = yt && yt.video ? '<div class="rv-th">' + rvThumb(yt, n.rankerName) + '<span class="rv-play"></span></div>' : '<div class="rv-th c">' + RV_CROWN + '</div>';
   return '<a class="rv-row" href="' + pathOf(n) + '">' + th + '<div class="rv-rw">' + (rk ? '<span class="rv-pill">' + h(clip(rk, 18)) + '</span>' : '') + '<b>' + h(n.title) + '</b>' +
-    '<span class="m">' + h([n.rankerName, n.rankerYear ? 'NEET PG ' + n.rankerYear : ''].filter(Boolean).join(' · ')) + '</span>' + (yt && yt.video ? '<em>&#9654; Video explanation</em>' : '') + '</div></a>';
+    '<span class="m">' + h([n.rankerName, n.rankerYear ? 'NEET PG ' + n.rankerYear : ''].filter(Boolean).join(' · ')) + '</span>' + (yt && yt.video ? '<em>&#9654; ' + (rvCount(n) > 1 ? rvCount(n) + ' videos' : 'Video explanation') + '</em>' : '') + '</div></a>';
 }
 function rankersPage(site, info, path, list) {
   const parts = info.h1.split(': ');
@@ -1437,8 +1473,7 @@ function authorLd(n, site) {
   const p = { '@type': 'Person', name: n.rankerName, description: [n.rankerRank, n.rankerYear ? 'NEET PG ' + n.rankerYear : ''].filter(Boolean).join(', ') };
   const same = [];
   if (/^@?[A-Za-z0-9._]{2,40}$/.test(n.rankerInsta)) same.push('https://www.instagram.com/' + n.rankerInsta.replace(/^@/, '') + '/');
-  const yt = ytInfo(n.rankerYoutube);
-  if (yt && !yt.video) same.push(yt.url);
+  (n.rankerVideos || []).forEach(v => { const y = ytInfo(v.url); if (y && !y.video && same.indexOf(y.url) < 0) same.push(y.url); });
   if (same.length) p.sameAs = same.length === 1 ? same[0] : same;
   return p;
 }

@@ -3251,7 +3251,7 @@ function openNewsEdit(row, defSection) {
   rkWrap.appendChild(edField('Rank', edInput('n_rrank', r.rankerRank || '', 'e.g. AIR 120')));
   rkWrap.appendChild(edField('NEET PG year (optional)', edInput('n_ryear', r.rankerYear || '', 'e.g. 2025')));
   rkWrap.appendChild(edField('Instagram handle (optional)', edInput('n_rinsta', r.rankerInsta || '', '@handle')));
-  rkWrap.appendChild(edField('YouTube link (optional): explanation video or channel', edInput('n_ryt', r.rankerYoutube || '', 'https://www.youtube.com/watch?v=... or https://www.youtube.com/@channelname')));
+  rkWrap.appendChild(buildVideoEditor(r));
   body.appendChild(rkWrap);
   const text = edArea('n_body', r.body, 12); text.className = 't-area';
   body.appendChild(edField('Full text', text));
@@ -3293,7 +3293,7 @@ async function saveNewsEdit() {
     title: v('n_title'), section: v('n_section'), type: v('n_section') === 'tips' ? 'tip' : v('n_type'), category: v('n_cat'), slug: v('n_slug').toLowerCase(), date: v('n_date'),
     summary: v('n_summary'), body: document.getElementById('n_body').value.trim(),
     sourceName: v('n_srcname'), sourceUrl: v('n_srcurl'),
-    rankerName: v('n_rname'), rankerRank: v('n_rrank'), rankerYear: v('n_ryear'), rankerInsta: v('n_rinsta'), rankerYoutube: v('n_ryt'),
+    rankerName: v('n_rname'), rankerRank: v('n_rrank'), rankerYear: v('n_ryear'), rankerInsta: v('n_rinsta'), rankerVideos: rkCollect(), rankerYoutube: '',
     pinned: document.getElementById('n_pinned').checked, published: document.getElementById('n_pub').checked
   };
   if (!data.title) throw soft('Add a title.');
@@ -3301,17 +3301,16 @@ async function saveNewsEdit() {
   if (NEWS.rows.some(x => x.slug === data.slug && (!row || x.id !== row.id))) throw soft('Another item already uses this web address.');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(data.date)) throw soft('Choose the date.');
   if (!data.summary) throw soft('Add a short summary. It is shown in Google results.');
-  if (data.rankerYoutube && !(function (u) {
-    return /^https:\/\/(?:www\.|m\.)?youtube\.com\/watch\?(?:[^#\s]*&)?v=[A-Za-z0-9_-]{11}(?:[&#][^\s]*)?$/.test(u) || /^https:\/\/youtu\.be\/[A-Za-z0-9_-]{11}(?:[?#][^\s]*)?$/.test(u) ||
-      /^https:\/\/(?:www\.|m\.)?youtube\.com\/(?:shorts|live|embed)\/[A-Za-z0-9_-]{11}(?:[?#][^\s]*)?$/.test(u) || /^https:\/\/(www\.|m\.)?youtube\.com\/[A-Za-z0-9@._\/-]{2,120}$/.test(u);
-  })(data.rankerYoutube)) throw soft('The YouTube link must be a video link (youtube.com/watch?v=..., youtu.be/... or /shorts/...) or a channel link like https://www.youtube.com/@channelname.');
+  if (data.rankerVideos.length > RK_MAX) throw soft('You can add up to ' + RK_MAX + ' videos for one ranker.');
+  data.rankerVideos.forEach((x, i) => { if (!rkValid(x.url)) throw soft('Video ' + (i + 1) + ': the YouTube link must be a video link (youtube.com/watch?v=..., youtu.be/... or /shorts/...) or a channel link like https://www.youtube.com/@channelname.'); });
+  data.rankerYoutube = data.rankerVideos.length ? data.rankerVideos[0].url : '';
   if (data.sourceUrl && !/^https?:\/\//i.test(data.sourceUrl)) throw soft('The source link must start with https://');
   if (!data.body) throw soft('Add the full text.');
   if (data.published && /TODO/.test(data.body)) throw soft('The text still has TODO notes. Replace them with real details from the official notice, or untick Published.');
   if (data.slug === 'counselling' && (data.type !== 'guide' || data.section !== 'counselling')) throw soft('The "counselling" address is only for the main Guide page, shown on the Counselling page.');
   if (catsFor(data.section).indexOf(data.category) < 0) throw soft('Choose a category for this page.');
   if (data.section === 'tips' && data.category === 'Ranker Vault' && (!data.rankerName || !data.rankerRank)) throw soft('Add the ranker name and rank for a Ranker Vault tip.');
-  if (!(data.section === 'tips' && data.category === 'Ranker Vault')) { data.rankerName = ''; data.rankerRank = ''; data.rankerYear = ''; data.rankerInsta = ''; data.rankerYoutube = ''; }
+  if (!(data.section === 'tips' && data.category === 'Ranker Vault')) { data.rankerName = ''; data.rankerRank = ''; data.rankerYear = ''; data.rankerInsta = ''; data.rankerYoutube = ''; data.rankerVideos = []; }
   if (row) {
     await updateDoc(doc(db, 'news', row.id), Object.assign({}, data, { updatedAt: serverTimestamp() }));
     showToast(data.published ? '✔ Saved. The public page updates within about 2 minutes.' : '✔ Saved as draft');
@@ -3686,6 +3685,53 @@ function canonQuestionSubjects(questions) {
   });
 }
 
+// ---------- Ranker videos: up to 15 YouTube links per ranker, newest on top ----------
+const RK_MAX = 15;
+function rkValid(u) {
+  return /^https:\/\/(?:www\.|m\.)?youtube\.com\/watch\?(?:[^#\s]*&)?v=[A-Za-z0-9_-]{11}(?:[&#][^\s]*)?$/.test(u) || /^https:\/\/youtu\.be\/[A-Za-z0-9_-]{11}(?:[?#][^\s]*)?$/.test(u) ||
+    /^https:\/\/(?:www\.|m\.)?youtube\.com\/(?:shorts|live|embed)\/[A-Za-z0-9_-]{11}(?:[?#][^\s]*)?$/.test(u) || /^https:\/\/(www\.|m\.)?youtube\.com\/[A-Za-z0-9@._\/-]{2,120}$/.test(u);
+}
+function rkRow(v) {
+  const row = document.createElement('div'); row.className = 'rk-row';
+  row.style.cssText = 'display:grid;grid-template-columns:1fr 96px;gap:8px;margin:8px 0;padding:10px;border:1px solid #d9d2bd;border-radius:10px;background:#fffdf7';
+  const url = document.createElement('input'); url.type = 'text'; url.className = 'rk-url'; url.value = v.url || ''; url.placeholder = 'https://www.youtube.com/watch?v=... or /shorts/... or channel link'; url.style.gridColumn = '1 / 3';
+  const label = document.createElement('input'); label.type = 'text'; label.className = 'rk-label'; label.value = v.label || ''; label.placeholder = 'Label (optional), e.g. Mock strategy'; label.maxLength = 60;
+  const type = document.createElement('select'); type.className = 'rk-type';
+  [['', 'Type'], ['short', 'Short'], ['long', 'Long']].forEach(o => { const op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]; type.appendChild(op); });
+  type.value = v.type === 'short' || v.type === 'long' ? v.type : '';
+  const del = mk('button', 'btn outline', 'Remove'); del.type = 'button'; del.style.gridColumn = '1 / 3';
+  row.appendChild(url); row.appendChild(label); row.appendChild(type); row.appendChild(del);
+  return row;
+}
+function buildVideoEditor(r) {
+  const wrap = document.createElement('div'); wrap.id = 'n_rvWrap';
+  const lbl = document.createElement('label'); lbl.textContent = 'YouTube videos (optional): up to ' + RK_MAX + ', newest on top. Short and long videos are both fine; one channel link is also allowed.';
+  const list = document.createElement('div'); list.id = 'n_rvList';
+  const hint = mk('p', 'hint', '');
+  const add = mk('button', 'btn outline', '+ Add video'); add.type = 'button';
+  const upd = () => { hint.textContent = list.children.length + ' / ' + RK_MAX + ' videos. The top video plays first on the tip page. At ' + RK_MAX + ', a new video replaces the oldest (the last one).'; };
+  let init = Array.isArray(r.rankerVideos) ? r.rankerVideos.filter(x => x && x.url) : [];
+  if (!init.length && r.rankerYoutube) init = [{ url: r.rankerYoutube }];
+  init.slice(0, RK_MAX).forEach(v => list.appendChild(rkRow(v)));
+  list.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('button'); if (b && b.parentNode.classList.contains('rk-row')) { b.parentNode.remove(); upd(); } });
+  add.addEventListener('click', () => {
+    const rows = list.querySelectorAll('.rk-row');
+    if (rows.length >= RK_MAX) {
+      const last = rows[rows.length - 1];
+      const nm = last.querySelector('.rk-label').value.trim() || last.querySelector('.rk-url').value.trim() || 'the oldest video';
+      if (!confirm('You already have ' + RK_MAX + ' videos. Adding a new one removes the oldest:\n\n' + nm + '\n\nContinue?')) return;
+      last.remove();
+    }
+    const row = rkRow({}); list.insertBefore(row, list.firstChild); row.querySelector('.rk-url').focus(); upd();
+  });
+  wrap.appendChild(lbl); wrap.appendChild(list); wrap.appendChild(add); wrap.appendChild(hint); upd();
+  return wrap;
+}
+function rkCollect() {
+  return Array.prototype.map.call(document.querySelectorAll('#n_rvList .rk-row'), (row) => ({
+    url: row.querySelector('.rk-url').value.trim(), type: row.querySelector('.rk-type').value, label: row.querySelector('.rk-label').value.trim()
+  })).filter(x => x.url);
+}
 function edField(label, node) {
   const l = document.createElement('label'); l.textContent = label;
   const w = document.createDocumentFragment(); w.appendChild(l); w.appendChild(node); return w;
