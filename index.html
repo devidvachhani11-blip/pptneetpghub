@@ -1355,7 +1355,7 @@
 
 
   /* ---------- Free today (home page) ---------- */
-  #matchSec, #sampleSec, #freeExtraSec { display: none !important; }
+  #freeExtraSec { display: none !important; }
   #dailySec { display: none !important; }
   #dailySec.pop { display: block !important; position: fixed; inset: 0; z-index: 150; overflow: auto; background: var(--paper); padding: 64px 0 30px; -webkit-overflow-scrolling: touch; }
   #dailySec .pop-x { display: none; }
@@ -1878,6 +1878,38 @@
   :where(html[data-eff="dark"]) .mt-it.ok { background:rgba(22,163,74,.2); color:#BBF7D0; }
   :where(html[data-eff="dark"]) .mt-it.bad { background:rgba(220,38,38,.2); }
   .sample-sec { background: #FBF8F1; padding: 18px 0 6px; }
+  .rq-box { display:flex; align-items:center; gap:16px; justify-content:space-between; flex-wrap:wrap; background:#fff; border:1.5px solid var(--border); border-left:4px solid var(--gold); border-radius:16px; padding:18px; }
+  .rq-box h2 { font-size:19px; margin:0 0 4px; color:var(--navy); }
+  .rq-box p { margin:0; font-size:14px; color:var(--gray); max-width:520px; }
+  #rqOv { position:fixed; inset:0; z-index:130; background:var(--paper); display:none; flex-direction:column; overflow-y:auto; }
+  #rqOv.on { display:flex; }
+  .rq-top { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px; background:#fff; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:2; }
+  .rq-top b { font-size:15px; color:var(--navy); }
+  .rq-x { border:1px solid var(--border); background:#fff; border-radius:10px; padding:7px 12px; font-size:13px; font-weight:700; cursor:pointer; color:var(--navy); }
+  .rq-bar { height:4px; background:#EFE8D6; } .rq-bar i { display:block; height:100%; background:var(--gold); width:0; transition:width .25s; }
+  .rq-in { width:100%; max-width:560px; margin:0 auto; padding:20px 16px 40px; box-sizing:border-box; }
+  .rq-q { font-size:20px; font-weight:800; color:var(--navy); margin:6px 0 4px; line-height:1.3; }
+  .rq-sub { font-size:13px; color:var(--gray); margin:0 0 14px; }
+  .rq-opts { display:grid; gap:10px; }
+  .rq-opts.two { grid-template-columns:1fr 1fr; }
+  .rq-o { text-align:left; background:#fff; border:1.5px solid var(--border); border-radius:14px; padding:14px 14px; font-size:15px; font-weight:600; color:var(--navy); cursor:pointer; font-family:inherit; }
+  .rq-o:hover, .rq-o:focus-visible { border-color:var(--gold); background:var(--gold-tint); outline:none; }
+  .rq-o small { display:block; font-weight:500; color:var(--gray); font-size:12px; margin-top:2px; }
+  .rq-back { margin-top:14px; background:none; border:0; color:var(--gray); font-size:13px; font-weight:700; cursor:pointer; padding:6px 0; }
+  .rq-prof { background:var(--navy); color:#fff; border-radius:16px; padding:16px; margin-bottom:14px; }
+  .rq-prof b { display:block; font-size:12px; letter-spacing:.08em; color:var(--gold-b); margin-bottom:6px; }
+  .rq-prof span { display:block; font-size:15px; line-height:1.5; }
+  .rq-ph { background:#fff; border:1.5px solid var(--border); border-radius:14px; padding:14px; margin-bottom:10px; }
+  .rq-ph .s { font-size:11px; font-weight:800; letter-spacing:.08em; color:var(--gold); }
+  .rq-ph h3 { margin:2px 0 6px; font-size:17px; color:var(--navy); }
+  .rq-ph ul { margin:0; padding-left:18px; font-size:14px; color:#2b3445; line-height:1.55; }
+  .rq-ph.lock ul li:nth-child(n+2) { filter:blur(4px); user-select:none; }
+  .rq-lockn { font-size:13px; color:var(--gray); margin:2px 0 12px; }
+  .rq-cta { width:100%; margin-top:6px; }
+  .rq-res { display:grid; gap:8px; margin:6px 0 12px; }
+  .rq-res button { text-align:left; background:#fff; border:1.5px solid var(--border); border-radius:12px; padding:12px; font-size:14px; font-weight:700; color:var(--navy); cursor:pointer; font-family:inherit; }
+  .rq-res button small { display:block; font-weight:500; color:var(--gray); font-size:12px; margin-top:2px; }
+  .rq-res button[disabled] { opacity:.6; cursor:default; }
   .sample-box { display: flex; align-items: center; gap: 16px; justify-content: space-between; flex-wrap: wrap; background: #fff; border: 1.5px solid var(--border); border-left: 4px solid #0F8F83; border-radius: 16px; padding: 18px; }
   .sample-box h2 { margin: 0 0 4px; font-size: 20px; font-weight: 800; color: var(--navy); }
   .sample-box p { margin: 0; font-size: 14px; color: var(--gray); line-height: 1.5; }
@@ -2267,7 +2299,6 @@
 <div class="inapp" id="inappBar" hidden></div>
 <div class="renew-bar" id="renewBar" hidden></div>
 <style>
-  #sampleSec{display:none!important}
   .fh-login{background:linear-gradient(135deg,#0A1830,#16305f);color:#fff;border-radius:22px;padding:20px 18px;margin-bottom:14px;border:1px solid #D4AF55}
   .fh-lead{margin:0 0 10px;font-weight:700;color:#EACF85;font-size:15px}
   .fh-list{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:9px}
@@ -2434,6 +2465,15 @@
     </div>
     <div class="ph-dots" id="phDots"><i class="on"></i><i></i><i></i></div>
     <div class="ph-hint">Swipe to see all 3 phases &rarr;</div>
+  </div>
+</section>
+
+<section class="sample-sec" id="readySec">
+  <div class="container">
+    <div class="rq-box">
+      <div><h2>How ready are you? 6 quick questions</h2><p>Tell us your exam, stage and weak subject. You get a 3-phase study roadmap built for you. Takes about a minute.</p></div>
+      <button class="btn btn-gold" id="rqStart" type="button">Start readiness check</button>
+    </div>
   </div>
 </section>
 
@@ -3985,6 +4025,125 @@ function updateView() {
     document.getElementById('accessNoteText').textContent = 'Signed in as: ' + (currentUser.email || currentUser.displayName || '\u2014') + (memberInfo.id ? ' \u00B7 Your ID: ' + memberInfo.id : '');
   }
 }
+
+// ---------- Readiness check: 6 questions, personal 3-phase roadmap (full roadmap after Gmail sign-in) ----------
+const RQ_SUBJ = ["Anatomy", "Physiology", "Biochemistry", "Pathology", "Pharmacology", "Microbiology", "Forensic Medicine", "Community Medicine", "Medicine", "Surgery", "OBG", "Paediatrics", "Orthopaedics", "ENT", "Ophthalmology", "Dermatology", "Psychiatry", "Anaesthesia", "Radiology", "Not sure yet"];
+const RQ_Q = [
+  { k: "exam", q: "Which exam are you preparing for?", h: "Pick the one you will sit first.", o: [["neet", "NEET PG 2027"], ["inicet", "INI-CET July 2027"]], two: 1 },
+  { k: "stage", q: "Where are you right now?", h: "", o: [["intern", "Intern", "Internship running"], ["post", "Post-intern", "Internship finished"], ["rep", "2026 repeater", "Appeared in 2026 already"]] },
+  { k: "weak", q: "Which subject feels weakest?", h: "Pick one. You can change it later.", o: RQ_SUBJ.map(s => [s, s]), two: 1 },
+  { k: "score", q: "Your recent Grand Test score?", h: "Roughly is fine.", o: [["lt40", "Below 40%"], ["4060", "40% to 60%"], ["6075", "60% to 75%"], ["gt75", "Above 75%"], ["none", "I have not taken one yet"]] },
+  { k: "hrs", q: "How many hours can you study daily?", h: "Be honest. A plan you can follow beats a big plan.", o: [["2", "Up to 2 hours"], ["4", "2 to 4 hours"], ["6", "4 to 6 hours"], ["8", "6 hours or more"]] },
+  { k: "prob", q: "Your biggest problem right now?", h: "", o: [["rev", "I forget what I studied", "Revision"], ["mcq", "I do not practise enough MCQs", "Practice"], ["time", "I run out of time in tests", "Speed"], ["plan", "I do not know where to start", "Planning"]] }
+];
+const RQ = { a: {}, i: 0 };
+function rqEl(t, c, x) { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; }
+function rqOv() {
+  let o = document.getElementById("rqOv");
+  if (!o) { o = rqEl("div"); o.id = "rqOv"; o.setAttribute("role", "dialog"); o.setAttribute("aria-modal", "true"); o.setAttribute("aria-label", "Readiness check"); document.body.appendChild(o); }
+  return o;
+}
+function rqClose() { const o = rqOv(); o.classList.remove("on"); o.innerHTML = ""; document.body.style.overflow = ""; clearInterval(RQ.t); }
+function rqFrame(title, pct) {
+  const o = rqOv(); o.innerHTML = ""; o.classList.add("on"); document.body.style.overflow = "hidden"; o.scrollTop = 0;
+  const top = rqEl("div", "rq-top"); top.appendChild(rqEl("b", null, title));
+  const x = rqEl("button", "rq-x", "Close"); x.type = "button"; x.onclick = rqClose; top.appendChild(x); o.appendChild(top);
+  const bar = rqEl("div", "rq-bar"); const i = rqEl("i"); bar.appendChild(i); o.appendChild(bar); setTimeout(() => { i.style.width = pct + "%"; }, 20);
+  const inn = rqEl("div", "rq-in"); o.appendChild(inn); return inn;
+}
+function rqStart() { RQ.a = {}; RQ.i = 0; rqAsk(); }
+function rqAsk() {
+  const q = RQ_Q[RQ.i], inn = rqFrame("Readiness check · " + (RQ.i + 1) + " of " + RQ_Q.length, Math.round(RQ.i / RQ_Q.length * 100));
+  inn.appendChild(rqEl("div", "rq-q", q.q)); if (q.h) inn.appendChild(rqEl("p", "rq-sub", q.h));
+  const g = rqEl("div", "rq-opts" + (q.two ? " two" : ""));
+  q.o.forEach(op => {
+    const b = rqEl("button", "rq-o", op[1]); b.type = "button"; if (op[2]) b.appendChild(rqEl("small", null, op[2]));
+    b.onclick = () => { RQ.a[q.k] = op[0]; if (RQ.i < RQ_Q.length - 1) { RQ.i++; rqAsk(); } else rqDone(); };
+    g.appendChild(b);
+  });
+  inn.appendChild(g);
+  if (RQ.i > 0) { const bk = rqEl("button", "rq-back", "Back"); bk.type = "button"; bk.onclick = () => { RQ.i--; rqAsk(); }; inn.appendChild(bk); }
+}
+function rqLabel(k, v) { const q = RQ_Q.filter(x => x.k === k)[0]; const o = q.o.filter(x => x[0] === v)[0]; return o ? o[1] : v; }
+function rqPlan(a) {
+  const exam = a.exam === "inicet" ? "INI-CET July 2027" : "NEET PG 2027";
+  const w = a.weak && a.weak !== "Not sure yet" ? a.weak : null;
+  const hrs = { "2": "up to 2 hours", "4": "2 to 4 hours", "6": "4 to 6 hours", "8": "6 hours or more" }[a.hrs] || "your daily time";
+  const st = { intern: "Your internship takes time, so work in short fixed daily slots.", post: "You have full days now, so keep one fixed study routine.", rep: "You have studied before, so start from your old wrong answers, not from page one." }[a.stage];
+  const sc = { lt40: "Build the basics first and keep graded tests for later in the plan.", "4060": "Your base is there. Practice and revision will move your score the most.", "6075": "You are close. Fix traps and weak topics.", gt75: "You are strong. Protect your score with traps and timed tests.", none: "Take one graded test after Phase 1 to see where you stand." }[a.score];
+  const pb = { rev: "Revise each subject again after 1, 7 and 30 days with flashcards.", mcq: "Do a fixed set of MCQs every day and read the explanation of every wrong answer.", time: "Practise in timed blocks of 25 questions and cut your time a little each week.", plan: "Follow the phases in order. Do not jump ahead." }[a.prob];
+  return {
+    exam, hrs,
+    prof: exam + " · " + rqLabel("stage", a.stage) + " · Weak: " + (w || "Not sure yet") + " · Study time: " + hrs,
+    ph: [
+      { s: "PHASE 1 · FOUNDATION", t: "Basics and previous-year topics", l: [w ? "Start with " + w + ". Cover its basics first, then its previous-year topics." : "Cover the basics of every subject, one by one.", "Daily practice questions and the most repeated previous-year topics.", st] },
+      { s: "PHASE 2 · STRENGTHEN", t: "Clinical, images and tests", l: ["Clinical practice, image-based questions and moderate grand tests.", pb, sc] },
+      { s: "PHASE 3 · FINAL SPRINT", t: "Short revision and traps", l: ["A short copy of every subject, and 30-day and 7-day revision.", "Final trap list and mixed grand tests.", w ? "Revisit " + w + " once more in the last weeks." : "Revisit your weakest subject once more in the last weeks."] }
+    ]
+  };
+}
+function rqSave() { try { localStorage.setItem("pptReady", JSON.stringify(RQ.a)); } catch (e) {} }
+function rqDone() {
+  rqSave();
+  try { fetch("/api/stat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ e: "rd", x: RQ.a.exam, g: RQ.a.stage, w: String(RQ.a.weak || "").toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "") }), keepalive: true }).catch(() => {}); } catch (e) {}
+  rqResult();
+}
+async function rqPyt(w) {
+  try {
+    const { db, doc, getDoc } = window.__fb;
+    const p = await getDoc(doc(db, "freepdf", "list"));
+    const m = p.exists() ? (p.data().pyt || {}) : {};
+    const slug = String(w || "").toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "");
+    return m[slug] || null;
+  } catch (e) { return null; }
+}
+function rqResult() {
+  clearInterval(RQ.t);
+  const a = RQ.a, p = rqPlan(a), signed = !!(typeof currentUser !== "undefined" && currentUser);
+  const inn = rqFrame("Your roadmap", 100);
+  const pf = rqEl("div", "rq-prof"); pf.appendChild(rqEl("b", null, "YOUR PROFILE")); pf.appendChild(rqEl("span", null, p.prof)); inn.appendChild(pf);
+  p.ph.forEach((ph, i) => {
+    const c = rqEl("div", "rq-ph" + (!signed && i > 0 ? " lock" : "")); c.appendChild(rqEl("div", "s", ph.s)); c.appendChild(rqEl("h3", null, ph.t));
+    const ul = rqEl("ul"); ph.l.forEach(x => ul.appendChild(rqEl("li", null, x))); c.appendChild(ul); inn.appendChild(c);
+  });
+  if (!signed) {
+    inn.appendChild(rqEl("p", "rq-lockn", "Sign in with Gmail to unlock your full roadmap, your free resources and a free sample for your weak subject. It is free."));
+    const b = rqEl("button", "btn btn-gold rq-cta", "Unlock my roadmap with Gmail"); b.type = "button";
+    b.onclick = () => { try { sessionStorage.setItem("pptReadyOpen", "1"); } catch (e) {} signIn("free"); };
+    inn.appendChild(b);
+    RQ.t = setInterval(() => { if (typeof currentUser !== "undefined" && currentUser) { clearInterval(RQ.t); if (document.getElementById("rqOv").classList.contains("on")) rqResult(); } }, 700);
+    return;
+  }
+  inn.appendChild(rqEl("p", "rq-lockn", "Free for you now"));
+  const rs = rqEl("div", "rq-res"); inn.appendChild(rs);
+  const add = (t, s, fn, off) => { const b = rqEl("button", null, t); b.type = "button"; b.appendChild(rqEl("small", null, s)); if (off) b.disabled = true; else b.onclick = fn; rs.appendChild(b); return b; };
+  add("Daily Practice and free mock", "20 questions every day", () => { rqClose(); window.scrollTo(0, 0); });
+  add("Free Anki deck", "104 cards across 19 subjects", () => ankiDeckDownload());
+  const w = a.weak && a.weak !== "Not sure yet" ? a.weak : null;
+  if (w) {
+    const pb = add("Sample PYT: " + w, "Checking…", null, true);
+    rqPyt(w).then(it => {
+      if (it && it.key) { pb.disabled = false; pb.firstChild.nodeValue = "Sample PYT: " + w; pb.lastChild.textContent = "3 pages, view-only"; pb.onclick = () => fdPdfOpen({ title: "Sample PYT: " + w, key: it.key }); }
+      else { pb.firstChild.nodeValue = "PYT: " + w; pb.lastChild.textContent = "Coming soon"; }
+    });
+  }
+  const pr = rqEl("button", "btn btn-gold rq-cta", "See the full premium plan"); pr.type = "button"; pr.onclick = () => { rqClose(); goToJoin(); }; inn.appendChild(pr);
+  const rt = rqEl("button", "rq-back", "Retake the check"); rt.type = "button"; rt.onclick = rqStart; inn.appendChild(rt);
+}
+(function () {
+  const s = document.getElementById("rqStart"); if (s) s.onclick = rqStart;
+  // after sign-in (iPhone redirect reloads the page) show the full roadmap again
+  let n = 0; const iv = setInterval(() => {
+    n++; if (n > 40) { clearInterval(iv); return; }
+    try {
+      if (sessionStorage.getItem("pptReadyOpen") === "1" && typeof currentUser !== "undefined" && currentUser) {
+        clearInterval(iv); sessionStorage.removeItem("pptReadyOpen");
+        const a = JSON.parse(localStorage.getItem("pptReady") || "null");
+        if (a && a.exam) { RQ.a = a; rqResult(); }
+      }
+    } catch (e) {}
+  }, 500);
+})();
 
 function goToJoin() {
   const el = document.getElementById('join');

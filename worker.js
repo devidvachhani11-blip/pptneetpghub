@@ -2214,6 +2214,15 @@ async function handleStat(request, env) {
     if (!d.src[lab] && Object.keys(d.src).length >= 40) return ok;
     const x = d.src[lab] = d.src[lab] || { v: 0, i: 0 };
     if (b.e === 'sv') x.v++; else x.i++;
+  } else if (b.e === 'rd') {
+    // readiness check finished: exam, stage and weak subject (fixed lists only)
+    const x = ['neet', 'inicet'].indexOf(b.x) > -1 ? b.x : null, g = ['intern', 'post', 'rep'].indexOf(b.g) > -1 ? b.g : null;
+    const wk = /^[a-z-]{2,24}$/.test(String(b.w)) ? String(b.w) : 'not-sure-yet';
+    if (!x || !g) return ok;
+    d.rd = d.rd || {};
+    const k = x + '|' + g + '|' + wk;
+    if (!d.rd[k] && Object.keys(d.rd).length >= 120) return ok;
+    d.rd[k] = (Number(d.rd[k]) || 0) + 1;
   } else return ok;
   const keys = Object.keys(st.days).sort(); while (keys.length > 90) delete st.days[keys.shift()];
   const pk = Object.keys(st.puz).map(Number).sort((x, y) => x - y); while (pk.length > 400) delete st.puz[pk.shift()];

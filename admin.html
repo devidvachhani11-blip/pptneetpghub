@@ -947,6 +947,15 @@
         <div class="t-actions"><button class="btn" id="fdeck_add">Upload / replace deck</button></div>
         <p class="hint" id="fdeck_status"></p>
       </div>
+      <div class="card">
+        <h3>Sample PYT, 3 pages (per subject)</h3>
+        <p class="hint" style="margin-top:-6px">Shown to free users after the Readiness check, for their weak subject. Choose the subject, then upload a PDF of about 3 pages. Subjects without a file show "PYT coming soon". Upload again to replace.</p>
+        <select id="pytf_subj"></select>
+        <input type="file" id="pytf_file" accept="application/pdf,.pdf">
+        <div class="t-actions"><button class="btn" id="pytf_add">Upload sample PYT</button></div>
+        <p class="hint" id="pytf_status"></p>
+        <div id="pytf_list"></div>
+      </div>
     </div>
 
     <div id="freeResPanel" style="display:none;">
@@ -1464,7 +1473,7 @@ window.addEventListener('fbReady', () => {
       if (btn.dataset.panel === 'homePanel') loadHome();
       if (btn.dataset.panel === 'freePoolPanel') freePoolLoad();
       if (btn.dataset.panel === 'freeMockPanel') freeMockLoad();
-      if (btn.dataset.panel === 'freePdfPanel') freePdfLoad();
+      if (btn.dataset.panel === 'freePdfPanel') { freePdfLoad(); pytfLoad(); }
       if (btn.dataset.panel === 'freeResPanel') freeResLoad();
       if (btn.dataset.panel === 'dropsPanel') loadDrops();
       if (btn.dataset.panel === 'fgamesPanel' && window.fgLoadAll) window.fgLoadAll();
@@ -1687,6 +1696,46 @@ window.addEventListener('load', () => {
   };
 });
 
+const PYT_SUBJ = ['Anatomy', 'Physiology', 'Biochemistry', 'Pathology', 'Pharmacology', 'Microbiology', 'Forensic Medicine', 'Community Medicine', 'Medicine', 'Surgery', 'OBG', 'Paediatrics', 'Orthopaedics', 'ENT', 'Ophthalmology', 'Dermatology', 'Psychiatry', 'Anaesthesia', 'Radiology'];
+const pytSlug = s => s.toLowerCase().replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '');
+(function () { const sel = document.getElementById('pytf_subj'); PYT_SUBJ.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; sel.appendChild(o); }); })();
+async function pytfLoad() {
+  const box = document.getElementById('pytf_list'); box.innerHTML = '';
+  try {
+    const { db, doc, getDoc } = window.__fb;
+    const m = await getDoc(doc(db, 'freepdf', 'list')); const pyt = m.exists() ? (m.data().pyt || {}) : {};
+    PYT_SUBJ.forEach(s => {
+      const it = pyt[pytSlug(s)]; const row = mk('div', 'bk-q'); row.appendChild(mk('div', null, s + (it ? ' — uploaded' : ' — coming soon')));
+      if (it) { row.appendChild(mk('small', null, it.key)); const b = mk('button', null, 'Remove'); b.onclick = () => pytfRemove(s); row.appendChild(b); }
+      box.appendChild(row);
+    });
+  } catch (e) { box.appendChild(mk('div', 'empty', 'Could not load: ' + e.message)); }
+}
+async function pytfAdd() {
+  const subj = document.getElementById('pytf_subj').value, file = document.getElementById('pytf_file').files[0], st = document.getElementById('pytf_status'), btn = document.getElementById('pytf_add');
+  if (!file) { showToast('Choose the PDF.', true); return; }
+  if (!/\.pdf$/i.test(file.name)) { showToast('Only PDF files.', true); return; }
+  btn.disabled = true;
+  try {
+    const key = await uploadToR2(file, 'free-pdf', p => { st.textContent = 'Uploading ' + p + '%'; });
+    if (key.indexOf('free-pdf/') !== 0) throw new Error('Unexpected file location: ' + key);
+    const { db, doc, getDoc, setDoc, serverTimestamp } = window.__fb;
+    const m = await getDoc(doc(db, 'freepdf', 'list')); const d = m.exists() ? m.data() : {};
+    const pyt = d.pyt || {}; pyt[pytSlug(subj)] = { key, subject: subj, at: Date.now() };
+    await setDoc(doc(db, 'freepdf', 'list'), { items: d.items || [], pyt, updatedAt: serverTimestamp() });
+    st.textContent = '✔ Saved for ' + subj + '.'; document.getElementById('pytf_file').value = ''; pytfLoad();
+  } catch (e) { st.textContent = ''; showToast('Failed: ' + e.message, true); }
+  btn.disabled = false;
+}
+async function pytfRemove(s) {
+  if (!confirm('Remove the sample PYT for ' + s + '? The file stays in storage.')) return;
+  try {
+    const { db, doc, getDoc, setDoc, serverTimestamp } = window.__fb;
+    const m = await getDoc(doc(db, 'freepdf', 'list')); const d = m.exists() ? m.data() : {}; const pyt = d.pyt || {}; delete pyt[pytSlug(s)];
+    await setDoc(doc(db, 'freepdf', 'list'), { items: d.items || [], pyt, updatedAt: serverTimestamp() }); pytfLoad();
+  } catch (e) { showToast('Failed: ' + e.message, true); }
+}
+document.getElementById('pytf_add').addEventListener('click', pytfAdd);
 async function freePdfLoad() {
   const box = document.getElementById('fpdf_list'); box.innerHTML = '';
   try {
@@ -1728,7 +1777,7 @@ async function freePdfAdd() {
     const m = await getDoc(doc(db, 'freepdf', 'list'));
     const items = m.exists() ? (m.data().items || []) : [];
     items.unshift({ key, title, note, at: Date.now() });
-    await setDoc(doc(db, 'freepdf', 'list'), { items: items.slice(0, 60), updatedAt: serverTimestamp() });
+    await setDoc(doc(db, 'freepdf', 'list'), { items: items.slice(0, 60), pyt: m.exists() ? (m.data().pyt || {}) : {}, updatedAt: serverTimestamp() });
     st.textContent = '✔ Added.'; document.getElementById('fpdf_title').value = ''; document.getElementById('fpdf_note').value = ''; document.getElementById('fpdf_file').value = '';
     freePdfLoad();
   } catch (e) { st.textContent = ''; showToast('Failed: ' + e.message, true); }
@@ -1739,7 +1788,7 @@ async function freePdfRemove(i) {
   try {
     const { db, doc, getDoc, setDoc, serverTimestamp } = window.__fb;
     const m = await getDoc(doc(db, 'freepdf', 'list')); const items = m.exists() ? (m.data().items || []) : [];
-    items.splice(i, 1); await setDoc(doc(db, 'freepdf', 'list'), { items, updatedAt: serverTimestamp() }); freePdfLoad();
+    items.splice(i, 1); await setDoc(doc(db, 'freepdf', 'list'), { items, pyt: m.exists() ? (m.data().pyt || {}) : {}, updatedAt: serverTimestamp() }); freePdfLoad();
   } catch (e) { showToast('Failed: ' + e.message, true); }
 }
 
@@ -4793,6 +4842,11 @@ async function loadStatsAdmin() {
     labs.forEach(l => { h += '<tr style="border-bottom:1px solid #EEE6D2"><td style="padding:6px 4px"><b>' + l + '</b></td><td>' + m[l].v + '</td><td>' + m[l].i + '</td><td>' + stPct(m[l].i, m[l].v) + '</td></tr>'; });
     h += '</table></div>';
   });
+  // Readiness check: how many finished it, by exam, stage and weak subject
+  const rdAll = {}; all.forEach(k => { const o = (days[k] || {}).rd || {}; Object.keys(o).forEach(l => { rdAll[l] = (rdAll[l] || 0) + (Number(o[l]) || 0); }); });
+  const rdKeys = Object.keys(rdAll), rdTot = rdKeys.reduce((s, l) => s + rdAll[l], 0);
+  const rdBy = i => { const m = {}; rdKeys.forEach(l => { const p = l.split('|')[i]; m[p] = (m[p] || 0) + rdAll[l]; }); return Object.keys(m).sort((p, q) => m[q] - m[p]).map(p => '<b>' + p + '</b> ' + m[p]).join(' &nbsp;·&nbsp; ') || '–'; };
+  h += '<h4 style="margin:16px 0 6px">Readiness check (all days kept)</h4><p class="hint" style="margin-top:0">Finished: <b>' + rdTot + '</b></p><p style="font-size:13px;line-height:1.7;margin:0"><b>Exam:</b> ' + rdBy(0) + '<br><b>Stage:</b> ' + rdBy(1) + '<br><b>Weak subject:</b> ' + rdBy(2) + '</p>';
   body.innerHTML = h;
   body.insertAdjacentHTML('beforeend', '<div id="st_prem"><p class="hint">Loading member games...</p></div>');
   loadGameStats();
