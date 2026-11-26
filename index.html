@@ -1356,6 +1356,7 @@
 
   /* ---------- Free today (home page) ---------- */
   #freeExtraSec { display: none !important; }
+  #sampleSec, #matchSec { display: none !important; }
   #dailySec { display: none !important; }
   #dailySec.pop { display: block !important; position: fixed; inset: 0; z-index: 150; overflow: auto; background: var(--paper); padding: 64px 0 30px; -webkit-overflow-scrolling: touch; }
   #dailySec .pop-x { display: none; }
@@ -2495,6 +2496,8 @@
     <div class="fh-grid">
       <button class="fh-t" id="fhSg" type="button"><span class="fh-bd" id="fhSgB"></span><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="fh-tx"><b>Today&#39;s Sign</b><em>One sign a day</em></span></button>
       <a class="fh-t" id="fhTips" href="/study-tips"><span class="fh-bd" id="fhTipsB"></span><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span><span class="fh-tx"><b>Study tips</b><em>Tips and updates</em></span></a>
+      <button class="fh-t" id="fhSmp" type="button" style="display:none"><span class="fh-bd" id="fhSmpB">New</span><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span><span class="fh-tx"><b id="fhSmpT">Free 10 questions</b><em id="fhSmpS">No sign-in needed</em></span></button>
+      <button class="fh-t" id="fhMtc" type="button" style="display:none"><span class="fh-bd" id="fhMtcB">New</span><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4a2 2 0 1 1 4 0v2h4v4h-2a2 2 0 1 0 0 4h2v4h-4v-2a2 2 0 1 0-4 0v2H6v-4h2a2 2 0 1 0 0-4H6V6h4z"/></svg></span><span class="fh-tx"><b>Daily Match</b><em id="fhMtcS">6 pairs, be quick</em></span></button>
       <a class="fh-t" id="fhCalc" href="/calculators" style="grid-column:1/-1;min-height:0;flex-direction:row;align-items:center;justify-content:flex-start;gap:12px"><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M12 12h2M16 12h0M8 16h2M12 16h2M16 16h0"/></svg></span><span class="fh-tx"><b>Quick calculators</b><em>CURB-65, Wells, GCS, Apgar</em></span></a>
     </div>
     <div id="fhLegacy" style="display:none" aria-hidden="true">
@@ -2504,7 +2507,7 @@
       <button class="fh-t" id="fhMt" type="button" style="display:none;"><span class="fh-bd" id="fhMtB"></span><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4a2 2 0 1 1 4 0v2h4v4h-2a2 2 0 1 0 0 4h2v4h-4v-2a2 2 0 1 0-4 0v2H6v-4h2a2 2 0 1 0 0-4H6V6h4z"/></svg></span><span class="fh-tx"><b>Daily Match</b><em>6 pairs, be quick</em></span></button>
       <a class="fh-t" id="fhPdf" href="/sample-PYT-Medicine-Part1.pdf" target="_blank" rel="noopener"><span class="fh-bd" id="fhPdfB"></span><span class="fh-ib"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5"/></svg></span><span class="fh-tx"><b>Free sample PDF</b><em>First 4 pages</em></span></a>
     </div>
-    <p class="fh-note">Study tips, calculators and Today's Sign are open to everyone.</p>
+    <p class="fh-note">Free questions, Daily Match, study tips, calculators and Today's Sign are open to everyone.</p>
   </div>
 </section>
 
@@ -8818,6 +8821,27 @@ async function loadDaily() {
   if (location.hash === "#daily" && !DQ.scrolled) { DQ.scrolled = true; setTimeout(() => sec.scrollIntoView(), 150); }
 }
 
+// Home free tiles (same design as Today's Sign): show the free 10 questions and Daily Match tiles when their data exists
+function fhHomeSync() {
+  try {
+    const on = id => { const e = document.getElementById(id); return !!(e && e.style.display !== "none"); };
+    const $ = id => document.getElementById(id);
+    const sm = $("fhSmp"), mt = $("fhMtc");
+    if (sm) {
+      sm.style.display = on("sampleSec") ? "" : "none";
+      $("fhSmpT").textContent = (typeof SMP !== "undefined" && SMP.daily) ? "Today's 10 free questions" : "Free 10 questions";
+      $("fhSmpS").textContent = (typeof SMP !== "undefined" && SMP.daily) ? "New every day" : "No sign-in needed";
+      sm.onclick = () => { const b = $("sampleStart"); if (b) b.click(); };
+    }
+    if (mt) {
+      mt.style.display = on("matchSec") ? "" : "none";
+      const sv = mtSaved(), bd = $("fhMtcB");
+      $("fhMtcS").textContent = sv ? "Done today: " + sv.s + "s" : "6 pairs, be quick";
+      if (bd) { bd.textContent = sv ? "Done" : "New"; bd.className = "fh-bd" + (sv ? " d" : ""); }
+      mt.onclick = () => { const b = $("mtStart"); if (b) b.click(); };
+    }
+  } catch (e) {}
+}
 // ---------- Free sample on the public home page ----------
 const SMP = { data: null, daily: false };
 async function loadSample() {
@@ -8847,13 +8871,13 @@ async function loadSample() {
   } catch (e) { SMP.data = null; if (!SMP.retried) { SMP.retried = true; setTimeout(loadSample, 3000); } }
   const sec = document.getElementById("sampleSec");
   if (!sec) return;
-  if (!SMP.data) { sec.style.display = "none"; return; }
+  if (!SMP.data) { sec.style.display = "none"; fhHomeSync(); return; }
   document.getElementById("sampleN").textContent = String(SMP.data.qs.length);
   const sh2 = document.getElementById("sampleH"), sx = document.getElementById("sampleX");
   if (sh2) sh2.textContent = SMP.daily ? "Today's 10 free questions" : "Try it free";
   if (sx) sx.textContent = SMP.daily ? " New questions every day. Come back tomorrow." : "";
   sec.style.display = "";
-  paintBeat(); paintStreak();
+  paintBeat(); paintStreak(); fhHomeSync();
 }
 // Anonymous count for the admin Stats tab. No name, no email. Sent once a day per phone for each event.
 function statPing(e, data) {
@@ -8938,8 +8962,8 @@ async function loadMatch() {
     const s = await getDoc(doc(db, "sample", "pairs")), d = s.exists() ? s.data() : null;
     MT.pairs = d && Array.isArray(d.ps) ? d.ps.filter(p => p && typeof p.l === "string" && typeof p.r === "string" && p.l && p.r && /^[DSF]$/.test(p.t)) : [];
   } catch (e) { MT.pairs = []; if (!MT.retried) { MT.retried = true; setTimeout(loadMatch, 3000); } }
-  if (MT.pairs.length < 6) { sec.style.display = "none"; return; }
-  sec.style.display = ""; mtPaintHome();
+  if (MT.pairs.length < 6) { sec.style.display = "none"; fhHomeSync(); return; }
+  sec.style.display = ""; mtPaintHome(); fhHomeSync();
 }
 function mtPaintHome() {
   const sv = mtSaved(), n = document.getElementById("mtNote"), b = document.getElementById("mtStart");
