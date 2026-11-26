@@ -975,8 +975,7 @@
     </div>
     <!-- Home sample (for visitors who are not signed in) -->
     <div id="samplePanel" style="display:none;">
-<details style="margin-bottom:16px"><summary style="cursor:pointer;background:#fff;border:1px solid var(--border);border-radius:18px;padding:16px 20px;font-weight:700;font-size:14px;color:var(--gray)">Old home sample and Daily 10 pool (not used on the home page now). Also holds the public SEO page settings (/sign, /q). Tap to open.</summary><div style="margin-top:12px">
-      <div class="card">
+<div class="card" style="display:none" aria-hidden="true">
         <h3>Home sample: 10 free questions</h3>
         <p class="hint" style="margin-top:-6px">Shown on the home page to visitors who are not signed in. Exactly 10 mix-subject questions, answers shown after each one. No pictures. Paste them in the same format as Add Test, then press Save. You can replace them any time.</p>
         <textarea id="sm_text" class="t-area" rows="14" spellcheck="false" placeholder="Q1. Question text&#10;A. Option&#10;B. Option&#10;C. Option&#10;D. Option&#10;Answer: B&#10;Explanation: Why B is right&#10;Subject: Pathology"></textarea>
@@ -988,8 +987,8 @@
         <p class="hint" id="sm_status"></p>
       </div>
       <div class="card">
-        <h3>Daily 10: free question pool</h3>
-        <p class="hint" style="margin-top:-6px">Paste a pool of free questions (10 to 400). The home page shows 10 new ones every day, in order, and starts again from the first when the pool ends. Everything you save here is public, so keep your premium questions out. If this is empty, the fixed 10-question sample above is used. No pictures. Same format as Add Test.</p>
+        <h3>Home page free questions (Daily 10 pool)</h3>
+        <p class="hint" style="margin-top:-6px">Paste a pool of free questions (10 to 400). The home page shows 10 new ones every day, in order, and starts again from the first when the pool ends. Everything you save here is public, so keep your premium questions out. If this is empty, the free questions box is hidden on the home page. No pictures. Same format as Add Test.</p>
         <textarea id="dl_text" class="t-area" rows="14" spellcheck="false" placeholder="Q1. Question text&#10;A. Option&#10;B. Option&#10;C. Option&#10;D. Option&#10;Answer: B&#10;Explanation: Why B is right&#10;Subject: Pathology"></textarea>
         <div class="t-actions">
           <button class="btn" id="dl_save">Save pool</button>
@@ -1003,7 +1002,7 @@
         <div class="t-actions"><button class="btn outline" id="wp_save">Save public pages setting</button></div>
         <p class="hint" id="wp_status"></p>
       </div>
-</div></details>
+
       <div class="card">
         <h3>Daily Match: free pairs pool</h3>
         <p class="hint" style="margin-top:-6px">One pair per line: <b>Type | Left | Right</b>. Type is <b>D</b> (Drug | Mechanism), <b>S</b> (Disease | Feature) or <b>F</b> (Finding | Associated condition). The home page shows 6 new pairs every day, in order, and starts again from the first when the pool ends. Keep each side short (left up to 34 letters, right up to 52). Use only pairs with one clear right answer. Everything saved here is public.</p>
@@ -5600,7 +5599,7 @@ async function loadSampleAdmin() {
     const dl = await getDoc(doc(db, 'sample', 'daily10'));
     const dd = dl.exists() ? dl.data() : null, ds = document.getElementById('dl_status');
     document.getElementById('dl_text').value = dd && Array.isArray(dd.qs) ? questionsToText(dd.qs) : '';
-    ds.textContent = dd && Array.isArray(dd.qs) && dd.qs.length ? 'Saved: ' + dd.qs.length + ' questions, enough for ' + Math.floor(dd.qs.length / 10) + ' days before it repeats.' : 'No pool saved yet. The fixed 10-question sample is used.';
+    ds.textContent = dd && Array.isArray(dd.qs) && dd.qs.length ? 'Saved: ' + dd.qs.length + ' questions, enough for ' + Math.floor(dd.qs.length / 10) + ' days before it repeats.' : 'No pool saved yet. The free questions box is hidden on the home page.';
   } catch (e) { document.getElementById('dl_status').textContent = 'Could not load: ' + e.message; }
   try {
     const wp = await getDoc(doc(db, 'config', 'webpages')), wd = wp.exists() ? wp.data() : {};
