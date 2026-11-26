@@ -1024,6 +1024,7 @@ async function sitemapXml(env, url) {
     ? [{ loc: '/news', mod: last(news) }, { loc: '/counselling', mod: guide ? (guide.updatedAt || '').slice(0, 10) : last(coun) }, { loc: '/study-tips', mod: last(tips) }]
     : [{ loc: '/', mod: '' }, { loc: '/terms', mod: '' }, { loc: '/privacy', mod: '' }, { loc: '/refund', mod: '' }, { loc: '/calculators', mod: '' }, { loc: '/news', mod: last(news) }, { loc: '/counselling', mod: guide ? (guide.updatedAt || '').slice(0, 10) : last(coun) }, { loc: '/study-tips', mod: last(tips) }];
   if (!site.soon) CALCS.forEach(c => rows.push({ loc: '/calculators/' + c.slug, mod: '' }));
+  if (!site.soon) rows.push({ loc: '/calculators/' + PACE_SLUG, mod: '' });
   if (!site.soon) { try { await addSeoRows(env, rows, tips); } catch (e) { /* the rest of the sitemap still works */ } }
   news.forEach(n => rows.push({ loc: '/news/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
   coun.forEach(n => rows.push({ loc: '/counselling/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
@@ -1147,6 +1148,7 @@ async function calcIndexPage(env, url) {
   const body = '<div class="crumbs"><a href="/">Home</a> › Calculators</div><h1>Free medical score calculators</h1>' +
     '<p class="lead">Quick calculators for scores that NEET PG and INICET ask again and again. They work on your phone, with no sign-in.</p>' +
     CALCS.map(c => '<a class="item" href="/calculators/' + c.slug + '"><span class="pill t">Calculator</span><b>' + h(c.title) + '</b><span class="s">' + h(c.desc) + '</span></a>').join('') +
+    '<a class="item" href="/calculators/' + PACE_SLUG + '"><span class="pill t">Free tool</span><b>NEET PG Pace Trainer</b><span class="s">Live pace tracker for the 5 sections of 36 questions, 42 minutes each.</span></a>' +
     '<p class="disc">' + h(CALC_DISCLAIMER) + '</p>' + calcCta();
   return htmlResponse(shell(site, { title: 'Free Medical Score Calculators: CURB-65, Wells, GCS, Apgar | PPTNEETPGHUB',
     desc: 'Free calculators for CURB-65, Wells score for PE, Glasgow Coma Scale and Apgar score. Made for NEET PG and INICET revision.', path: '/calculators', body,
@@ -1171,6 +1173,85 @@ async function calcPage(env, url, slug) {
   return htmlResponse(shell(site, { title: c.title + ' | PPTNEETPGHUB', desc: c.desc, path, body,
     ld: [crumbLd(site, [['Home', '/'], ['Calculators', '/calculators'], [c.name, path]]),
       { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: c.faq.map(q => ({ '@type': 'Question', name: q[0], acceptedAnswer: { '@type': 'Answer', text: q[1] } })) }] }));
+}
+
+// ---------- Free tool: NEET PG Pace Trainer (public, no login, runs in the browser) ----------
+const PACE_SLUG = 'neet-pg-pace-trainer';
+const PACE_FAQ = [
+  ['How many minutes per question in NEET PG?', 'About 1 minute 10 seconds. The NEET PG 2026 paper had 5 sections of 36 questions, with 42 minutes for each section.'],
+  ['Does this tool give me questions?', 'No. Use your own book, question bank or mock test. The tool only keeps the time and shows whether your pace is on track.'],
+  ['Is my data saved?', 'No. Everything runs in your browser and nothing is sent or stored.'],
+  ['What should I do if I am behind pace?', 'Mark the long question, guess smartly, and move on. Come back at the end of the section if time is left.']
+];
+const PACE_CSS = '.pt{max-width:760px;margin:0 auto}.pt .pbox{background:#fff;border:1px solid #EBDDB8;border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(15,27,61,.12)}' +
+  '.pt .psecs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:14px}.pt .psecs button{border:0;border-radius:20px;padding:8px 15px;background:#EEE6D0;color:#14213D;font-weight:700;font-size:13px;cursor:pointer}.pt .psecs button.on{background:#0F1B3D;color:#fff}' +
+  '.pt .prow{display:flex;gap:10px;flex-wrap:wrap}.pt .pst{flex:1;min-width:120px;background:#FBF6EA;border-radius:14px;padding:12px;text-align:center}.pt .pst b{display:block;font-size:28px;color:#0F1B3D;line-height:1.1}.pt .pst span{font-size:12px;color:#6B7280}.pt .pst.tm b{font-size:40px;color:#B8860B}' +
+  '.pt .pbar{height:12px;background:#EEE6D0;border-radius:9px;margin:16px 0 6px;overflow:hidden}.pt .pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#E9B949,#B8860B);transition:width .3s}' +
+  '.pt .pnote{font-size:12px;color:#6B7280;text-align:center}.pt .pstat{margin:14px 0;padding:12px 14px;border-radius:12px;font-weight:700;text-align:center;background:#EEE6D0;color:#14213D}.pt .pstat.ok{background:#E8F7EF;color:#0F7A4B}.pt .pstat.mid{background:#FFF4DB;color:#8A5A00}.pt .pstat.bad{background:#FDECEC;color:#B42318}' +
+  '.pt .pbtns{display:flex;gap:10px;margin-top:6px}.pt .pb{flex:1;border:0;border-radius:12px;padding:16px;font-weight:700;font-size:16px;cursor:pointer}.pt .pb.m{background:#0F1B3D;color:#fff}.pt .pb.s{background:#fff;border:2px solid #0F1B3D;color:#0F1B3D}.pt .pb[disabled]{opacity:.45;cursor:default}' +
+  '.pt .pres{display:none;margin-top:16px;background:#0F1B3D;color:#fff;border-radius:16px;padding:18px;text-align:center}.pt .pres.on{display:block}.pt .pres small{letter-spacing:2px;font-size:11px;opacity:.8}.pt .pres .big{font-size:30px;font-weight:800;color:#E9B949;margin:6px 0}.pt .pres p{font-size:14px;opacity:.92;margin:6px 0}.pt .pres .pbtns{margin-top:12px}.pt .pres .pb.m{background:#E9B949;color:#0F1B3D}.pt .pres .pb.s{background:transparent;border-color:#fff;color:#fff}' +
+  '.pt .ptable{width:100%;font-size:13px;margin:10px 0 0;border-collapse:collapse}.pt .ptable td{padding:4px 6px;border-top:1px solid rgba(255,255,255,.18);text-align:left}' +
+  '.pt .ptcta{margin-top:22px;background:linear-gradient(120deg,#E9B949,#F4D27A);border-radius:14px;padding:16px;text-align:center;font-weight:700;color:#14213D}.pt .ptcta a{color:#0F1B3D}';
+const PACE_JS = `(function(){var R=document.getElementById('pt');if(!R)return;
+var Q=36,MIN=42,TOT=MIN*60,IDEAL=TOT/Q;var sec=1,q=1,run=false,paused=false,done=false,acc=0,t0=0,qStart=0,times=[];
+var $=function(i){return document.getElementById(i);};
+function now(){return acc+(run&&!paused?(performance.now()-t0)/1000:0);}
+function mmss(s){s=Math.max(0,Math.round(s));var m=Math.floor(s/60),x=s%60;return m+':'+(x<10?'0':'')+x;}
+function pace(){var done_=q-1,exp=done_*IDEAL,el=now(),d=exp-el;var c,tx;
+if(done_===0&&el<IDEAL){c='ok';tx='Good start. Aim for about '+mmss(IDEAL)+' per question.';}
+else if(d>=-20){c='ok';tx='\\u2713 On track'+(d>=0?' \\u00b7 '+Math.round(d)+' sec ahead':' \\u00b7 '+Math.round(-d)+' sec behind');}
+else if(d>=-120){c='mid';tx='Slightly slow \\u00b7 '+Math.round(-d)+' sec behind. Speed up a little.';}
+else{c='bad';tx='Behind pace \\u00b7 '+mmss(-d)+' behind. Skip the long ones and come back.';}
+var s=$('pst');s.className='pstat '+c;s.textContent=tx;}
+function paint(){var left=TOT-now();$('ptm').textContent=mmss(left);$('pq').textContent=Math.min(q,Q)+' / '+Q;$('pbar').style.width=((Math.min(q-1,Q))/Q*100)+'%';
+var tg=Math.round(TOT-(q-1)*IDEAL);$('pnote').textContent='Target for question '+Math.min(q,Q)+': about '+mmss(tg)+' left';if(run&&!done)pace();}
+var tick=null;function loop(){if(tick)clearInterval(tick);tick=setInterval(function(){if(!run||paused||done)return;if(TOT-now()<=0){finish();return;}paint();},250);}
+function start(){if(run)return;run=true;paused=false;acc=0;t0=performance.now();qStart=0;q=1;times=[];done=false;$('pres').className='pres';$('pn').disabled=false;$('pp').disabled=false;$('pn').textContent='Next question';$('pp').textContent='Pause';paint();loop();}
+var fAt=0;function next(){if(!run){if(Date.now()-fAt<900)return;start();return;}if(paused||done)return;var e=now();times.push(e-qStart);qStart=e;if(q>=Q){q=Q+1;finish();return;}q++;paint();}
+function pause(){if(!run||done)return;if(!paused){acc=now();paused=true;$('pp').textContent='Resume';}else{t0=performance.now();paused=false;$('pp').textContent='Pause';}}
+function finish(){if(done)return;var e=Math.min(now(),TOT);var out=(TOT-now()<=0);if(out&&times.length>0){e=qStart;}else if(qStart<e&&times.length<Q&&q<=Q)times.push(e-qStart);done=true;run=false;fAt=Date.now();$('pn').textContent='Start';$('pn').disabled=false;$('pp').disabled=true;$('pp').textContent='Pause';result(e);}
+function result(e){var n=times.length,avg=n?e/n:0;var idx=times.map(function(v,i){return{v:v,i:i+1};}).sort(function(a,b){return b.v-a.v;}).slice(0,3);
+var st=avg<=IDEAL+3?'On pace':(avg<=IDEAL+15?'Slightly slow':'Slow');var r=$('pres');
+r.innerHTML='<small>SECTION '+sec+' RESULT</small><div class="big">'+mmss(avg)+' per question</div><p>'+n+' of '+Q+' questions in '+mmss(e)+' \\u00b7 '+st+'</p>'+(idx.length?'<table class="ptable">'+idx.map(function(o){return'<tr><td>Slowest: Q.'+o.i+'</td><td style="text-align:right">'+mmss(o.v)+'</td></tr>';}).join('')+'</table>':'')+'<div class="pbtns"><button type="button" class="pb m" id="psh">Share result image</button><button type="button" class="pb s" id="pag">Try again</button></div>';
+r.className='pres on';var ps=$('pst');ps.className='pstat';ps.textContent='Section finished. See your result below.';$('pq').textContent=Math.min(n,Q)+' / '+Q;$('psh').onclick=function(){card(avg,n,e,st,idx);};$('pag').onclick=function(){start();};}
+function card(avg,n,e,st,idx){var c=document.createElement('canvas');c.width=1080;c.height=1350;var x=c.getContext('2d');
+var g=x.createLinearGradient(0,0,1080,1350);g.addColorStop(0,'#0F1B3D');g.addColorStop(1,'#1B2C5E');x.fillStyle=g;x.fillRect(0,0,1080,1350);
+function go(img){x.textAlign='center';if(img){x.save();x.beginPath();x.arc(540,210,95,0,7);x.clip();x.drawImage(img,445,115,190,190);x.restore();}
+x.fillStyle='#E9B949';x.font='700 34px Arial';x.fillText('NEET PG PACE TRAINER',540,370);
+x.fillStyle='#fff';x.font='700 44px Arial';x.fillText('Section '+sec+' result',540,450);
+x.fillStyle='#E9B949';x.font='800 150px Arial';x.fillText(mmss(avg),540,680);x.fillStyle='#fff';x.font='700 46px Arial';x.fillText('per question',540,750);
+x.font='500 40px Arial';x.fillStyle='#D8DEEE';x.fillText(n+' of '+Q+' questions in '+mmss(e),540,850);x.fillText('Ideal pace: '+mmss(IDEAL)+' per question',540,915);
+x.fillStyle=st==='On pace'?'#5BE3A0':(st==='Slow'?'#FF8E8E':'#FFD27A');x.font='800 64px Arial';x.fillText(st,540,1040);
+x.fillStyle='#fff';x.font='600 36px Arial';x.fillText('Try it free: pptneetpghub.com',540,1220);x.fillStyle='#9FB0D8';x.font='500 28px Arial';x.fillText('Pray. Patience. Trust.',540,1275);
+c.toBlob(function(b){var f=new File([b],'neet-pg-pace-result.png',{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:'My NEET PG pace'}).catch(function(){});}else{var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='neet-pg-pace-result.png';a.click();}});}
+var im=new Image();im.onload=function(){go(im);};im.onerror=function(){go(null);};im.src='/logo-360.webp';}
+var sb=R.querySelectorAll('.psecs button');sb.forEach(function(b){b.onclick=function(){if(run&&!done)return;sec=parseInt(b.getAttribute('data-s'),10);sb.forEach(function(z){z.classList.toggle('on',z===b);});};});
+$('pn').onclick=next;$('pp').onclick=pause;document.addEventListener('keydown',function(ev){if(ev.code==='Space'&&run&&!paused&&!done&&document.activeElement&&document.activeElement.tagName!=='BUTTON'){ev.preventDefault();next();}});
+$('pn').textContent='Start';$('pp').disabled=true;$('ptm').textContent=mmss(TOT);$('pq').textContent='1 / '+Q;$('pnote').textContent='Press Start when you begin the section.';})();`;
+function paceBodyHtml() {
+  return '<style>' + PACE_CSS + '</style><div class="crumbs"><a href="/">Home</a> › <a href="/calculators">Free tools</a> › Pace Trainer</div>' +
+    '<span class="pill t">Free tool</span><h1>NEET PG Pace Trainer</h1><p class="lead">5 sections, 36 questions each, 42 minutes per section. Practise with your own book or mock test and see live whether your pace is on track.</p>' +
+    '<div class="pt" id="pt"><div class="pbox"><div class="psecs">' + [1, 2, 3, 4, 5].map(i => '<button type="button" data-s="' + i + '"' + (i === 1 ? ' class="on"' : '') + '>Section ' + i + '</button>').join('') + '</div>' +
+    '<div class="prow"><div class="pst tm"><b id="ptm">42:00</b><span>time left</span></div><div class="pst"><b id="pq">1 / 36</b><span>question</span></div><div class="pst"><b>1:10</b><span>ideal per question</span></div></div>' +
+    '<div class="pbar"><i id="pbar"></i></div><div class="pnote" id="pnote"></div><div class="pstat" id="pst" aria-live="polite">Pace status will appear here.</div>' +
+    '<div class="pbtns"><button type="button" class="pb m" id="pn">Start</button><button type="button" class="pb s" id="pp">Pause</button></div></div>' +
+    '<div class="pres" id="pres" aria-live="polite"></div>' +
+    '<noscript><p>This tool needs JavaScript. Ideal pace is about 1 minute 10 seconds per question.</p></noscript></div>' +
+    '<div class="body"><h2>How to use the NEET PG pace trainer</h2><ul><li>Pick a section and press Start. The 42-minute timer begins.</li><li>Solve MCQs from your own book, question bank or mock. Tap Next question after each one (on a keyboard, press Space).</li><li>Watch your pace: on track, slightly slow or behind.</li><li>At the end, see your average time per question and your slowest questions, then share the result image.</li></ul>' +
+    '<h2>Why pace matters in NEET PG</h2><p>The NEET PG 2026 paper had 180 questions in 5 sections of 36 questions, with 42 minutes for each section. Long clinical vignettes make time the real challenge, so practise your speed along with your knowledge. About 1 minute 10 seconds per question is the ideal average.</p>' +
+    '<h2>Common questions</h2>' + PACE_FAQ.map(q => '<p><b>' + h(q[0]) + '</b><br>' + h(q[1]) + '</p>').join('') + '</div>' +
+    '<div class="ptcta">Want timed full mocks with a score card? <a href="/#join">See Premium</a> or try the <a href="/#freeHub">free weekly mock</a>.</div>' +
+    '<p class="disc">Pattern based on the NEET PG 2026 paper. Always check the official NBEMS notice for the current exam pattern.</p>' +
+    '<script>' + PACE_JS + '</script>';
+}
+async function pacePage(env, url) {
+  const site = siteOf(env, url);
+  const path = '/calculators/' + PACE_SLUG;
+  return htmlResponse(shell(site, { title: 'NEET PG Pace Trainer: Free Time Per Question Tool | PPTNEETPGHUB',
+    desc: 'Free NEET PG pace trainer. 5 sections of 36 questions, 42 minutes each. See live if you are on track, get your time per question and share the result.',
+    path, body: paceBodyHtml(),
+    ld: [crumbLd(site, [['Home', '/'], ['Free tools', '/calculators'], ['Pace Trainer', path]]),
+      { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: PACE_FAQ.map(q => ({ '@type': 'Question', name: q[0], acceptedAnswer: { '@type': 'Answer', text: q[1] } })) }] }));
 }
 
 // ---------- SEO pages: Clinical signs, free questions, Ranker Vault, 5-min Ward Revision ----------
@@ -1499,6 +1580,7 @@ async function handlePublic(request, env, url) {
     if (POLICIES[p]) return await cachedPage(request, 3600, () => policyPage(env, url, p));
     if (!site.soon) {
       if (p === '/calculators') return await cachedPage(request, 3600, () => calcIndexPage(env, url));
+      if (p === '/calculators/' + PACE_SLUG) return await cachedPage(request, 3600, () => pacePage(env, url));
       const km = /^\/calculators\/([a-z0-9-]{3,80})$/.exec(p);
       if (km) return await cachedPage(request, 3600, () => calcPage(env, url, km[1]));
       if (p.startsWith('/calculators/')) return calcNotFound(site);
