@@ -2447,6 +2447,7 @@
         <li><b>Free mock test</b><span>One every week with a timer, then a score card with our logo that you can share.</span></li>
         <li><b>Free PDF</b><span>A short revision PDF every week, view-only.</span></li>
         <li><b>Daily Diagnosis and Daily Match</b><span>Two quick daily games.</span></li>
+        <li><b>Free Anki deck</b><span>104 high-yield flashcards across 19 subjects. Download and import into Anki.</span></li>
       </ul>
       <button class="btn btn-gold" id="fhGmail" type="button">Continue with Gmail</button>
       <p class="fh-small">Free account. Any Gmail works. Premium is separate and optional.</p>
@@ -3299,6 +3300,19 @@ function fdTile(title, sub, badge, done, fn, off) {
   b.appendChild(fdEl("b", null, title)); b.appendChild(fdEl("small", null, sub));
   b.onclick = fn; return b;
 }
+async function ankiDeckDownload() {
+  try {
+    if (!window.__fb || !window.__fb.auth || !window.__fb.auth.currentUser) { showToast("Sign in with Gmail to download the free Anki deck."); return; }
+    showToast("Preparing your Anki deck...");
+    const tok = await window.__fb.auth.currentUser.getIdToken();
+    const res = await fetch("/api/free-deck", { headers: { Authorization: "Bearer " + tok } });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const blob = await res.blob();
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "NEET-PG-2027-Free-Anki-Starter-Deck-PPTNEETPGHUB.apkg"; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    showToast("Your free Anki deck is downloading. Open it with Anki.");
+  } catch (e) { console.error(e); showToast("The deck is not available right now. Please try again later.", true); }
+}
 function fdMini(icon, title, sub, badge, done, fn, off, href) {
   const b = fdEl(href ? "a" : "button", "fd-mini" + (off ? " off" : "")); if (!href) b.type = "button"; else b.href = href;
   b.appendChild(fdEl("span", "ic", icon));
@@ -3351,6 +3365,7 @@ function fdHome() {
   r.appendChild(fdMini("📄", "Free PDF", FD.pdfs === undefined ? "Loading…" : (np ? np + " short PDF" + (np > 1 ? "s" : "") + ", view-only" : "New one every week"), np ? "NEW" : "", false, fdPdfList, !np));
   const nfc = (FD.fc || []).filter(x => x.cards && x.cards.length).length;
   r.appendChild(fdMini("🗂️", "Flashcards", FD.fc === undefined ? "Loading…" : (nfc ? "2 free per series" : "Coming soon"), nfc ? "NEW" : "", false, fdFlashcards, !nfc));
+  r.appendChild(fdMini("🗃️", "Free Anki deck", "104 cards · .apkg", "NEW", false, ankiDeckDownload));
   r.appendChild(fdMini("🧮", "Calculators", "Clinical", "", false, null, false, "/calculators"));
   r.appendChild(fdMini("💡", "Study tips", "High-yield reads", "", false, null, false, "/study-tips"));
   m.appendChild(r);
