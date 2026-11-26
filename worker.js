@@ -227,6 +227,29 @@ async function handleFreeCard(request, env, url) {
   return new Response(obj.body, { headers: { 'Content-Type': MIME[ext], 'Cache-Control': 'private, max-age=300', 'X-Content-Type-Options': 'nosniff' } });
 }
 
+// ---------- Free Anki starter deck: signed-in users download; only admin can replace the file ----------
+const DECK_KEY = 'free-deck/starter.apkg';
+async function handleFreeDeck(request, env) {
+  const user = await requireUser(request, env);
+  if (request.method === 'PUT') {
+    if (!user.isAdmin) throw new HttpError(403, 'Admin only');
+    const size = parseInt(request.headers.get('Content-Length') || '0', 10);
+    if (!size) throw new HttpError(411, 'Empty or unknown file size');
+    if (size > 20 * 1024 * 1024) throw new HttpError(413, 'Deck is larger than 20 MB');
+    if (!request.body) throw new HttpError(400, 'No file received');
+    await env.FILES.put(DECK_KEY, request.body, { httpMetadata: { contentType: 'application/octet-stream' } });
+    return json({ ok: true });
+  }
+  const obj = await env.FILES.get(DECK_KEY);
+  if (!obj) throw new HttpError(404, 'The deck is not available yet');
+  const headers = new Headers();
+  headers.set('Content-Type', 'application/octet-stream');
+  headers.set('Content-Disposition', 'attachment; filename="NEET-PG-2027-Free-Anki-Starter-Deck-PPTNEETPGHUB.apkg"');
+  headers.set('Cache-Control', 'private, no-store');
+  headers.set('X-Content-Type-Options', 'nosniff');
+  return new Response(obj.body, { headers });
+}
+
 async function handleUpload(request, env, url) {
   const user = await requireUser(request, env);
   if (!user.isAdmin) throw new HttpError(403, 'Admin only');
@@ -401,7 +424,7 @@ function decodeNews(doc) {
     category: s('category') || 'Other', summary: s('summary'), body: s('body'),
     sourceUrl: s('sourceUrl'), sourceName: s('sourceName'), date,
     pinned: !!(f.pinned && f.pinned.booleanValue),
-    rankerName: s('rankerName'), rankerRank: s('rankerRank'), rankerYear: s('rankerYear'), rankerInsta: s('rankerInsta'), rankerYoutube: s('rankerYoutube'), faq: s('faq'),
+    rankerName: s('rankerName'), rankerRank: s('rankerRank'), rankerYear: s('rankerYear'), rankerInsta: s('rankerInsta'), rankerYoutube: s('rankerYoutube'), faq: s('faq'), previews: s('previews'),
     updatedAt: t('updatedAt') || t('createdAt') || (date ? date + 'T00:00:00Z' : '')
   };
   // A ranker can have up to 15 YouTube links (newest first). Old items with one link keep working.
@@ -545,7 +568,7 @@ function shellFull(site, o) {
       '<details class="menu"><summary aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></summary><div class="panel">' +
       '<a href="/">Home</a><a href="/#features">What you get</a><a href="/#pricing">Pricing</a><a href="/news">News</a><a href="/study-tips">Study tips</a><a href="/calculators">Calculators</a><a href="/counselling">Counselling</a><a href="/#faq">FAQ</a><hr><a href="/" style="color:#D4AF55;font-weight:700">Member sign in</a></div></details></nav></div></header>' +
     '<main>' + o.body + '</main>' +
-    '<footer><div><a href="/">Home</a><a href="/drops">PDFs</a><a href="/news">News</a><a href="/study-tips">Study tips</a><a href="/calculators">Calculators</a><a href="/sign">Signs</a><a href="/counselling">Counselling</a><a href="/#pricing">Pricing</a></div><div class="legal"><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/refund">Refunds</a></div><p>Summaries of official notices. Always confirm dates and rules on the official website before acting.</p></footer><script>document.addEventListener("click",function(e){var d=document.querySelector("details.menu");if(d&&d.open&&!d.contains(e.target))d.open=false;});</script></body></html>';
+    '<footer><div><a href="/">Home</a><a href="/drops">PDFs</a><a href="/news">News</a><a href="/study-tips">Study tips</a><a href="/calculators">Calculators</a><a href="/neet-pg-2027">NEET PG 2027</a><a href="/anki">Free Anki deck</a><a href="/inicet-2027">INI-CET 2027</a><a href="/sign">Signs</a><a href="/counselling">Counselling</a><a href="/#pricing">Pricing</a></div><div class="legal"><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/refund">Refunds</a></div><p>Summaries of official notices. Always confirm dates and rules on the official website before acting.</p></footer><script>document.addEventListener("click",function(e){var d=document.querySelector("details.menu");if(d&&d.open&&!d.contains(e.target))d.open=false;});</script></body></html>';
 }
 function ctaBox() {
   return '<div class="cta"><b>Preparing for NEET PG?</b><p>Notes, PYQs, flash cards and timed tests, released step by step.</p><a class="btn" href="/#join">Go Premium</a></div>';
@@ -964,9 +987,114 @@ async function counsellingItemPage(env, url, slug) {
   }));
 }
 
+// ---------- Exam hubs: NEET PG 2027 and INI-CET 2027 ----------
+// Dates are shown only when a row has a value taken from the OFFICIAL notice (natboard.edu.in or aiimsexams.ac.in).
+// To publish a date: replace its null with the text exactly as the official notice gives it, then update "checked".
+const HUBS = {
+  'neet-pg-2027': {
+    path: '/neet-pg-2027', short: 'NEET PG 2027', body: 'NBEMS', official: 'https://natboard.edu.in', officialName: 'natboard.edu.in', checked: '26 Nov 2026',
+    title: 'NEET PG 2027: Exam Date, Pattern and Preparation Hub | PPTNEETPGHUB',
+    desc: 'NEET PG 2027 hub: where to confirm the official dates, what the exam is, and free tools to practise: pace trainer, daily questions and previous-year topic sheets.',
+    h1: 'NEET PG 2027: dates, exam basics and preparation hub',
+    lead: 'One page for NEET PG 2027. Dates appear here only after they are published on the official NBEMS website, so you never revise a rumour.',
+    dates: [['Information bulletin and notification', null], ['Application window', null], ['Exam date', null], ['Admit card', null], ['Result', null]],
+    facts: [
+      'NEET PG is an eligibility-cum-ranking examination. It is the single entrance examination for MD, MS and PG Diploma courses, as per Section 61(2) of the National Medical Commission Act, 2019.',
+      'The exam is conducted by the National Board of Examinations in Medical Sciences (NBEMS).',
+      'Every detail of eligibility, pattern, marking and fees is fixed in the official information bulletin for that year. Read the 2027 bulletin when NBEMS publishes it.',
+      'NBEMS treats the contents of the exam as confidential under its non disclosure agreement. Our previous-year topic sheets list topics and original practice questions. They do not reproduce exam questions.'
+    ],
+    faq: [
+      ['When is NEET PG 2027?', 'The exam date is announced by NBEMS on natboard.edu.in. This page shows the date in the table above once the official notice is out.'],
+      ['Where do I apply for NEET PG 2027?', 'Only through the official NBEMS website, natboard.edu.in. Be careful with look-alike sites and agents.'],
+      ['How should I start preparing before the date is announced?', 'Start with subject-wise practice, revise the most tested topics and train your speed. The free pace trainer and the daily practice questions on this site are made for that.'],
+      ['Is PPTNEETPGHUB an official source?', 'No. We are an independent preparation website. For dates, rules and results, always confirm on the official NBEMS website.']
+    ],
+    tools: [['Free NEET PG pace trainer', '/calculators/neet-pg-pace-trainer', 'Practise your time per question section by section.'], ['Free practice questions', '/q', 'Subject-wise questions with instant answers.'], ['NEET PG 2027 PDFs and PYT sheets', '/drops', 'Previous-year topic sheets with a free preview.'], ['Free daily practice', '/#freeHub', '20 questions a day after a free Gmail sign-in.']]
+  },
+  'inicet-2027': {
+    path: '/inicet-2027', short: 'INI-CET 2027', body: 'AIIMS', official: 'https://aiimsexams.ac.in', officialName: 'aiimsexams.ac.in', checked: '26 Nov 2026',
+    title: 'INI-CET July 2027: Dates, Exam Basics and Preparation Hub | PPTNEETPGHUB',
+    desc: 'INI-CET 2027 hub: where to confirm the official AIIMS dates for the July 2027 session, what the exam is, and free tools to practise for it.',
+    h1: 'INI-CET July 2027: dates, exam basics and preparation hub',
+    lead: 'One page for INI-CET in 2027. Dates are added only after they appear on the official AIIMS website.',
+    dates: [['July 2027 session: admission notice', null], ['July 2027 session: application window', null], ['July 2027 session: exam date', null], ['July 2027 session: admit card', null], ['July 2027 session: result', null]],
+    facts: [
+      'INI-CET is the Institute of National Importance Combined Entrance Test for PG courses. It is conducted by AIIMS, New Delhi.',
+      'It is held for two admission sessions, January and July. The January 2027 session has its own information brochure on the AIIMS exam portal.',
+      'The brochure of each session gives the courses, institutes, eligibility, internship cut-off date, marking scheme and the full schedule. Always read the brochure of the session you are applying for.',
+      'INI-CET and NEET PG are separate exams with separate notices. Prepare for both, since the core MBBS syllabus is the same.'
+    ],
+    faq: [
+      ['When is the INI-CET July 2027 exam?', 'AIIMS announces it in the admission notice for the session on aiimsexams.ac.in. The table above shows the date once the official notice is out.'],
+      ['Where do I apply for INI-CET?', 'Only on the official AIIMS exam portal, aiimsexams.ac.in.'],
+      ['Is INI-CET harder than NEET PG?', 'They are different exams with different patterns. Practise questions of both types, and check the pattern in the official brochure.'],
+      ['Is PPTNEETPGHUB an official source?', 'No. We are an independent preparation website. For dates, rules and results, always confirm on the official AIIMS website.']
+    ],
+    tools: [['Free practice questions', '/q', 'Subject-wise questions with instant answers.'], ['Free medical score calculators', '/calculators', 'Child-Pugh, Alvarado, Bishop, CURB-65 and more.'], ['PYT sheets and PDFs', '/drops', 'Previous-year topic sheets with a free preview.'], ['Free daily practice', '/#freeHub', '20 questions a day after a free Gmail sign-in.']]
+  }
+};
+const HUB_CSS = '.hubt{width:100%;border-collapse:collapse;margin:12px 0 4px;font-size:15px}.hubt td,.hubt th{border-top:1px solid #E3DCC8;padding:10px 8px;text-align:left;vertical-align:top}.hubt th{font-size:12.5px;color:#666;text-transform:uppercase;letter-spacing:.04em}.hubt .tba{color:#8A5A00}.hubn{background:#FFF8E5;border:1px solid #E8D49A;border-radius:12px;padding:12px 14px;margin:14px 0;font-size:14.5px}.hubg{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:12px 0}';
+async function hubPage(env, url, key) {
+  const site = siteOf(env, url), H = HUBS[key];
+  const rows = H.dates.map(d => '<tr><td><b>' + h(d[0]) + '</b></td><td>' + (d[1] ? h(d[1]) : '<span class="tba">Not shown yet. Confirm on <a href="' + h(H.official) + '" rel="noopener">' + h(H.officialName) + '</a></span>') + '</td></tr>').join('');
+  const body = '<style>' + HUB_CSS + '</style><div class="crumbs"><a href="/">Home</a> › ' + h(H.short) + '</div>' +
+    '<h1>' + h(H.h1) + '</h1><p class="lead">' + h(H.lead) + '</p>' +
+    '<div class="hubn"><b>Last checked: ' + h(H.checked) + '.</b> We copy dates only from the official ' + h(H.body) + ' notice. Always confirm on <a href="' + h(H.official) + '" rel="noopener">' + h(H.officialName) + '</a> before you act.</div>' +
+    '<h2>Important dates</h2><table class="hubt"><thead><tr><th>Event</th><th>Official date</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+    '<h2>Exam basics</h2><ul>' + H.facts.map(f => '<li>' + h(f) + '</li>').join('') + '</ul>' +
+    '<h2>Free tools to start today</h2><div class="hubg">' + H.tools.map(t => '<a class="item" href="' + h(t[1]) + '"><b>' + h(t[0]) + '</b><span class="s">' + h(t[2]) + '</span></a>').join('') + '</div>' +
+    '<h2>Frequently asked questions</h2>' + H.faq.map(f => '<p><strong>' + h(f[0]) + '</strong><br>' + h(f[1]) + '</p>').join('') +
+    '<div class="cta"><b>Practise every day, not just before the exam.</b><p>Sign in with Gmail for 20 free questions a day, or go Premium for the full library.</p><div class="cta-row"><a class="btn" href="/#pricing">Go Premium</a><a class="btn" style="background:#fff" href="/?src=hub-' + h(key) + '#freeHub">Try free first</a></div></div>';
+  const ld = [crumbLd(site, [['Home', '/'], [H.short, H.path]]),
+    { '@context': 'https://schema.org', '@type': 'WebPage', name: H.title, url: site + H.path, description: H.desc, dateModified: '2026-11-26', publisher: orgLd(site) },
+    { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: H.faq.map(f => ({ '@type': 'Question', name: f[0], acceptedAnswer: { '@type': 'Answer', text: f[1] } })) }];
+  return htmlResponse(shell(site, { title: H.title, desc: H.desc, path: H.path, body, ld }));
+}
+
+// ---------- Free Anki starter deck page (/anki) ----------
+const ANKI_FAQ = [
+  ['What is inside the free NEET PG 2027 Anki starter deck?', 'It has 104 high-yield flashcards across 19 subjects, from Anatomy to Radiology. The cards are mixed: exam traps, drugs, diagnoses, signs, numbers and one-liners.'],
+  ['How do I import the .apkg file into Anki?', 'Install Anki (desktop or AnkiMobile or AnkiDroid), open it, then choose File > Import and select the .apkg file. Or just open the file with Anki on your phone.'],
+  ['Is the deck really free?', 'Yes. Sign in once with Gmail and download it. There is no payment.'],
+  ['Is this deck made from exam questions?', 'No. Each card is an original, short revision card on a commonly tested topic. We do not reproduce exam questions.'],
+  ['Should I rely on it alone?', 'No. It is a starter deck. Use it with your standard textbooks and confirm exam details on the official NBEMS website.']
+];
+const ANKI_CSS = '<style>.ankg{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:14px 0}.ankg img{width:100%;height:auto;border-radius:12px;border:1px solid #e3dcc8;display:block}.ankst{counter-reset:s;list-style:none;padding:0}.ankst li{counter-increment:s;margin:8px 0;padding-left:38px;position:relative}.ankst li:before{content:counter(s);position:absolute;left:0;top:0;width:26px;height:26px;border-radius:50%;background:#C9A24B;color:#0B1530;font-weight:700;text-align:center;line-height:26px;font-size:14px}.ankb{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}</style>';
+async function ankiPage(env, url) {
+  const site = siteOf(env, url);
+  const body = ANKI_CSS + '<div class="crumbs"><a href="/">Home</a> › Free Anki deck</div>' +
+    '<h1>Free NEET PG 2027 Anki starter deck (.apkg)</h1>' +
+    '<p class="lead">104 high-yield flashcards across 19 subjects. Traps, drugs, diagnoses, signs and numbers, in one free deck for Anki.</p>' +
+    '<div class="ankb"><a class="btn" href="/?src=anki-page&dl=anki#freeHub">Download free deck</a><a class="btn" style="background:#fff" href="#how">How to import</a></div>' +
+    '<p class="pvn" style="font-size:13px;color:#666">Free. Sign in once with Gmail to download.</p>' +
+    '<h2>What the cards look like</h2><div class="ankg"><img src="/anki-preview-1.png" alt="Anki card on axillary nerve injury" width="600" height="760" loading="lazy"><img src="/anki-preview-2.png" alt="Anki card on teratogenic drugs" width="600" height="760" loading="lazy"><img src="/anki-preview-3.png" alt="Anki card on Kawasaki disease" width="600" height="760" loading="lazy"></div>' +
+    '<h2>What is inside</h2><ul><li><b>19 subjects:</b> Anatomy, Physiology, Biochemistry, Pathology, Pharmacology, Microbiology, Forensic Medicine, Community Medicine, Medicine, Surgery, Obstetrics and Gynaecology, Paediatrics, Orthopaedics, ENT, Ophthalmology, Dermatology, Psychiatry, Anaesthesia, Radiology.</li><li><b>Mixed card types:</b> exam traps, drugs and antidotes, classic diagnoses, clinical signs, numbers and cut-offs, mnemonics.</li><li>Every card ends with a short <b>Remember</b> line: the usual trap or a quick pearl.</li><li>Cards are shuffled across subjects, so each study session stays varied.</li></ul>' +
+    '<h2 id="how">How to import it in Anki</h2><ol class="ankst"><li>Download the .apkg file from this page.</li><li>Install Anki: desktop, AnkiDroid (Android) or AnkiMobile (iPhone).</li><li>Open Anki and choose <b>File &gt; Import</b>, then pick the .apkg file. On a phone, open the file with Anki.</li><li>Study 20 new cards a day. Anki will bring each card back at the right time.</li></ol>' +
+    '<h2>Frequently asked questions</h2>' + ANKI_FAQ.map(f => '<p><strong>' + h(f[0]) + '</strong><br>' + h(f[1]) + '</p>').join('') +
+    '<div class="cta"><b>Want more than a starter deck?</b><p>Premium has the full flashcard library, question bank, tests and weekly PDFs.</p><div class="cta-row"><a class="btn" href="/#pricing">Go Premium</a><a class="btn" style="background:#fff" href="/?src=anki-page&dl=anki#freeHub">Get the free deck</a></div></div>';
+  const ld = [crumbLd(site, [['Home', '/'], ['Free Anki deck', '/anki']]),
+    { '@context': 'https://schema.org', '@type': 'WebPage', name: 'Free NEET PG 2027 Anki starter deck', url: site + '/anki', description: 'Free NEET PG 2027 Anki starter deck with 104 high-yield flashcards across 19 subjects.', dateModified: '2026-11-26', publisher: orgLd(site) },
+    { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: ANKI_FAQ.map(f => ({ '@type': 'Question', name: f[0], acceptedAnswer: { '@type': 'Answer', text: f[1] } })) }];
+  return htmlResponse(shell(site, { title: 'Free NEET PG 2027 Anki Deck (.apkg): 104 High-Yield Cards | PPTNEETPGHUB',
+    desc: 'Download a free NEET PG 2027 Anki starter deck: 104 high-yield flashcards across 19 subjects with exam traps, drugs, diagnoses and numbers.', path: '/anki', body, ld }));
+}
+
 // ---------- Public page for a Premium drop (made from the admin "Recent drops" tab) ----------
 function dropFaq(raw) {
   return String(raw || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => { const i = l.indexOf('|'); return i > 0 ? [l.slice(0, i).trim(), l.slice(i + 1).trim()] : null; }).filter(x => x && x[0] && x[1]).slice(0, 6);
+}
+function dropPreviews(raw) {
+  return String(raw || '').split('\n').map(l => l.trim()).filter(k => /^drop-previews\/[a-z0-9._-]+\.(png|jpg|jpeg|webp)$/i.test(k)).slice(0, 3);
+}
+const PV_CSS = '<style>.pvs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:16px 0 6px}.pvs img{width:100%;height:auto;border-radius:10px;border:1px solid #e3e3e3;display:block;background:#f4f4f4}.pvn{font-size:12.5px;color:#666;margin:2px 0 12px}</style>';
+async function handleDropPreview(env, key) {
+  const k = decodeURIComponent(key || '');
+  if (!/^drop-previews\/[a-z0-9._-]+\.(png|jpg|jpeg|webp)$/i.test(k)) return new Response('Not found', { status: 404 });
+  const o = await env.FILES.get(k);
+  if (!o) return new Response('Not found', { status: 404 });
+  const ext = k.split('.').pop().toLowerCase();
+  return new Response(o.body, { headers: { 'Content-Type': ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg', 'Cache-Control': 'public, max-age=86400', 'X-Content-Type-Options': 'nosniff' } });
 }
 async function dropPage(env, url, slug) {
   const site = siteOf(env, url);
@@ -974,14 +1102,15 @@ async function dropPage(env, url, slug) {
   if (!n) return dropNotFound(site);
   const path = '/drops/' + n.slug;
   const faq = dropFaq(n.faq);
+  const pv = dropPreviews(n.previews);
   const others = (await allPublished(env)).filter(x => x.section === 'drops' && x.id !== n.id).slice(0, 4);
   const body = '<div class="crumbs"><a href="/">Home</a> › <a href="/drops">Premium drops</a> › ' + h(clip(n.title, 50)) + '</div>' +
     '<span class="pill g">Premium drop</span><span class="meta">' + (n.date ? 'Added: ' + h(niceDate(n.date)) : '') + '</span>' +
-    '<h1>' + h(n.title) + '</h1><p class="lead">' + h(n.summary) + '</p><div class="body">' + renderBody(n.body) + '</div>' +
+    '<h1>' + h(n.title) + '</h1><p class="lead">' + h(n.summary) + '</p>' + (pv.length ? PV_CSS + '<div class="pvs">' + pv.map((k, i) => '<img src="/dp/' + h(k) + '" alt="' + h(clip(n.title, 70)) + ' preview page ' + (i + 1) + '" loading="' + (i ? 'lazy' : 'eager') + '" width="600" height="848">').join('') + '</div><p class="pvn">Free preview pages. The complete file is inside Premium.</p><div class="cta-row" style="margin-bottom:14px"><a class="btn" href="/#pricing">Go Premium</a><a class="btn" style="background:#fff" href="/?src=drop-' + h(n.slug) + '#freeHub">Try free first</a></div>' : '') + '<div class="body">' + renderBody(n.body) + '</div>' +
     (faq.length ? '<h2>Frequently asked questions</h2>' + faq.map(f => '<p><strong>' + h(f[0]) + '</strong><br>' + h(f[1]) + '</p>').join('') : '') +
-    '<div class="cta"><b>Get the full resource in Premium</b><p>This page shows a short preview. The complete file, with the rest of the library, is inside PPTNEETPGHUB Premium.</p><div class="cta-row"><a class="btn" href="/#pricing">Go Premium</a><a class="btn" style="background:#fff" href="/#freeHub">Try free first</a></div></div>' +
+    '<div class="cta"><b>Get the full resource in Premium</b><p>This page shows a short preview. The complete file, with the rest of the library, is inside PPTNEETPGHUB Premium.</p><div class="cta-row"><a class="btn" href="/#pricing">Go Premium</a><a class="btn" style="background:#fff" href="/?src=drop-' + h(n.slug) + '#freeHub">Try free first</a></div></div>' +
     (others.length ? '<h2>More Premium drops</h2>' + others.map(o => '<a class="item" href="/drops/' + h(o.slug) + '"><span class="pill g">Premium drop</span><b>' + h(o.title) + '</b><span class="s">' + h(clip(o.summary, 110)) + '</span></a>').join('') : '');
-  const ld = [{ '@context': 'https://schema.org', '@type': 'Article', headline: clip(n.title, 110), description: clip(n.summary, 200), datePublished: n.date || undefined, dateModified: (n.updatedAt || n.date || '').slice(0, 10) || undefined, mainEntityOfPage: site + path, author: orgLd(site), publisher: orgLd(site) },
+  const ld = [{ '@context': 'https://schema.org', '@type': 'Article', headline: clip(n.title, 110), description: clip(n.summary, 200), image: pv.length ? pv.map(k => site + '/dp/' + k) : undefined, datePublished: n.date || undefined, dateModified: (n.updatedAt || n.date || '').slice(0, 10) || undefined, mainEntityOfPage: site + path, author: orgLd(site), publisher: orgLd(site) },
     crumbLd(site, [['Home', '/'], ['Premium drops', '/drops'], [clip(n.title, 60), path]])];
   if (faq.length) ld.push({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(f => ({ '@type': 'Question', name: f[0], acceptedAnswer: { '@type': 'Answer', text: f[1] } })) });
   return htmlResponse(shell(site, { title: clip(n.title, 60) + ' | PPTNEETPGHUB', desc: clip(n.summary || n.title, 160), path, ogType: 'article', body, ld }));
@@ -1025,6 +1154,8 @@ async function sitemapXml(env, url) {
     : [{ loc: '/', mod: '' }, { loc: '/terms', mod: '' }, { loc: '/privacy', mod: '' }, { loc: '/refund', mod: '' }, { loc: '/calculators', mod: '' }, { loc: '/news', mod: last(news) }, { loc: '/counselling', mod: guide ? (guide.updatedAt || '').slice(0, 10) : last(coun) }, { loc: '/study-tips', mod: last(tips) }];
   if (!site.soon) CALCS.forEach(c => rows.push({ loc: '/calculators/' + c.slug, mod: '' }));
   if (!site.soon) rows.push({ loc: '/calculators/' + PACE_SLUG, mod: '' });
+  if (!site.soon) rows.push({ loc: '/anki', mod: '2026-11-26' });
+  if (!site.soon) { rows.push({ loc: '/neet-pg-2027', mod: '2026-11-26' }); rows.push({ loc: '/inicet-2027', mod: '2026-11-26' }); }
   if (!site.soon) { try { await addSeoRows(env, rows, tips); } catch (e) { /* the rest of the sitemap still works */ } }
   news.forEach(n => rows.push({ loc: '/news/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
   coun.forEach(n => rows.push({ loc: '/counselling/' + n.slug, mod: (n.updatedAt || n.date || '').slice(0, 10) }));
@@ -1111,6 +1242,57 @@ const CALCS = [
     pearl: 'Know the five signs in the APGAR order and the groups 7 to 10, 4 to 6 and 0 to 3. Heart rate and respiration are the signs that guide resuscitation first.',
     faq: [['What does APGAR stand for?', 'Appearance, Pulse, Grimace, Activity and Respiration.'],
       ['When is the Apgar score taken?', 'At 1 minute and 5 minutes after birth.']] }
+  ,{ slug: 'child-pugh-score-calculator', name: 'Child-Pugh score', type: 'radio', unit: '',
+    title: 'Child-Pugh Score Calculator for Cirrhosis', short: 'Child-Pugh class A, B or C',
+    desc: 'Free Child-Pugh score calculator. Choose bilirubin, albumin, INR, ascites and encephalopathy to get the score and class A, B or C.',
+    lead: 'Choose one option in each of the five groups. The score and class appear below.',
+    groups: [
+      { l: 'Bilirubin (mg/dL)', n: 'b', o: [['Below 2', 1], ['2 to 3', 2], ['Above 3', 3]] },
+      { l: 'Albumin (g/dL)', n: 'a', o: [['Above 3.5', 1], ['2.8 to 3.5', 2], ['Below 2.8', 3]] },
+      { l: 'INR', n: 'i', o: [['Below 1.7', 1], ['1.7 to 2.3', 2], ['Above 2.3', 3]] },
+      { l: 'Ascites', n: 's', o: [['None', 1], ['Mild, or controlled with diuretics', 2], ['Moderate to severe, or refractory', 3]] },
+      { l: 'Hepatic encephalopathy', n: 'e', o: [['None', 1], ['Grade 1 to 2, or controlled with drugs', 2], ['Grade 3 to 4, or refractory', 3]] }],
+    what: ['The Child-Pugh score grades the severity of cirrhosis using five items: bilirubin, albumin, INR (or prothrombin time), ascites and encephalopathy. Each item scores 1 to 3, so the total runs from 5 to 15.',
+      'Class A is 5 to 6 (well compensated), class B is 7 to 9 (significant functional compromise) and class C is 10 to 15 (decompensated, poor outcome).',
+      'It is used to judge surgical risk in a cirrhotic patient and to guide transplant referral.'],
+    pearl: 'Remember the cut-offs 5 to 6, 7 to 9 and 10 to 15, and the five items: bilirubin, albumin, INR, ascites, encephalopathy. Child-Pugh class C is a high-risk patient for elective surgery.',
+    faq: [['What is the Child-Pugh score used for?', 'It grades the severity of cirrhosis and helps judge surgical risk and prognosis.'],
+      ['Which Child-Pugh score is class C?', 'A total of 10 to 15 points is class C.']] }
+  ,{ slug: 'alvarado-score-calculator', name: 'Alvarado score', type: 'check', unit: 'points',
+    title: 'Alvarado Score Calculator for Appendicitis', short: 'Alvarado (MANTRELS) score for appendicitis',
+    desc: 'Free Alvarado score calculator for acute appendicitis. Tick the MANTRELS features to get the score out of 10 and what it usually means.',
+    lead: 'Tick every feature that is present. The score and the usual next step appear below.',
+    fields: [
+      { l: 'Migration of pain to the right iliac fossa', s: 'Pain starts around the umbilicus and moves', v: 1 },
+      { l: 'Anorexia', s: 'Loss of appetite', v: 1 },
+      { l: 'Nausea or vomiting', s: 'Either one', v: 1 },
+      { l: 'Tenderness in the right iliac fossa', s: 'Counts 2 points', v: 2 },
+      { l: 'Rebound tenderness', s: 'Pain on release of pressure', v: 1 },
+      { l: 'Elevated temperature', s: 'Above 37.3 °C (99.1 °F)', v: 1 },
+      { l: 'Leucocytosis', s: 'White cell count above 10,000 per µL (counts 2 points)', v: 2 },
+      { l: 'Shift to the left', s: 'Neutrophils above 75%', v: 1 }],
+    what: ['The Alvarado score (MANTRELS) estimates the probability of acute appendicitis from eight features. Two items count 2 points (tenderness in the right iliac fossa and leucocytosis) and six count 1 point, so the maximum is 10.',
+      'Usual groups: 1 to 4 appendicitis unlikely, 5 to 6 possible (imaging such as ultrasound or CT helps), 7 to 8 probable, and 9 to 10 very probable. A score of 7 or more suggests high probability and surgical review.',
+      'Ultrasound is the first-line imaging in children, young women and pregnancy.'],
+    pearl: 'MANTRELS: Migration, Anorexia, Nausea, Tenderness (2), Rebound, Elevated temperature, Leucocytosis (2), Shift to left. A score of 7 or more means high probability.',
+    faq: [['What does MANTRELS stand for?', 'Migration of pain, Anorexia, Nausea or vomiting, Tenderness in the right iliac fossa, Rebound tenderness, Elevated temperature, Leucocytosis, and Shift to the left.'],
+      ['What is the maximum Alvarado score?', 'The maximum is 10 points.']] }
+  ,{ slug: 'bishop-score-calculator', name: 'Bishop score', type: 'radio', unit: '',
+    title: 'Bishop Score Calculator for Induction of Labour', short: 'Bishop score for cervical readiness',
+    desc: 'Free Bishop score calculator. Score dilatation, effacement, station, consistency and position to see if the cervix is favourable for induction.',
+    lead: 'Choose one option in each of the five groups. The score and the usual meaning appear below.',
+    groups: [
+      { l: 'Cervical dilatation', n: 'd', o: [['Closed', 0], ['1 to 2 cm', 1], ['3 to 4 cm', 2], ['5 cm or more', 3]] },
+      { l: 'Effacement', n: 'e', o: [['0 to 30%', 0], ['40 to 50%', 1], ['60 to 70%', 2], ['80% or more', 3]] },
+      { l: 'Station of the head', n: 's', o: [['−3', 0], ['−2', 1], ['−1 or 0', 2], ['+1 or +2', 3]] },
+      { l: 'Cervical consistency', n: 'c', o: [['Firm', 0], ['Medium', 1], ['Soft', 2]] },
+      { l: 'Cervical position', n: 'p', o: [['Posterior', 0], ['Mid-position', 1], ['Anterior', 2]] }],
+    what: ['The Bishop score judges how ready the cervix is for labour using dilatation, effacement, station, consistency and position. The total runs from 0 to 13.',
+      'A score of 8 or more is a favourable cervix, and induction is likely to succeed. A score of 5 or less is unfavourable, and the cervix is usually ripened first with a prostaglandin or a Foley catheter. 6 to 7 is intermediate.',
+      'The modified Bishop score (Calkins) uses only dilatation, cervical length, station and consistency, so use the version your exam expects.'],
+    pearl: 'Bishop 8 or more = favourable cervix, induce with oxytocin. Bishop 5 or less = unfavourable, ripen the cervix first (prostaglandin E2 or misoprostol, or Foley catheter).',
+    faq: [['What Bishop score is favourable?', 'A score of 8 or more means a favourable cervix, and induction is likely to succeed.'],
+      ['What do you do if the Bishop score is low?', 'Ripen the cervix first with a prostaglandin or a Foley catheter before oxytocin.']] }
 ];
 const CALC_CSS = '.calc{margin:18px 0}.copt{display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid #E3DCC8;border-radius:14px;padding:13px 14px;margin-bottom:9px;cursor:pointer;-webkit-tap-highlight-color:transparent}.copt.on{border-color:#0F8F83;background:#EAF7F4}.copt input{width:20px;height:20px;accent-color:#0F8F83;flex:none;margin:0}.copt span{flex:1;min-width:0}.copt b{display:block;font-size:15px;color:#0A1830}.copt em{display:block;font-style:normal;font-size:12.5px;color:#6E7A8A;margin-top:1px}.copt i{font-style:normal;font-weight:700;font-size:13px;color:#0B6F66;background:#DDF3EF;border-radius:10px;padding:2px 9px;flex:none}fieldset.cgrp{border:0;margin:0 0 16px;padding:0;min-width:0}fieldset.cgrp legend{font-weight:700;color:#0A1830;font-size:15px;margin-bottom:8px;padding:0}.cres{position:sticky;bottom:10px;background:#0A1830;color:#fff;border-radius:18px;padding:16px 18px;margin:16px 0;box-shadow:0 10px 28px rgba(10,24,48,.3)}.cres .sc{font-size:38px;font-weight:800;line-height:1;color:#EACF85}.cres .sc small{font-size:15px;color:#A9B6CE;font-weight:600;margin-left:6px}.cres .lv{font-weight:700;font-size:16px;margin-top:6px}.cres p{margin:4px 0 0;font-size:14px;color:#C5CFE2}.cres .rs{margin-top:10px;background:transparent;border:1.5px solid rgba(255,255,255,.35);color:#fff;border-radius:20px;padding:6px 14px;font:inherit;font-size:13px;cursor:pointer}.pearlbox{background:#FFF8E8;border:1px solid #EADFC0;border-left:4px solid #C9A24B;border-radius:12px;padding:12px 14px;margin:18px 0;font-size:15px}.disc{font-size:12.5px;color:#6E7A8A;margin:14px 0}.cgrid{display:grid;gap:10px}';
 const CALC_JS = `(function(){var root=document.getElementById('calc');if(!root)return;var kind=root.getAttribute('data-calc');var out=document.getElementById('cres');
@@ -1125,9 +1307,12 @@ function upd(){paint();
 if(kind==='curb-65'){var s=sum();var lv,tx;if(s<=1){lv='Low risk';tx='Usually outpatient treatment.';}else if(s===2){lv='Moderate risk';tx='Short inpatient stay or closely supervised treatment.';}else{lv='Severe pneumonia';tx='Consider ICU care.';}show(f(s),5,lv,tx);}
 else if(kind==='wells-pe'){var w=sum();var two=w>4?'PE likely. Go to CT pulmonary angiography (CTPA).':'PE unlikely. D-dimer is the usual next step.';var three=w<2?'Low':(w<=6?'Moderate':'High');show(f(w),12.5,w>4?'PE likely':'PE unlikely',two+' Three-tier group: '+three+' probability.');}
 else if(kind==='gcs'){var e=pick('e'),v=pick('v'),m=pick('m');if(e===null||v===null||m===null){wait('Choose one option in each of the three groups.');return;}var g=e+v+m;var lv2=g>=13?'Mild':(g>=9?'Moderate':'Severe (coma)');var tx2='E'+e+' V'+v+' M'+m+' = '+g+'.'+(g<=8?' A GCS of 8 or less is the classic point to think about securing the airway.':'');show(g,15,lv2,tx2);}
-else if(kind==='apgar'){var ks=['a','p','g','c','r'],t=0;for(var k=0;k<ks.length;k++){var x=pick(ks[k]);if(x===null){wait('Choose one option in each of the five groups.');return;}t+=x;}var lv3=t>=7?'Reassuring':(t>=4?'Moderately low':'Very low');var tx3=t>=7?'Usually normal adaptation to life outside the womb.':(t>=4?'The baby may need help with breathing or stimulation.':'Needs immediate resuscitation.');show(t,10,lv3,tx3);}}
+else if(kind==='apgar'){var ks=['a','p','g','c','r'],t=0;for(var k=0;k<ks.length;k++){var x=pick(ks[k]);if(x===null){wait('Choose one option in each of the five groups.');return;}t+=x;}var lv3=t>=7?'Reassuring':(t>=4?'Moderately low':'Very low');var tx3=t>=7?'Usually normal adaptation to life outside the womb.':(t>=4?'The baby may need help with breathing or stimulation.':'Needs immediate resuscitation.');show(t,10,lv3,tx3);}
+else if(kind==='child-pugh'){var kc=['b','a','i','s','e'],tc=0;for(var m=0;m<kc.length;m++){var y=pick(kc[m]);if(y===null){wait('Choose one option in each of the five groups.');return;}tc+=y;}var lc=tc<=6?'Class A':(tc<=9?'Class B':'Class C');var xc=tc<=6?'Well-compensated liver disease.':(tc<=9?'Significant functional compromise.':'Decompensated disease with a poor outcome. High risk for elective surgery.');show(tc,15,lc,xc);}
+else if(kind==='alvarado'){var av=sum();var la=av<=4?'Appendicitis unlikely':(av<=6?'Appendicitis possible':(av<=8?'Appendicitis probable':'Appendicitis very probable'));var xa=av<=4?'Observe, and re-examine if symptoms continue.':(av<=6?'Imaging (ultrasound or CT) helps to decide.':'High probability. Surgical review is usually needed.');show(f(av),10,la,xa);}
+else if(kind==='bishop'){var kb=['d','e','s','c','p'],tb=0;for(var n=0;n<kb.length;n++){var z=pick(kb[n]);if(z===null){wait('Choose one option in each of the five groups.');return;}tb+=z;}var lb=tb>=8?'Favourable cervix':(tb>=6?'Intermediate':'Unfavourable cervix');var xb=tb>=8?'Induction is likely to succeed.':(tb>=6?'Induction may work. Consider ripening.':'Ripen the cervix first (prostaglandin or Foley catheter).');show(tb,13,lb,xb);}}
 root.addEventListener('change',upd);root.addEventListener('click',function(ev){var l=ev.target.closest&&ev.target.closest('.copt');if(l)setTimeout(upd,0);});upd();})();`;
-const CALC_KIND = { 'curb-65-calculator': 'curb-65', 'wells-score-pulmonary-embolism-calculator': 'wells-pe', 'glasgow-coma-scale-calculator': 'gcs', 'apgar-score-calculator': 'apgar' };
+const CALC_KIND = { 'curb-65-calculator': 'curb-65', 'wells-score-pulmonary-embolism-calculator': 'wells-pe', 'glasgow-coma-scale-calculator': 'gcs', 'apgar-score-calculator': 'apgar', 'child-pugh-score-calculator': 'child-pugh', 'alvarado-score-calculator': 'alvarado', 'bishop-score-calculator': 'bishop' };
 function calcFormHtml(c) {
   const pt = (v) => (v > 0 ? '+' + v : '0');
   if (c.type === 'check') {
@@ -1137,7 +1322,7 @@ function calcFormHtml(c) {
     g.o.map(o => '<label class="copt"><input type="radio" name="' + g.n + '" value="' + o[1] + '"><span><b>' + h(o[0]) + '</b></span><i>' + o[1] + '</i></label>').join('') + '</fieldset>').join('');
 }
 function calcCta() {
-  return '<div class="cta"><b>Turn scores into marks.</b><p>Try the free daily questions, then practise by subject with instant answers.</p><div class="cta-row"><a class="btn" href="/#freeHub">Free daily practice</a><a class="btn" href="/#join">Go Premium</a></div></div>';
+  return '<div class="cta"><b>Turn scores into marks.</b><p>Try the free daily questions, then practise by subject with instant answers.</p><div class="cta-row"><a class="btn" href="/?src=calculators#freeHub">Free daily practice</a><a class="btn" href="/q">Free practice questions</a><a class="btn" href="/#join">Go Premium</a></div></div>';
 }
 function calcNotFound(site) {
   return htmlResponse(shell(site, { title: 'Page not found | PPTNEETPGHUB', desc: 'This page was not found.', path: '/calculators', noindex: true,
@@ -1150,8 +1335,8 @@ async function calcIndexPage(env, url) {
     CALCS.map(c => '<a class="item" href="/calculators/' + c.slug + '"><span class="pill t">Calculator</span><b>' + h(c.title) + '</b><span class="s">' + h(c.desc) + '</span></a>').join('') +
     '<a class="item" href="/calculators/' + PACE_SLUG + '"><span class="pill t">Free tool</span><b>NEET PG Pace Trainer</b><span class="s">Live pace tracker for the 5 sections of 36 questions, 42 minutes each.</span></a>' +
     '<p class="disc">' + h(CALC_DISCLAIMER) + '</p>' + calcCta();
-  return htmlResponse(shell(site, { title: 'Free Medical Score Calculators: CURB-65, Wells, GCS, Apgar | PPTNEETPGHUB',
-    desc: 'Free calculators for CURB-65, Wells score for PE, Glasgow Coma Scale and Apgar score. Made for NEET PG and INICET revision.', path: '/calculators', body,
+  return htmlResponse(shell(site, { title: 'Free Medical Score Calculators: Child-Pugh, Alvarado, Bishop, CURB-65, Wells, GCS, Apgar | PPTNEETPGHUB',
+    desc: 'Free calculators for Child-Pugh, Alvarado, Bishop, CURB-65, Wells score for PE, Glasgow Coma Scale, Apgar and a NEET PG pace trainer. Made for NEET PG and INICET revision.', path: '/calculators', body,
     ld: [crumbLd(site, [['Home', '/'], ['Calculators', '/calculators']])] }));
 }
 async function calcPage(env, url, slug) {
@@ -1172,6 +1357,7 @@ async function calcPage(env, url, slug) {
     '<script>' + CALC_JS + '</script>';
   return htmlResponse(shell(site, { title: c.title + ' | PPTNEETPGHUB', desc: c.desc, path, body,
     ld: [crumbLd(site, [['Home', '/'], ['Calculators', '/calculators'], [c.name, path]]),
+      { '@context': 'https://schema.org', '@type': 'MedicalWebPage', name: c.title, url: site + path, description: c.desc, audience: { '@type': 'EducationalAudience', educationalRole: 'student' }, about: { '@type': 'MedicalEntity', name: c.name }, mainEntity: { '@type': 'WebApplication', name: c.title, applicationCategory: 'EducationalApplication', operatingSystem: 'Any (web browser)', url: site + path, isAccessibleForFree: true, offers: { '@type': 'Offer', price: '0', priceCurrency: 'INR' } } },
       { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: c.faq.map(q => ({ '@type': 'Question', name: q[0], acceptedAnswer: { '@type': 'Answer', text: q[1] } })) }] }));
 }
 
@@ -1251,6 +1437,7 @@ async function pacePage(env, url) {
     desc: 'Free NEET PG pace trainer. 5 sections of 36 questions, 42 minutes each. See live if you are on track, get your time per question and share the result.',
     path, body: paceBodyHtml(),
     ld: [crumbLd(site, [['Home', '/'], ['Free tools', '/calculators'], ['Pace Trainer', path]]),
+      { '@context': 'https://schema.org', '@type': 'WebApplication', name: 'NEET PG Pace Trainer', applicationCategory: 'EducationalApplication', operatingSystem: 'Any (web browser)', url: site + path, isAccessibleForFree: true, offers: { '@type': 'Offer', price: '0', priceCurrency: 'INR' } },
       { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: PACE_FAQ.map(q => ({ '@type': 'Question', name: q[0], acceptedAnswer: { '@type': 'Answer', text: q[1] } })) }] }));
 }
 
@@ -1580,6 +1767,9 @@ async function handlePublic(request, env, url) {
     if (POLICIES[p]) return await cachedPage(request, 3600, () => policyPage(env, url, p));
     if (!site.soon) {
       if (p === '/calculators') return await cachedPage(request, 3600, () => calcIndexPage(env, url));
+      if (p === '/anki') return await cachedPage(request, 3600, () => ankiPage(env, url));
+      if (p === '/neet-pg-2027') return await cachedPage(request, 3600, () => hubPage(env, url, 'neet-pg-2027'));
+      if (p === '/inicet-2027') return await cachedPage(request, 3600, () => hubPage(env, url, 'inicet-2027'));
       if (p === '/calculators/' + PACE_SLUG) return await cachedPage(request, 3600, () => pacePage(env, url));
       const km = /^\/calculators\/([a-z0-9-]{3,80})$/.exec(p);
       if (km) return await cachedPage(request, 3600, () => calcPage(env, url, km[1]));
@@ -1604,6 +1794,7 @@ async function handlePublic(request, env, url) {
     const cm = /^\/counselling\/([a-z0-9-]{3,80})$/.exec(p);
     if (cm) return await cachedPage(request, FRESH_SECONDS, () => counsellingItemPage(env, url, cm[1]));
     if (p.startsWith('/counselling/')) return counsellingNotFound(site);
+    if (p.startsWith('/dp/')) return await handleDropPreview(env, p.slice(4));
     if (p === '/drops') return await cachedPage(request, FRESH_SECONDS, () => dropsHubPage(env, url));
     const dm = /^\/drops\/([a-z0-9-]{3,80})$/.exec(p);
     if (dm) return await cachedPage(request, FRESH_SECONDS, () => dropPage(env, url, dm[1]));
@@ -2015,6 +2206,14 @@ async function handleStat(request, env) {
     const x = d.f[n] = d.f[n] || { u: 0, t: 0, f: 0, s: 0 };
     if (b.e === 'ft') { x.t++; if (b.u === 1) x.u++; }
     else { const s = int(Math.round(Number(b.s)), 1, 999); if (s === null) return ok; x.f++; x.s += s; }
+  } else if (b.e === 'sv' || b.e === 'si') {
+    // traffic sources: sv = a visit that arrived with ?src=label, si = that visitor then signed in with Gmail
+    const lab = /^[a-z0-9-]{2,40}$/.test(String(b.s)) ? String(b.s) : null;
+    if (!lab) return ok;
+    d.src = d.src || {};
+    if (!d.src[lab] && Object.keys(d.src).length >= 40) return ok;
+    const x = d.src[lab] = d.src[lab] || { v: 0, i: 0 };
+    if (b.e === 'sv') x.v++; else x.i++;
   } else return ok;
   const keys = Object.keys(st.days).sort(); while (keys.length > 90) delete st.days[keys.shift()];
   const pk = Object.keys(st.puz).map(Number).sort((x, y) => x - y); while (pk.length > 400) delete st.puz[pk.shift()];
@@ -2056,6 +2255,7 @@ export default {
       if (url.pathname === '/api/stat' && request.method === 'POST') return await handleStat(request, env);
       if (url.pathname === '/api/stats' && request.method === 'GET') return await handleStats(request, env);
       if (url.pathname === '/api/sample-card' && request.method === 'GET') return await handleSampleCard(env, url);
+      if (url.pathname === '/api/free-deck' && (request.method === 'GET' || request.method === 'PUT')) return await handleFreeDeck(request, env);
       if (url.pathname === '/api/free-file' && request.method === 'GET') return await handleFreeFile(request, env, url);
       if (url.pathname === '/api/free-card' && request.method === 'GET') return await handleFreeCard(request, env, url);
       if (url.pathname === '/api/file' && request.method === 'GET') return await handleGet(request, env, url);

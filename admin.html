@@ -940,6 +940,13 @@
         <p class="hint" id="fpdf_status"></p>
         <div id="fpdf_list"></div>
       </div>
+      <div class="card">
+        <h3>Free Anki starter deck (.apkg)</h3>
+        <p class="hint" style="margin-top:-6px">For the public /anki page. Signed-in free users can download it. Upload again to replace the old file.</p>
+        <input type="file" id="fdeck_file" accept=".apkg">
+        <div class="t-actions"><button class="btn" id="fdeck_add">Upload / replace deck</button></div>
+        <p class="hint" id="fdeck_status"></p>
+      </div>
     </div>
 
     <div id="freeResPanel" style="display:none;">
@@ -1693,6 +1700,22 @@ async function freePdfLoad() {
     });
   } catch (e) { box.appendChild(mk('div', 'empty', 'Could not load: ' + e.message)); }
 }
+async function freeDeckUpload() {
+  const f = document.getElementById('fdeck_file').files[0], st = document.getElementById('fdeck_status'), btn = document.getElementById('fdeck_add');
+  if (!f) { showToast('Choose the .apkg file.', true); return; }
+  if (!/\.apkg$/i.test(f.name)) { showToast('Only .apkg files.', true); return; }
+  btn.disabled = true; st.textContent = 'Uploading...';
+  try {
+    const user = window.__fb.auth.currentUser; if (!user) throw new Error('Sign in again');
+    const token = await user.getIdToken();
+    const res = await fetch('/api/free-deck', { method: 'PUT', headers: { Authorization: 'Bearer ' + token }, body: f });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(j.error || ('Upload failed (' + res.status + ')'));
+    st.textContent = 'Done. The deck is live for signed-in users.'; document.getElementById('fdeck_file').value = ''; showToast('Deck uploaded.');
+  } catch (e) { st.textContent = 'Failed: ' + e.message; showToast('Failed: ' + e.message, true); }
+  btn.disabled = false;
+}
+document.getElementById('fdeck_add').addEventListener('click', freeDeckUpload);
 async function freePdfAdd() {
   const title = document.getElementById('fpdf_title').value.trim(), note = document.getElementById('fpdf_note').value.trim(), file = document.getElementById('fpdf_file').files[0], st = document.getElementById('fpdf_status');
   if (!title || !file) { showToast('Add a title and choose a PDF.', true); return; }
@@ -2779,7 +2802,7 @@ function rdBuild() {
     const old = mk('span', 'gt-cnt', 'Oldest · replace this one'); old.id = 'rd_old' + i; old.style.cssText = 'display:none;background:#FFF1D6;color:#8A5A00;border-radius:8px;padding:2px 8px;font-size:11.5px;font-weight:700'; head.appendChild(old);
     const cnt = mk('span', 'gt-cnt', '0 / ' + RD.max); cnt.id = 'rd_cnt' + i; head.appendChild(cnt);
     const clr = mk('button', 'btn outline', 'Clear'); clr.type = 'button'; clr.style.cssText = 'padding:4px 10px;font-size:12px;margin:0';
-    clr.addEventListener('click', () => { ['t', 'd', 's', 'slug', 'intro', 'pts', 'faq', 'sh'].forEach(k => { const e = rdV('rd_' + k + i); if (e) e.value = ''; }); rdV('rd_d' + i).dataset.touched = ''; rdV('rd_d' + i).dataset.manual = ''; rdV('rd_t' + i).dataset.orig = ''; rdV('rd_seo' + i).checked = false; rdSeoShow(i); rdCount(i); rdMarkOldest(); });
+    clr.addEventListener('click', () => { ['t', 'd', 's', 'slug', 'intro', 'pts', 'faq', 'sh', 'pv'].forEach(k => { const e = rdV('rd_' + k + i); if (e) e.value = ''; }); rdPvShow(i); rdV('rd_d' + i).dataset.touched = ''; rdV('rd_d' + i).dataset.manual = ''; rdV('rd_t' + i).dataset.orig = ''; rdV('rd_seo' + i).checked = false; rdSeoShow(i); rdCount(i); rdMarkOldest(); });
     head.appendChild(clr);
     row.appendChild(head);
     const sel = document.createElement('select'); sel.id = 'rd_s' + i; row.appendChild(sel);
@@ -2800,6 +2823,14 @@ function rdBuild() {
     const intro = document.createElement('textarea'); intro.id = 'rd_intro' + i; intro.rows = 3; intro.maxLength = 200; intro.placeholder = '2 to 3 lines about this resource. Shows in Google results (up to 200 characters).'; f('Short intro', intro);
     const pts = document.createElement('textarea'); pts.id = 'rd_pts' + i; pts.rows = 6; pts.placeholder = 'One preview point per line (5 to 10 lines). Do not paste the full paid content.'; f('Free preview points', pts);
     const faq = document.createElement('textarea'); faq.id = 'rd_faq' + i; faq.rows = 3; faq.placeholder = 'Optional. One per line: Question? | Answer'; f('FAQ (optional)', faq);
+    // Preview pages: up to 3 pictures (PDF pages as PNG/JPG). A pptneetpghub.com watermark is added here before upload.
+    const pvw = document.createElement('div'); pvw.appendChild(mk('label', null, 'Preview page pictures (up to 3, shown on the public page)'));
+    const pvf = document.createElement('input'); pvf.type = 'file'; pvf.accept = 'image/png,image/jpeg,image/webp'; pvf.multiple = true; pvf.id = 'rd_pvf' + i;
+    pvf.addEventListener('change', () => rdPvAdd(i, pvf)); pvw.appendChild(pvf);
+    const pvk = document.createElement('input'); pvk.type = 'hidden'; pvk.id = 'rd_pv' + i; pvw.appendChild(pvk);
+    const pvs = mk('p', 'hint', 'Choose 2 or 3 pages from the PDF. Do not choose the answer pages.'); pvs.id = 'rd_pvs' + i; pvw.appendChild(pvs);
+    const pvt = document.createElement('div'); pvt.id = 'rd_pvt' + i; pvt.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap'; pvw.appendChild(pvt);
+    box.appendChild(pvw);
     const link = mk('p', 'hint', ''); link.id = 'rd_link' + i; box.appendChild(link);
     const rm = mk('button', 'btn outline', 'Remove this public page'); rm.type = 'button'; rm.id = 'rd_rm' + i; rm.style.cssText = 'display:none;padding:4px 10px;font-size:12px'; rm.addEventListener('click', () => rdRemovePage(i)); box.appendChild(rm);
     row.appendChild(box);
@@ -2814,6 +2845,52 @@ function rdBuild() {
     wrap.appendChild(row);
     fillSubjectSelect('rd_s' + i, 'No subject', false);
   }
+}
+function rdPvKeys(i) { return rdV('rd_pv' + i).value.split('\n').filter(Boolean); }
+function rdPvShow(i) {
+  const t = rdV('rd_pvt' + i); t.innerHTML = '';
+  rdPvKeys(i).forEach((k, j) => {
+    const w = document.createElement('div'); w.style.cssText = 'position:relative';
+    const im = document.createElement('img'); im.src = '/dp/' + k; im.style.cssText = 'width:90px;height:120px;object-fit:cover;border-radius:6px;border:1px solid #ddd'; w.appendChild(im);
+    const x = document.createElement('button'); x.type = 'button'; x.textContent = '×'; x.style.cssText = 'position:absolute;top:2px;right:2px;border:0;border-radius:50%;width:22px;height:22px;background:#c0392b;color:#fff;cursor:pointer';
+    x.addEventListener('click', () => { const ks = rdPvKeys(i); ks.splice(j, 1); rdV('rd_pv' + i).value = ks.join('\n'); rdPvShow(i); });
+    w.appendChild(x); t.appendChild(w);
+  });
+}
+function rdWatermark(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image(), u = URL.createObjectURL(file);
+    img.onload = () => {
+      const sc = Math.min(1, 1000 / img.naturalWidth), W = Math.round(img.naturalWidth * sc), H = Math.round(img.naturalHeight * sc);
+      const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+      g.drawImage(img, 0, 0, W, H);
+      g.save(); g.translate(W / 2, H / 2); g.rotate(-Math.PI / 6); g.fillStyle = 'rgba(120,120,120,0.16)'; g.font = 'bold ' + Math.round(W / 14) + 'px Arial'; g.textAlign = 'center';
+      for (let y = -H; y <= H; y += Math.round(W / 4)) g.fillText('pptneetpghub.com', 0, y);
+      g.restore();
+      const bh = Math.round(W / 17); g.fillStyle = 'rgba(15,23,42,0.85)'; g.fillRect(0, H - bh, W, bh);
+      g.fillStyle = '#fff'; g.font = 'bold ' + Math.round(bh * 0.5) + 'px Arial'; g.textAlign = 'center'; g.fillText('Free preview · Full file on pptneetpghub.com', W / 2, H - bh * 0.3);
+      URL.revokeObjectURL(u);
+      c.toBlob(b => b ? resolve(b) : reject(new Error('Could not read this picture')), 'image/png');
+    };
+    img.onerror = () => { URL.revokeObjectURL(u); reject(new Error('Could not open ' + file.name)); };
+    img.src = u;
+  });
+}
+async function rdPvAdd(i, inp) {
+  const st = rdV('rd_pvs' + i), files = Array.from(inp.files || []);
+  const keys = rdPvKeys(i);
+  try {
+    for (const f of files) {
+      if (keys.length >= 3) { st.textContent = 'Only 3 pictures are allowed. Remove one first.'; break; }
+      st.textContent = 'Adding watermark and uploading ' + f.name + '...';
+      const blob = await rdWatermark(f);
+      const base = f.name.replace(/\.[^.]+$/, '') || 'preview';
+      const key = await uploadToR2(new File([blob], base + '.png', { type: 'image/png' }), 'drop-previews', () => {});
+      keys.push(key); rdV('rd_pv' + i).value = keys.join('\n'); rdPvShow(i);
+    }
+    if (keys.length <= 3 && st.textContent.indexOf('Only 3') < 0) st.textContent = 'Done. Press Save to publish these pictures.';
+  } catch (e) { st.textContent = 'Failed: ' + e.message; }
+  inp.value = '';
 }
 function rdSeoShow(i) { rdV('rd_box' + i).style.display = rdV('rd_seo' + i).checked ? '' : 'none'; }
 function rdCount(i) {
@@ -2850,7 +2927,7 @@ async function loadDrops() {
       rdV('rd_s' + i).value = x.s || '';
       rdV('rd_t' + i).value = x.t || '';
       const d = rdV('rd_d' + i); d.value = x.d || ''; d.dataset.touched = x.d ? '1' : ''; d.dataset.manual = ''; rdV('rd_t' + i).dataset.orig = x.t || '';
-      ['sh', 'slug', 'intro', 'pts', 'faq'].forEach(k => { rdV('rd_' + k + i).value = ''; });
+      ['sh', 'slug', 'intro', 'pts', 'faq', 'pv'].forEach(k => { rdV('rd_' + k + i).value = ''; }); rdPvShow(i);
       rdV('rd_seo' + i).checked = false; rdSeoShow(i); rdShowLink(i, '');
       if (x.slug) {
         try {
@@ -2858,7 +2935,7 @@ async function loadDrops() {
           if (ps.exists()) {
             const p = ps.data(); RD.slugs[x.slug] = true;
             rdV('rd_seo' + i).checked = true; rdSeoShow(i);
-            rdV('rd_sh' + i).value = p.title || ''; rdV('rd_slug' + i).value = x.slug; rdV('rd_intro' + i).value = p.summary || ''; rdV('rd_faq' + i).value = p.faq || '';
+            rdV('rd_sh' + i).value = p.title || ''; rdV('rd_slug' + i).value = x.slug; rdV('rd_intro' + i).value = p.summary || ''; rdV('rd_faq' + i).value = p.faq || ''; rdV('rd_pv' + i).value = p.previews || ''; rdPvShow(i);
             rdV('rd_pts' + i).value = String(p.body || '').split('\n').filter(l => /^- /.test(l)).map(l => l.slice(2)).join('\n');
             rdShowLink(i, x.slug);
           }
@@ -2900,7 +2977,7 @@ async function saveDrops() {
       if (pages.some(p => p.slug === slug)) { showToast('Two drops use the same web address.', true); return; }
       const faq = rdV('rd_faq' + i).value.split('\n').map(l => l.trim()).filter(l => l.indexOf('|') > 0).join('\n');
       const body = '## What is inside\n' + pts.map(x => '- ' + x).join('\n') + '\n\n## Get the full resource\nThe complete resource is available inside PPTNEETPGHUB Premium, along with the question bank, tests, flashcards and weekly new PDFs.';
-      pages.push({ slug, data: { title, section: 'drops', type: 'drop', category: 'Premium drop', slug, date: d, summary: intro, body, faq, sourceName: '', sourceUrl: '', pinned: false, published: true } });
+      pages.push({ slug, data: { title, section: 'drops', type: 'drop', category: 'Premium drop', slug, date: d, summary: intro, body, faq, previews: rdPvKeys(i).slice(0, 3).join('\n'), sourceName: '', sourceUrl: '', pinned: false, published: true } });
       item.slug = slug;
     }
     items.push(item);
@@ -4706,6 +4783,16 @@ async function loadStatsAdmin() {
     pk.forEach(n => { const p = pz[n] || {}; const a = Number(p.n) || 0, w = Number(p.w) || 0; h += '<tr style="border-bottom:1px solid #EEE6D2"><td style="padding:6px 4px">#' + n + '</td><td>' + a + '</td><td>' + w + ' (' + stPct(w, a) + ')</td></tr>'; });
     h += '</table></div><p class="hint">A puzzle with a low solved % is hard. Consider moving it later or making its clues clearer.</p>';
   }
+  // Traffic sources: links with ?src=name (visits) and how many of those visitors signed in with Gmail
+  const srcSum = (keys) => { const m = {}; keys.forEach(k => { const o = (days[k] || {}).src || {}; Object.keys(o).forEach(l => { const x = m[l] = m[l] || { v: 0, i: 0 }; x.v += Number(o[l].v) || 0; x.i += Number(o[l].i) || 0; }); }); return m; };
+  h += '<h4 style="margin:16px 0 6px">Traffic sources (links with ?src=)</h4><p class="hint" style="margin-top:0">Add <b>?src=name</b> to a link you post, for example <b>https://pptneetpghub.com/?src=reel-pace</b> or <b>https://pptneetpghub.com/neet-pg-2027?src=insta-bio</b>. Visits = people who opened the link. Sign-ins = those who later signed in with Gmail on the same phone. Use small letters, numbers and dashes. Counting started after this update.</p>';
+  [['Last 7 days', all.slice(-7)], ['All days kept', all]].forEach(sx => {
+    const m = srcSum(sx[1]), labs = Object.keys(m).sort((p, q) => m[q].v - m[p].v);
+    h += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:8px"><tr style="text-align:left;border-bottom:1px solid #D9CFB8"><th style="padding:6px 4px">' + sx[0] + '</th><th>Visits</th><th>Sign-ins</th><th>Sign-in rate</th></tr>';
+    if (!labs.length) h += '<tr><td colspan="4" style="padding:6px 4px;color:#6B7280">No source links counted yet.</td></tr>';
+    labs.forEach(l => { h += '<tr style="border-bottom:1px solid #EEE6D2"><td style="padding:6px 4px"><b>' + l + '</b></td><td>' + m[l].v + '</td><td>' + m[l].i + '</td><td>' + stPct(m[l].i, m[l].v) + '</td></tr>'; });
+    h += '</table></div>';
+  });
   body.innerHTML = h;
   body.insertAdjacentHTML('beforeend', '<div id="st_prem"><p class="hint">Loading member games...</p></div>');
   loadGameStats();

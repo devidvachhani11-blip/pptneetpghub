@@ -2716,6 +2716,7 @@
     <div class="big" id="mtResS"></div>
     <p id="mtResN"></p>
     <button class="btn btn-gold" id="mtShare" type="button">Share my time</button>
+    <button class="btn" id="mtSign" type="button" style="display:none;background:#0B1530;color:#fff;border-color:#0B1530">Sign in with Gmail: save my time, 20 free questions daily</button>
     <button class="btn" id="mtJoin" type="button">Get all premium resources</button>
     <p style="margin-top:14px">New pairs come tomorrow.</p>
   </div>
@@ -3671,6 +3672,7 @@ function fdResult(cfg, rec) {
   Object.keys(sc.by).sort().forEach(k => { const row = fdEl("div", "fd-sub"); row.appendChild(fdEl("span", null, k)); row.appendChild(fdEl("b", null, sc.by[k][0] + "/" + sc.by[k][1])); card.appendChild(row); });
   const row = fdEl("div", "fd-row");
   const sh = fdEl("button", "fd-btn gold", "Share score card"); sh.type = "button"; sh.onclick = () => fdShare(cfg, sc, n); row.appendChild(sh);
+  if (window.__fb && currentUser && typeof duelCreate === "function") { const ch = fdEl("button", "fd-btn navy", "Challenge a batchmate"); ch.type = "button"; ch.onclick = () => duelCreate(ch); row.appendChild(ch); }
   const hb = fdEl("button", "fd-btn", "Back"); hb.type = "button"; hb.onclick = fdHome; row.appendChild(hb);
   card.appendChild(row);
   m.appendChild(card);
@@ -3751,7 +3753,7 @@ function fdShare(cfg, sc, n) {
     cv.toBlob(async (blob) => {
       if (!blob) { showToast("Could not make the card.", true); return; }
       const file = new File([blob], "score-card.png", { type: "image/png" });
-      try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text: "My score on PPTNEETPGHUB free practice" }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
+      try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], url: "https://pptneetpghub.com/?src=freescore", text: "My score on PPTNEETPGHUB free practice" }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
       const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "score-card.png"; document.body.appendChild(a); a.click(); a.remove();
       showToast("Score card saved. Share it on Instagram.");
     }, "image/png");
@@ -5553,7 +5555,8 @@ function trRenderResult() {
       '<div id="trShare">' + trShareHTML() + '</div>' +
       (t.trapMode ? '<div class="tr-cmp">Trap Spotter: you fell for <b>' + r.w + '</b> of <b>' + t.qs.length + '</b> traps' + (r.w === 0 ? ". Sharp eyes!" : ".") + '</div>' : "") +
       (TR.nbNote ? '<div class="tr-cmp">' + TR.nbNote + (TR.nbNote === 1 ? " question" : " questions") + ' mastered and removed from your notebook.</div>' : "") +
-      ((!trSynthetic() || t.practice) && r.w > 0 ? '<div class="tr-cmp">Your ' + r.w + (r.w === 1 ? " wrong answer was" : " wrong answers were") + ' added to your Mistake notebook.</div>' : "") +
+      ((!trSynthetic() || t.practice) && currentUser && r.w > 0 ? '<div class="tr-cmp">Your ' + r.w + (r.w === 1 ? " wrong answer was" : " wrong answers were") + ' added to your Mistake notebook.</div>' : "") +
+    (t.sample && !currentUser ? '<div class="tr-cta"><b>Save this score and your mistakes</b><span>Sign in with Gmail (free) to keep your result, build your Mistake notebook and get 20 new questions every day.</span><button class="tr-btn pri" data-act="gsign">Sign in with Gmail</button></div>' : '') +
     (t.sample ? '<div class="tr-cta"><b>Want the full question bank?</b><span>Unlock every test, note and flashcard deck.</span><button class="tr-btn pri" data-act="join">Go Premium</button></div>' : '') +
     '</div></div></div>' +
     '<div class="tr-foot"><button class="tr-btn sec" data-act="retake">' + (t.duel ? "Back to Play" : trSynthetic() ? "Practise again" : "Retake") + '</button><button class="tr-btn pri" data-act="review">Review answers</button></div>';
@@ -5644,6 +5647,7 @@ document.getElementById("trOverlay").addEventListener("click", (e) => {
   if (act === "share") return trShareCard();
   if (act === "beatshare") return beatShare();
   if (act === "streakshare") return streakShare();
+  if (act === "gsign") { trCloseOverlay(); return signIn("free"); }
   if (act === "duelshare") return duelShare(t.duel.code, myLabel());
   if (act === "gtnew") return gtNewAttempt();
   if (act === "retake") {
@@ -5959,7 +5963,7 @@ async function trShareCard() {
     if (!blob) throw new Error("no picture");
     const file = new File([blob], "my-score-card.png", { type: "image/png" });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: "My score", text: "I scored " + r.score + " / " + r.max + " in " + t.title + " on pptneetpghub.com" }); }
+      try { await navigator.share({ files: [file], title: "My score", url: "https://pptneetpghub.com/?src=scorecard", text: "I scored " + r.score + " / " + r.max + " in " + t.title + " on pptneetpghub.com" }); }
       catch (e) { if (e && e.name !== "AbortError") throw e; }
     } else {
       const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "my-score-card.png"; document.body.appendChild(a); a.click(); a.remove();
@@ -8245,6 +8249,57 @@ function duelPending() {
   duelOpen(c);
 }
 (function () {
+  // Traffic sources: when a visitor who came from a ?src= link signs in, count one sign-in for that source.
+  try {
+    if (location.protocol.indexOf("http") !== 0) return;
+    let n = 0;
+    const iv = setInterval(() => {
+      if (++n > 300) { clearInterval(iv); return; }
+      const lab = localStorage.getItem("pptSrc");
+      if (!lab || !window.__fb || !window.__fb.auth || !window.__fb.auth.currentUser) return;
+      clearInterval(iv);
+      try { localStorage.removeItem("pptSrc"); fetch("/api/stat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ e: "si", s: lab }), keepalive: true }).catch(() => {}); } catch (e) {}
+    }, 1500);
+  } catch (e) {}
+})();
+(function () {
+  // Free Anki deck: /anki sends people here with ?dl=anki. After a Gmail sign-in the .apkg downloads.
+  try {
+    if (/[?&]dl=anki(&|$)/.test(location.search)) {
+      localStorage.setItem("pptDl", "anki");
+      history.replaceState(null, "", location.pathname + location.search.replace(/([?&])dl=anki&?/, "$1").replace(/[?&]$/, "") + location.hash);
+    }
+    if (localStorage.getItem("pptDl") !== "anki") return;
+    let told = false, n = 0;
+    const iv = setInterval(async () => {
+      if (++n > 400) { clearInterval(iv); return; }
+      if (!window.__fb || !window.__fb.auth) return;
+      const u = window.__fb.auth.currentUser;
+      if (!u) {
+        if (!told && n > 6) { told = true; showToast("Sign in with Gmail to download your free Anki deck."); const hub = document.getElementById("freeHub"); if (hub && hub.offsetParent !== null) hub.scrollIntoView(); }
+        return;
+      }
+      clearInterval(iv);
+      try {
+        const tok = await u.getIdToken();
+        const res = await fetch("/api/free-deck", { headers: { Authorization: "Bearer " + tok } });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const blob = await res.blob();
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "NEET-PG-2027-Free-Anki-Starter-Deck-PPTNEETPGHUB.apkg"; document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+        localStorage.removeItem("pptDl");
+        showToast("Your free Anki deck is downloading. Open it with Anki.");
+      } catch (e) { console.error(e); localStorage.removeItem("pptDl"); showToast("Could not download the deck. Please try again from the Anki page.", true); }
+    }, 700);
+  } catch (e) {}
+})();
+(function () {
+  try {
+    const sm = location.search.match(/[?&]src=([a-z0-9-]{2,60})/i);
+    if (sm) { localStorage.setItem("pptSrc", sm[1].toLowerCase()); try { if (!sessionStorage.getItem("pptSrcSent") && location.protocol.indexOf("http") === 0) { sessionStorage.setItem("pptSrcSent", "1"); fetch("/api/stat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ e: "sv", s: sm[1].toLowerCase() }), keepalive: true }).catch(() => {}); } } catch (e2) {} history.replaceState(null, "", location.pathname + location.search.replace(/([?&])src=[^&]*&?/, "$1").replace(/[?&]$/, "") + location.hash); }
+  } catch (e) {}
+})();
+(function () {
   try {
     const m = location.search.match(/[?&]duel=([A-Za-z0-9]{4,12})/);
     if (m) { localStorage.setItem("pptDuelCode", m[1].toUpperCase()); history.replaceState(null, "", location.pathname + location.hash); }
@@ -8451,7 +8506,7 @@ async function streakShare() {
     if (!blob) throw new Error("no picture");
     const file = new File([blob], "my-streak.png", { type: "image/png" });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: "My study streak", text: k.cur + " day study streak on pptneetpghub.com" }); }
+      try { await navigator.share({ files: [file], title: "My study streak", url: "https://pptneetpghub.com/?src=streak", text: k.cur + " day study streak on pptneetpghub.com" }); }
       catch (e) { if (e && e.name !== "AbortError") throw e; }
     } else {
       const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "my-streak.png"; document.body.appendChild(a); a.click(); a.remove();
@@ -8790,6 +8845,7 @@ function mtShowRes(secs, wrong) {
     const txt = "I matched 6 NEET PG pairs in " + secs + " seconds on today's " + (MT.prem ? "Premium " : "") + "Daily Match. Can you beat me? " + location.origin + "/";
     if (navigator.share) navigator.share({ text: txt }).catch(() => {}); else window.open("https://wa.me/?text=" + encodeURIComponent(txt), "_blank", "noopener");
   };
+  const sg = document.getElementById("mtSign"); sg.style.display = currentUser ? "none" : ""; sg.onclick = () => { mtClose(); signIn("free"); };
   document.getElementById("mtJoin").onclick = () => { mtClose(); goToJoin(); };
 }
 document.getElementById("mtStart").onclick = () => mtOpen(false);
