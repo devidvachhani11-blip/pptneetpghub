@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>try{if((window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true)document.documentElement.classList.add('app-mode');}catch(e){}</script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-0JCWHXMBWN"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-0JCWHXMBWN");</script>
 <script>(function(){try{var p=localStorage.getItem("pptTheme");var d=p==="dark"||(p==="auto"&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-eff",d?"dark":"light");}catch(e){}})();</script>
 <meta charset="UTF-8">
@@ -2307,7 +2308,7 @@
   .fh-list b{font-size:14.5px}
   .fh-list span{font-size:13px;color:#C9D3E6;line-height:1.4}
   .fh-small{margin:10px 0 0;font-size:12px;color:#AEBBD2}
-  #landingView.free-mode > *:not(.l-header):not(#freeDash):not(.l-footer):not(.sg-ov):not(#dailySec):not(#inappBar):not(#renewBar):not(#fdBack):not(#fdViewer){display:none!important}
+  #landingView.free-mode > *:not(.l-header):not(#freeDash):not(.l-footer):not(.sg-ov):not(#dailySec):not(#inappBar):not(#renewBar):not(#fdBack):not(#fdTopBar):not(#fdViewer){display:none!important}
   #landingView.free-mode .l-nav,#landingView.free-mode .l-actions .btn-gold,#landingView.free-mode .l-menu-panel a[href^="#"]{display:none!important}
   #freeDash{display:none;padding:18px 0 40px;background:#FAF7F0;min-height:70vh;color:#14213d}
   #landingView.free-mode #freeDash{display:block}
@@ -2352,6 +2353,27 @@
   .fd-rev h4{margin:0 0 5px;font-size:14.5px;line-height:1.45}
   .fd-rev .y{color:#256c3a;font-weight:700}.fd-rev .n{color:#b3362d;font-weight:700}
   #fdBack{position:fixed;left:12px;bottom:14px;z-index:90;display:none;box-shadow:0 6px 20px rgba(10,24,48,.25)}
+  #appSign{display:none;position:fixed;inset:0;z-index:400;background:radial-gradient(ellipse at 50% 0,#16305f,#0A1830 60%);color:#fff;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;text-align:center;overflow-y:auto}
+  html.app-mode.app-out #appSign{display:flex}
+  html.app-mode.app-out body{overflow:hidden}
+  #appSign .as-in{width:100%;max-width:340px}
+  #appSign img{width:84px;height:84px;border-radius:50%;border:2px solid #D4AF55;display:block;margin:0 auto 14px}
+  #appSign h1{font-size:24px;margin:0 0 8px;color:#fff;letter-spacing:.2px}
+  #appSign p{font-size:15px;line-height:1.5;color:#C7D2E6;margin:0 0 22px}
+  #appSign .btn{width:100%}
+  #appSign small{display:block;margin-top:12px;color:#9FB0CC;font-size:12px}
+  #appSign .as-links{margin-top:26px;font-size:12px}
+  #appSign .as-links a{color:#D4AF55;margin:0 8px}
+  .fd-today{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1.5px solid #E5D8B5;border-radius:20px;padding:14px 16px;margin-bottom:12px;box-shadow:0 8px 20px rgba(10,24,48,.07)}
+  .fd-today b{display:block;font-size:17px;color:#0A1830}
+  .fd-today small{display:block;margin-top:2px;font-size:12px;color:#6B7280}
+  .fd-today .fd-btn{flex:none}
+  .fd-today .fd-btn[disabled]{opacity:.55}
+  #fdTopBar{position:fixed;left:0;right:0;top:60px;z-index:45;display:none;align-items:center;padding:7px 12px;background:rgba(251,248,241,.96);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border-bottom:1px solid #E5D8B5}
+  #fdTopBar.on{display:flex}
+  body.fd-tb #freeDash{padding-top:48px}
+  #libraryView .lib-title.has-back{position:sticky;top:max(var(--mbh,62px),62px);z-index:25;margin:0 -2px 8px;padding:8px 2px 4px;background:rgba(251,248,241,.96);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+  html[data-eff="dark"] #libraryView .lib-title.has-back{background:rgba(11,17,28,.96)}
   #fdViewer{position:fixed;inset:0;z-index:200;background:#1d2433;display:none;flex-direction:column}
   #fdViewer.on{display:flex}
   .fdv-top{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#0A1830;color:#fff;gap:8px;font-size:14px;font-weight:700}
@@ -2421,6 +2443,8 @@
   </div>
 </section>
 <button class="fd-btn navy" id="fdBack" type="button">&larr; My free space</button>
+<div id="appSign" role="dialog" aria-label="Sign in"><div class="as-in"><img src="/logo-96.webp" alt="PPTNEETPGHUB" width="84" height="84"><h1>PPTNEETPGHUB</h1><p>NEET PG and INI-CET practice. Sign in once. Next time your space opens straight away.</p><button class="btn btn-gold" id="asGmail" type="button">Continue with Gmail</button><small>Free account. Any Gmail works.</small><div class="as-links"><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/refund">Refunds</a></div></div></div>
+<div id="fdTopBar"><button class="fd-btn navy" id="fdTopBack" type="button">&larr; Free space</button></div>
 <div id="fdViewer" role="dialog" aria-label="Free PDF"><div class="fdv-top"><span id="fdvTitle"></span><button class="fd-btn" id="fdvX" type="button">Close</button></div><div class="fdv-body" id="fdvBody"><div class="fdv-wm" id="fdvWm"></div></div></div>
 
 <section class="tkr" id="tkr" aria-label="Latest from PPTNEETPGHUB">
@@ -3279,6 +3303,21 @@ function showInApp(failed) {
 // It never reads or writes any premium collection.
 // =====================================================================
 const FD = { off: false, was: false, pool: undefined, mock: undefined, pdfs: undefined, fc: undefined, run: null, tick: null };
+// Back on phones: the free space screens (practice, mock, PDFs, cards, results) each take one Back step, and a top Back bar stays in view
+(function () { let v; Object.defineProperty(FD, "view", { configurable: true, enumerable: true, get() { return v; }, set(x) { v = x; fdNavSync(); } }); })();
+function fdNavSync() {
+  try {
+    if (FD.view === "home") navDone("fdv");
+    else if (FD.view && !FD.host) navPush("fdv", { close: () => { fdStopTimer(); fdHome(); } });
+    fdTopBarSync();
+  } catch (e) {}
+}
+function fdTopBarSync() {
+  const bar = document.getElementById("fdTopBar"); if (!bar) return;
+  const on = !!(FD.view && FD.view !== "home" && !FD.host && fdOn());
+  bar.classList.toggle("on", on); document.body.classList.toggle("fd-tb", on);
+  const h = document.querySelector("#landingView .l-header"); if (h) bar.style.top = Math.round(h.getBoundingClientRect().height) + "px";
+}
 function fdOn() { return !!(authResolved && currentUser && membershipChecked && !isPaidMember && !forceJoin && !FD.off && !(paymentInfo.latest && paymentInfo.latest.status === "pending")); }
 function fdEmail() { return String((currentUser && currentUser.email) || "").toLowerCase(); }
 function fdKey(k) { return "pptFree:" + fdEmail() + ":" + k; }
@@ -3294,14 +3333,15 @@ function fdSync() {
   const on = fdOn();
   if (authResolved && currentUser && membershipChecked && !isPaidMember) fdTouch();   // count every signed-in non-member, even if the free page is not shown
   lv.classList.toggle("free-mode", on);
+  try { fdTopBarSync(); } catch (e) {}
   const back = document.getElementById("fdBack");
   if (back) back.style.display = (authResolved && currentUser && membershipChecked && !isPaidMember && FD.off) ? "block" : "none";
   if (on && !FD.was) { FD.was = true; FD.pool = undefined; FD.mock = undefined; FD.pdfs = undefined; FD.run = null; fdHome(); fdLoadAll(); fdTouch(); window.scrollTo(0, 0); }
   if (!on && FD.was) { FD.was = false; fdStopTimer(); }
   if (on) { const w = document.getElementById("fdWho"); if (w) w.textContent = "Signed in as " + fdEmail() + " · Free account"; }
 }
-function fdGoPremium() { FD.off = true; fdStopTimer(); updateView(); setTimeout(() => { const j = document.getElementById("pricing") || document.getElementById("join"); if (j) j.scrollIntoView(); }, 50); }
-function fdBackToFree() { FD.off = false; updateView(); }
+function fdGoPremium() { FD.off = true; fdStopTimer(); navPush("fdoff", { close: () => { FD.off = false; updateView(); } }); updateView(); setTimeout(() => { const j = document.getElementById("pricing") || document.getElementById("join"); if (j) j.scrollIntoView(); }, 50); }
+function fdBackToFree() { FD.off = false; updateView(); navDone("fdoff"); }
 
 // ---------- data ----------
 async function fdLoadAll() {
@@ -3374,6 +3414,11 @@ function fdHome() {
   const m = fdMain(); if (!m) return;
   m.innerHTML = "";
   const day = istDay(Date.now());
+  // Today's 20 questions, first thing in the free space
+  { const pd = fdGet("p:" + day), ld = FD.pool === undefined;
+    const tc = fdEl("div", "fd-today"); const tx = fdEl("div"); tx.appendChild(fdEl("b", null, "Today's 20 questions")); tx.appendChild(fdEl("small", null, ld ? "Loading…" : (FD.pool ? (pd ? "Done today. New questions tomorrow." : "3 trap questions. Instant feedback.") : "Coming soon")));
+    const tb = fdEl("button", "fd-btn gold", pd ? "Open" : "Start \u2192"); tb.type = "button"; if (!FD.pool) tb.disabled = true; else tb.onclick = fdPracticeStart;
+    tc.appendChild(tx); tc.appendChild(tb); m.appendChild(tc); }
   // hero: Daily Drug Guess
   const dg = fdGet("dg:" + day);
   const hero = fdEl("div", "fd-hero");
@@ -3918,6 +3963,8 @@ function fdPdfClose() { document.getElementById("fdViewer").classList.remove("on
   const $ = id => document.getElementById(id);
   if ($("fdPrem")) $("fdPrem").onclick = fdGoPremium;
   if ($("fdBack")) $("fdBack").onclick = fdBackToFree;
+  if ($("fdTopBack")) $("fdTopBack").onclick = fgBack;
+  if ($("asGmail")) $("asGmail").onclick = () => signIn("free");
   if ($("fdvX")) $("fdvX").onclick = fdPdfClose;
   if ($("fhGmail")) $("fhGmail").onclick = () => signIn("free");
   document.addEventListener("keydown", e => { if (e.key === "Escape" && $("fdViewer").classList.contains("on")) fdPdfClose(); });
@@ -4019,6 +4066,7 @@ function updateView() {
   document.getElementById('landingView').style.display = showLib ? 'none' : 'block';
   document.getElementById('libraryView').style.display = showLib ? 'block' : 'none';
   document.documentElement.classList.toggle('in-lib', showLib);
+  document.documentElement.classList.toggle('app-out', !!(authResolved && !currentUser));
   if (authResolved && (!currentUser || membershipChecked)) document.body.classList.remove('booting');
   document.getElementById('lhSignIn').textContent = currentUser ? 'Sign out' : 'Member Login';
   document.getElementById('menuSignIn').textContent = currentUser ? 'Sign out' : 'Member Login';
@@ -5362,7 +5410,7 @@ function trCloseNow() {
   trCloseOverlay();
 }
 const NAV_TEST = {
-  ask: () => { const t = TR.t; if (t && (TR.phase === "run" || TR.phase === "blocks")) return t.mode === "exam" ? "Leave the test? Your answers are saved and the timer keeps running." : "Leave this test?"; return ""; },
+  ask: () => "",
   close: () => trCloseNow()
 };
 
@@ -7488,6 +7536,7 @@ renderHeading = function () {
   const T = document.getElementById("libTitle"), S = document.getElementById("libSub"), bk = document.getElementById("hubBack");
   const home = libView === "library" && !HUB.page;
   bk.style.display = home ? "none" : "";
+  try { const lt = document.querySelector("#libraryView .lib-title"); if (lt) lt.classList.toggle("has-back", !home); } catch (e) {}
   if (home) { T.textContent = "Welcome back"; S.textContent = (currentUser && currentUser.email) || ""; return; }
   if (libView !== "library") return;
   const nm = { practice: "Daily Practice", resources: "Resources", decks: "Card Decks", tests: "Tests" }[HUB.page];
