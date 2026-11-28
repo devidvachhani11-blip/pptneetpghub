@@ -1010,7 +1010,7 @@ const HUBS = {
       ['How should I start preparing before the date is announced?', 'Start with subject-wise practice, revise the most tested topics and train your speed. The free pace trainer and the daily practice questions on this site are made for that.'],
       ['Is PPTNEETPGHUB an official source?', 'No. We are an independent preparation website. For dates, rules and results, always confirm on the official NBEMS website.']
     ],
-    tools: [['Free NEET PG pace trainer', '/calculators/neet-pg-pace-trainer', 'Practise your time per question section by section.'], ['Free practice questions', '/q', 'Subject-wise questions with instant answers.'], ['NEET PG 2027 PDFs and PYT sheets', '/drops', 'Previous-year topic sheets with a free preview.'], ['Free daily practice', '/#freeHub', '20 questions a day after a free Gmail sign-in.']]
+    tools: [['Free NEET PG pace trainer', '/calculators/neet-pg-pace-trainer', 'Practise your time per question section by section.'], ['Free Anki starter deck', '/anki', '104 high-yield flashcards for Anki, free with Gmail.'], ['NEET PG 2027 PDFs and PYT sheets', '/drops', 'Previous-year topic sheets with a free preview.'], ['Free daily practice', '/#freeHub', '20 questions a day after a free Gmail sign-in.']]
   },
   'inicet-2027': {
     path: '/inicet-2027', short: 'INI-CET 2027', body: 'AIIMS', official: 'https://aiimsexams.ac.in', officialName: 'aiimsexams.ac.in', checked: '26 Nov 2026',
@@ -1031,7 +1031,7 @@ const HUBS = {
       ['Is INI-CET harder than NEET PG?', 'They are different exams with different patterns. Practise questions of both types, and check the pattern in the official brochure.'],
       ['Is PPTNEETPGHUB an official source?', 'No. We are an independent preparation website. For dates, rules and results, always confirm on the official AIIMS website.']
     ],
-    tools: [['Free practice questions', '/q', 'Subject-wise questions with instant answers.'], ['Free medical score calculators', '/calculators', 'Child-Pugh, Alvarado, Bishop, CURB-65 and more.'], ['PYT sheets and PDFs', '/drops', 'Previous-year topic sheets with a free preview.'], ['Free daily practice', '/#freeHub', '20 questions a day after a free Gmail sign-in.']]
+    tools: [['Free Anki starter deck', '/anki', '104 high-yield flashcards for Anki, free with Gmail.'], ['Free medical score calculators', '/calculators', 'Child-Pugh, Alvarado, Bishop, CURB-65 and more.'], ['PYT sheets and PDFs', '/drops', 'Previous-year topic sheets with a free preview.'], ['Free daily practice', '/#freeHub', '20 questions a day after a free Gmail sign-in.']]
   }
 };
 const HUB_CSS = '.hubt{width:100%;border-collapse:collapse;margin:12px 0 4px;font-size:15px}.hubt td,.hubt th{border-top:1px solid #E3DCC8;padding:10px 8px;text-align:left;vertical-align:top}.hubt th{font-size:12.5px;color:#666;text-transform:uppercase;letter-spacing:.04em}.hubt .tba{color:#8A5A00}.hubn{background:#FFF8E5;border:1px solid #E8D49A;border-radius:12px;padding:12px 14px;margin:14px 0;font-size:14.5px}.hubg{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:12px 0}';
@@ -1322,7 +1322,7 @@ function calcFormHtml(c) {
     g.o.map(o => '<label class="copt"><input type="radio" name="' + g.n + '" value="' + o[1] + '"><span><b>' + h(o[0]) + '</b></span><i>' + o[1] + '</i></label>').join('') + '</fieldset>').join('');
 }
 function calcCta() {
-  return '<div class="cta"><b>Turn scores into marks.</b><p>Try the free daily questions, then practise by subject with instant answers.</p><div class="cta-row"><a class="btn" href="/?src=calculators#freeHub">Free daily practice</a><a class="btn" href="/q">Free practice questions</a><a class="btn" href="/#join">Go Premium</a></div></div>';
+  return '<div class="cta"><b>Turn scores into marks.</b><p>Try the free daily questions, then practise by subject with instant answers.</p><div class="cta-row"><a class="btn" href="/?src=calculators#freeHub">Free daily practice</a><a class="btn" href="/anki">Free Anki deck</a><a class="btn" href="/#join">Go Premium</a></div></div>';
 }
 function calcNotFound(site) {
   return htmlResponse(shell(site, { title: 'Page not found | PPTNEETPGHUB', desc: 'This page was not found.', path: '/calculators', noindex: true,
